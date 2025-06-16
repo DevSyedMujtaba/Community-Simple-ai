@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,18 +20,7 @@ import NoticeGeneration from "@/components/dashboard/NoticeGeneration";
  */
 const BoardDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-
-  // Sample community statistics
-  const communityStats = {
-    totalHomes: 156,
-    activeMember: 142,
-    pendingCompliance: 8,
-    messagesThisWeek: 23,
-    pendingRequests: 3
-  };
-
-  // Sample documents for the documents tab
-  const sampleDocuments = [
+  const [documents, setDocuments] = useState([
     {
       id: '1',
       name: 'CC&R Document 2024',
@@ -47,7 +35,21 @@ const BoardDashboard = () => {
       summary: 'Comprehensive parking rules including visitor parking policies, assigned space regulations, and towing procedures. Covers 2-car limit per unit, visitor permits valid for 48 hours, and designated areas for motorcycles and bicycles.',
       size: 1234567
     }
-  ];
+  ]);
+
+  // Sample community statistics
+  const communityStats = {
+    totalHomes: 156,
+    activeMember: 142,
+    pendingCompliance: 8,
+    messagesThisWeek: 23,
+    pendingRequests: 3
+  };
+
+  // Handle document upload
+  const handleDocumentUploaded = (newDocument: any) => {
+    setDocuments(prev => [...prev, newDocument]);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -218,7 +220,7 @@ const BoardDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DocumentUpload />
+                  <DocumentUpload onDocumentUploaded={handleDocumentUploaded} />
                 </CardContent>
               </Card>
 
@@ -230,7 +232,7 @@ const BoardDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DocumentList documents={sampleDocuments} />
+                  <DocumentList documents={documents} />
                 </CardContent>
               </Card>
 
@@ -242,7 +244,7 @@ const BoardDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ChatInterface />
+                  <ChatInterface documents={documents} />
                 </CardContent>
               </Card>
             </div>
