@@ -38,17 +38,7 @@ const Index = () => {
       <Header />
       
       {/* Hero Section */}
-      <div className="gradient-bg text-white py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
-            Stay Legal, Stay Protected
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
-            AI-powered HOA compliance made simple. Convert dense documents into plain-English 
-            summaries and get instant answers to your community questions.
-          </p>
-        </div>
-      </div>
+      
 
       {/* Dashboard Selection */}
       <div className="py-16 px-4">
