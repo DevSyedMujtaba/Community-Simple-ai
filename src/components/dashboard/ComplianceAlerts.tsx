@@ -122,32 +122,7 @@ const ComplianceAlerts = () => {
   }, {} as Record<string, ComplianceAlert[]>);
   return <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">2</div>
-            <div className="text-sm text-gray-600">Warnings</div>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">2</div>
-            <div className="text-sm text-gray-600">Info</div>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">1</div>
-            <div className="text-sm text-gray-600">Updates</div>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-gray-600">1</div>
-            <div className="text-sm text-gray-600">Pending</div>
-          </CardContent>
-        </Card>
-      </div>
+      
 
       {/* Alerts by Category */}
       <div className="space-y-6">
