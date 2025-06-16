@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home, Users, Shield } from "lucide-react";
@@ -13,35 +12,29 @@ const Index = () => {
   const navigate = useNavigate();
 
   // Dashboard configuration with navigation details
-  const dashboards = [
-    {
-      title: "Homeowner Dashboard",
-      description: "Upload HOA documents, get AI summaries, and chat with your documents for compliance guidance.",
-      icon: Home,
-      path: "/homeowner",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 hover:bg-blue-100"
-    },
-    {
-      title: "Board Member Dashboard", 
-      description: "Manage your HOA community, communicate with homeowners, and oversee compliance matters.",
-      icon: Users,
-      path: "/board",
-      color: "text-green-600",
-      bgColor: "bg-green-50 hover:bg-green-100"
-    },
-    {
-      title: "Admin Dashboard",
-      description: "Internal use only. Monitor platform statistics, user management, and system analytics.",
-      icon: Shield,
-      path: "/admin",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50 hover:bg-purple-100"
-    }
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-light">
+  const dashboards = [{
+    title: "Homeowner Dashboard",
+    description: "Upload HOA documents, get AI summaries, and chat with your documents for compliance guidance.",
+    icon: Home,
+    path: "/homeowner",
+    color: "text-blue-600",
+    bgColor: "bg-blue-50 hover:bg-blue-100"
+  }, {
+    title: "Board Member Dashboard",
+    description: "Manage your HOA community, communicate with homeowners, and oversee compliance matters.",
+    icon: Users,
+    path: "/board",
+    color: "text-green-600",
+    bgColor: "bg-green-50 hover:bg-green-100"
+  }, {
+    title: "Admin Dashboard",
+    description: "Internal use only. Monitor platform statistics, user management, and system analytics.",
+    icon: Shield,
+    path: "/admin",
+    color: "text-purple-600",
+    bgColor: "bg-purple-50 hover:bg-purple-100"
+  }];
+  return <div className="min-h-screen bg-gradient-light">
       <Header />
       
       {/* Hero Section */}
@@ -71,13 +64,8 @@ const Index = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {dashboards.map((dashboard, index) => {
-              const IconComponent = dashboard.icon;
-              return (
-                <Card 
-                  key={index} 
-                  className={`${dashboard.bgColor} border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105`}
-                  onClick={() => navigate(dashboard.path)}
-                >
+            const IconComponent = dashboard.icon;
+            return <Card key={index} className={`${dashboard.bgColor} border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105`} onClick={() => navigate(dashboard.path)}>
                   <CardHeader className="text-center pb-4">
                     <div className="mx-auto mb-4 p-4 rounded-full bg-white shadow-md">
                       <IconComponent className={`h-8 w-8 ${dashboard.color}`} />
@@ -90,59 +78,21 @@ const Index = () => {
                     <CardDescription className="text-gray-700 mb-6 min-h-[60px]">
                       {dashboard.description}
                     </CardDescription>
-                    <Button 
-                      className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(dashboard.path);
-                      }}
-                    >
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-white font-medium" onClick={e => {
+                  e.stopPropagation();
+                  navigate(dashboard.path);
+                }}>
                       Access Dashboard
                     </Button>
                   </CardContent>
-                </Card>
-              );
-            })}
+                </Card>;
+          })}
           </div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="bg-gray-50 py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
-            Why Choose Neighbor.Simple?
-          </h3>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="text-left">
-              <h4 className="text-xl font-semibold text-gray-900 mb-3">AI-Powered Analysis</h4>
-              <p className="text-gray-600">
-                Convert complex HOA documents into easy-to-understand summaries with our advanced AI technology.
-              </p>
-            </div>
-            <div className="text-left">
-              <h4 className="text-xl font-semibold text-gray-900 mb-3">Instant Q&A Support</h4>
-              <p className="text-gray-600">
-                Get immediate answers to your HOA questions based on your community's specific documents and rules.
-              </p>
-            </div>
-            <div className="text-left">
-              <h4 className="text-xl font-semibold text-gray-900 mb-3">Compliance Tracking</h4>
-              <p className="text-gray-600">
-                Automatically flag important compliance rules like pet restrictions, parking, and noise ordinances.
-              </p>
-            </div>
-            <div className="text-left">
-              <h4 className="text-xl font-semibold text-gray-900 mb-3">Community Management</h4>
-              <p className="text-gray-600">
-                Enable seamless communication between homeowners and board members within your HOA platform.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+      
+    </div>;
 };
-
 export default Index;
