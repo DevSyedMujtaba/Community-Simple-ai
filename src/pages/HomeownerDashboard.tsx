@@ -1,95 +1,85 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Upload, MessageSquare, FileText, AlertCircle, Home, User } from "lucide-react";
 import Header from "@/components/layout/Header";
+import HomeownerNavigation from "@/components/dashboard/HomeownerNavigation";
 import DocumentUpload from "@/components/dashboard/DocumentUpload";
 import ChatInterface from "@/components/dashboard/ChatInterface";
 import ComplianceAlerts from "@/components/dashboard/ComplianceAlerts";
 import DocumentList from "@/components/dashboard/DocumentList";
+import HOAJoinRequest from "@/components/dashboard/HOAJoinRequest";
+import HomeownerSettings from "@/components/dashboard/HomeownerSettings";
 
 /**
- * Homeowner Dashboard - Main interface for homeowners to:
- * - Upload HOA documents and receive AI summaries
- * - Chat with AI about document contents
- * - View compliance alerts and rules
- * - Manage their document library
+ * Homeowner Dashboard - Enhanced with mobile navigation and HOA joining flow
+ * Features comprehensive homeowner management tools including:
+ * - HOA discovery and join requests
+ * - Document upload and AI summaries
+ * - Chat interface for Q&A
+ * - Compliance alerts and settings
+ * - Mobile-friendly responsive design
  */
 const HomeownerDashboard = () => {
-  const [activeTab, setActiveTab] = useState('upload');
-  const [uploadedDocuments, setUploadedDocuments] = useState<Array<{
+  const [activeTab, setActiveTab] = useState('join-hoa');
+  const [documents, setDocuments] = useState<Array<{
     id: string;
     name: string;
     uploadDate: string;
     summary: string;
+    size?: number;
   }>>([]);
+
+  // User status - in real app this would come from authentication
+  const userStatus = {
+    isJoinedToHOA: false, // Set to true if user has joined an HOA
+    hoaName: 'Sunrise Valley HOA',
+    pendingDocuments: documents.length
+  };
 
   // Handle document upload completion
   const handleDocumentUploaded = (document: any) => {
-    setUploadedDocuments(prev => [...prev, document]);
+    setDocuments(prev => [...prev, document]);
     console.log('Document uploaded:', document);
   };
-
-  // Navigation tabs configuration
-  const tabs = [
-    { id: 'upload', label: 'Upload Documents', icon: Upload },
-    { id: 'chat', label: 'AI Assistant', icon: MessageSquare },
-    { id: 'documents', label: 'My Documents', icon: FileText },
-    { id: 'alerts', label: 'Compliance Alerts', icon: AlertCircle }
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      {/* Dashboard Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="bg-blue-100 p-3 rounded-lg mr-4">
-                <Home className="h-8 w-8 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Homeowner Dashboard</h1>
-                <p className="text-gray-600">Manage your HOA documents and compliance</p>
-              </div>
-            </div>
-            <div className="flex items-center text-gray-600">
-              <User className="h-5 w-5 mr-2" />
-              <span>Welcome, Homeowner</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Navigation */}
+      <HomeownerNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        hoaName={userStatus.isJoinedToHOA ? userStatus.hoaName : "Select HOA"}
+        pendingDocuments={userStatus.pendingDocuments}
+      />
 
-      {/* Navigation Tabs */}
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="border-b border-gray-200 mb-8">
-          <nav className="-mb-px flex space-x-8 overflow-x-auto">
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                    activeTab === tab.id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <IconComponent className="h-5 w-5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
         {/* Tab Content */}
         <div className="space-y-6">
+          {activeTab === 'join-hoa' && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Home className="h-6 w-6 mr-2 text-primary" />
+                    Join Your HOA Community
+                  </CardTitle>
+                  <CardDescription>
+                    Find and request to join your HOA community to access documents, 
+                    compliance information, and communicate with your board.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <HOAJoinRequest />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {activeTab === 'upload' && (
             <div className="space-y-6">
               <Card>
@@ -105,6 +95,26 @@ const HomeownerDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <DocumentUpload onDocumentUploaded={handleDocumentUploaded} />
+                </CardContent>
+              </Card>
+
+              {/* Quick Upload Tips */}
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-100 p-2 rounded-lg mt-1">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-900 mb-1">Upload Tips</h4>
+                      <ul className="text-sm text-blue-800 space-y-1">
+                        <li>• Upload CC&Rs, bylaws, and community rules</li>
+                        <li>• Maximum file size: 25MB per document</li>
+                        <li>• AI analysis typically takes 1-2 minutes</li>
+                        <li>• Documents are processed securely and privately</li>
+                      </ul>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -124,9 +134,24 @@ const HomeownerDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ChatInterface documents={uploadedDocuments} />
+                  <ChatInterface documents={documents} />
                 </CardContent>
               </Card>
+
+              {documents.length === 0 && (
+                <Card className="border-dashed border-2 border-gray-300">
+                  <CardContent className="p-8 text-center">
+                    <MessageSquare className="h-8 w-8 mx-auto text-gray-400 mb-3" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No documents to chat about</h3>
+                    <p className="text-gray-600 mb-4">
+                      Upload your HOA documents first to start asking questions.
+                    </p>
+                    <Badge variant="outline" className="text-primary border-primary">
+                      Upload documents in the "Upload Documents" tab
+                    </Badge>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
 
@@ -143,7 +168,7 @@ const HomeownerDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DocumentList documents={uploadedDocuments} />
+                  <DocumentList documents={documents} />
                 </CardContent>
               </Card>
             </div>
@@ -164,6 +189,25 @@ const HomeownerDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <ComplianceAlerts />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <User className="h-6 w-6 mr-2 text-primary" />
+                    Account Settings
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your profile information, notification preferences, and account settings.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <HomeownerSettings />
                 </CardContent>
               </Card>
             </div>
