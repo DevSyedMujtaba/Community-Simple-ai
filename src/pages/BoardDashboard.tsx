@@ -4,16 +4,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Users, MessageSquare, FileText, Settings, Mail, TrendingUp } from "lucide-react";
 import Header from "@/components/layout/Header";
+import BoardNavigation from "@/components/dashboard/BoardNavigation";
 import MessageCenter from "@/components/dashboard/MessageCenter";
 import CommunityManagement from "@/components/dashboard/CommunityManagement";
 import ComplianceOverview from "@/components/dashboard/ComplianceOverview";
+import DocumentList from "@/components/dashboard/DocumentList";
+import DocumentUpload from "@/components/dashboard/DocumentUpload";
+import ChatInterface from "@/components/dashboard/ChatInterface";
+import HOAManagement from "@/components/dashboard/HOAManagement";
+import ResidentsManagement from "@/components/dashboard/ResidentsManagement";
+import NoticeGeneration from "@/components/dashboard/NoticeGeneration";
 
 /**
- * Board Member Dashboard - Interface for HOA board members to:
- * - Manage community settings and members
- * - Communicate with homeowners
- * - Monitor compliance across the community
- * - Access community analytics and insights
+ * Board Member Dashboard - Enhanced with mobile navigation
+ * Features comprehensive HOA management tools for board members
  */
 const BoardDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -23,24 +27,34 @@ const BoardDashboard = () => {
     totalHomes: 156,
     activeMember: 142,
     pendingCompliance: 8,
-    messagesThisWeek: 23
+    messagesThisWeek: 23,
+    pendingRequests: 3
   };
 
-  // Navigation tabs for board dashboard
-  const tabs = [
-    { id: 'overview', label: 'Community Overview', icon: TrendingUp },
-    { id: 'messages', label: 'Message Center', icon: MessageSquare },
-    { id: 'community', label: 'Community Management', icon: Users },
-    { id: 'compliance', label: 'Compliance Monitor', icon: FileText },
-    { id: 'settings', label: 'HOA Settings', icon: Settings }
+  // Sample documents for the documents tab
+  const sampleDocuments = [
+    {
+      id: '1',
+      name: 'CC&R Document 2024',
+      uploadDate: '2024-01-10',
+      summary: 'Updated Covenants, Conditions, and Restrictions document covering pet policies, architectural guidelines, and community standards. Key changes include updated pet weight limits (80lbs), new fence height restrictions (6ft maximum), and revised noise ordinance hours (quiet time 10 PM - 7 AM).',
+      size: 2456789
+    },
+    {
+      id: '2', 
+      name: 'Parking Regulations',
+      uploadDate: '2024-01-08',
+      summary: 'Comprehensive parking rules including visitor parking policies, assigned space regulations, and towing procedures. Covers 2-car limit per unit, visitor permits valid for 48 hours, and designated areas for motorcycles and bicycles.',
+      size: 1234567
+    }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      {/* Dashboard Header */}
-      <div className="bg-white shadow-sm">
+      {/* Dashboard Header - Desktop Only */}
+      <div className="hidden lg:block bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -61,29 +75,15 @@ const BoardDashboard = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="border-b border-gray-200 mb-8">
-          <nav className="-mb-px flex space-x-8 overflow-x-auto">
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                    activeTab === tab.id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <IconComponent className="h-5 w-5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+        {/* Navigation */}
+        <BoardNavigation 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          communityName="Sunrise Valley HOA"
+          pendingRequests={communityStats.pendingRequests}
+        />
 
         {/* Tab Content */}
         <div className="space-y-6">
@@ -171,38 +171,112 @@ const BoardDashboard = () => {
             </div>
           )}
 
-          {activeTab === 'messages' && (
+          {activeTab === 'hoa-management' && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <MessageSquare className="h-6 w-6 mr-2 text-primary" />
-                  Message Center
+                  <Settings className="h-6 w-6 mr-2 text-primary" />
+                  HOA Management
                 </CardTitle>
                 <CardDescription>
-                  Communicate with homeowners and manage community discussions
+                  Create and manage HOA communities with geographic tagging
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <MessageCenter />
+                <HOAManagement />
               </CardContent>
             </Card>
           )}
 
-          {activeTab === 'community' && (
+          {activeTab === 'residents' && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="h-6 w-6 mr-2 text-primary" />
-                  Community Management
+                  Residents Management
                 </CardTitle>
                 <CardDescription>
-                  Manage homeowners, create neighborhoods, and oversee community settings
+                  Invite homeowners, approve requests, and manage resident accounts
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <CommunityManagement />
+                <ResidentsManagement />
               </CardContent>
             </Card>
+          )}
+
+          {activeTab === 'documents' && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="h-6 w-6 mr-2 text-primary" />
+                    Document Management
+                  </CardTitle>
+                  <CardDescription>
+                    Upload official governing documents and view AI summaries
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DocumentUpload />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Uploaded Documents</CardTitle>
+                  <CardDescription>
+                    AI-analyzed documents with summaries and Q&A support
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DocumentList documents={sampleDocuments} />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>AI Assistant</CardTitle>
+                  <CardDescription>
+                    Ask questions about your uploaded documents
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChatInterface />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'messages' && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <MessageSquare className="h-6 w-6 mr-2 text-primary" />
+                    Communications Center
+                  </CardTitle>
+                  <CardDescription>
+                    Message individual residents and broadcast community updates
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <MessageCenter />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notice Generation</CardTitle>
+                  <CardDescription>
+                    Create and send official notices to residents
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <NoticeGeneration />
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {activeTab === 'compliance' && (
@@ -213,50 +287,11 @@ const BoardDashboard = () => {
                   Compliance Monitor
                 </CardTitle>
                 <CardDescription>
-                  Monitor community-wide compliance and manage rule enforcement
+                  Track violations, generate notices, and monitor community compliance
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ComplianceOverview />
-              </CardContent>
-            </Card>
-          )}
-
-          {activeTab === 'settings' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Settings className="h-6 w-6 mr-2 text-primary" />
-                  HOA Settings
-                </CardTitle>
-                <CardDescription>
-                  Configure your HOA community settings and preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Community Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Community Name</label>
-                        <input 
-                          type="text" 
-                          defaultValue="Sunrise Valley HOA"
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Total Units</label>
-                        <input 
-                          type="number" 
-                          defaultValue="156"
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           )}
