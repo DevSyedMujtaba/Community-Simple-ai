@@ -1,8 +1,6 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Info, CheckCircle, Clock } from "lucide-react";
-
 interface ComplianceAlert {
   id: string;
   type: 'warning' | 'info' | 'success' | 'pending';
@@ -20,60 +18,53 @@ interface ComplianceAlert {
  */
 const ComplianceAlerts = () => {
   // Sample compliance alerts data
-  const alerts: ComplianceAlert[] = [
-    {
-      id: '1',
-      type: 'warning',
-      title: 'Pet Registration Required',
-      description: 'All pets must be registered with the HOA office within 10 days of moving in. Failure to register may result in fines.',
-      category: 'Pets',
-      date: '2024-01-15',
-      action: 'Register your pets at the management office'
-    },
-    {
-      id: '2',
-      type: 'info',
-      title: 'Guest Parking Restrictions',
-      description: 'Guest parking is limited to 72 consecutive hours. Vehicles parked longer may be towed at owner expense.',
-      category: 'Parking',
-      date: '2024-01-14',
-      action: 'Notify guests of parking time limits'
-    },
-    {
-      id: '3',
-      type: 'pending',
-      title: 'Quiet Hours in Effect',
-      description: 'Quiet hours are 10 PM to 7 AM on weekdays, 11 PM to 8 AM on weekends. Please be considerate of your neighbors.',
-      category: 'Noise',
-      date: '2024-01-13'
-    },
-    {
-      id: '4',
-      type: 'warning',
-      title: 'Architectural Approval Required',
-      description: 'Any exterior modifications including paint colors, landscaping changes, or installations require board approval.',
-      category: 'Architecture',
-      date: '2024-01-12',
-      action: 'Submit architectural request form before making changes'
-    },
-    {
-      id: '5',
-      type: 'success',
-      title: 'Community Pool Hours Extended',
-      description: 'Pool hours have been extended to 10 PM during summer months (June-August). Regular hours 6 AM to 8 PM apply year-round.',
-      category: 'Amenities',
-      date: '2024-01-10'
-    },
-    {
-      id: '6',
-      type: 'info',
-      title: 'Monthly HOA Dues Reminder',
-      description: 'Monthly dues are due by the 1st of each month. Late fees apply after the 15th. Set up autopay to avoid late charges.',
-      category: 'Fees',
-      date: '2024-01-08',
-      action: 'Set up automatic payments online'
-    }
-  ];
+  const alerts: ComplianceAlert[] = [{
+    id: '1',
+    type: 'warning',
+    title: 'Pet Registration Required',
+    description: 'All pets must be registered with the HOA office within 10 days of moving in. Failure to register may result in fines.',
+    category: 'Pets',
+    date: '2024-01-15',
+    action: 'Register your pets at the management office'
+  }, {
+    id: '2',
+    type: 'info',
+    title: 'Guest Parking Restrictions',
+    description: 'Guest parking is limited to 72 consecutive hours. Vehicles parked longer may be towed at owner expense.',
+    category: 'Parking',
+    date: '2024-01-14',
+    action: 'Notify guests of parking time limits'
+  }, {
+    id: '3',
+    type: 'pending',
+    title: 'Quiet Hours in Effect',
+    description: 'Quiet hours are 10 PM to 7 AM on weekdays, 11 PM to 8 AM on weekends. Please be considerate of your neighbors.',
+    category: 'Noise',
+    date: '2024-01-13'
+  }, {
+    id: '4',
+    type: 'warning',
+    title: 'Architectural Approval Required',
+    description: 'Any exterior modifications including paint colors, landscaping changes, or installations require board approval.',
+    category: 'Architecture',
+    date: '2024-01-12',
+    action: 'Submit architectural request form before making changes'
+  }, {
+    id: '5',
+    type: 'success',
+    title: 'Community Pool Hours Extended',
+    description: 'Pool hours have been extended to 10 PM during summer months (June-August). Regular hours 6 AM to 8 PM apply year-round.',
+    category: 'Amenities',
+    date: '2024-01-10'
+  }, {
+    id: '6',
+    type: 'info',
+    title: 'Monthly HOA Dues Reminder',
+    description: 'Monthly dues are due by the 1st of each month. Late fees apply after the 15th. Set up autopay to avoid late charges.',
+    category: 'Fees',
+    date: '2024-01-08',
+    action: 'Set up automatic payments online'
+  }];
 
   // Get icon and colors based on alert type
   const getAlertStyles = (type: ComplianceAlert['type']) => {
@@ -129,9 +120,7 @@ const ComplianceAlerts = () => {
     acc[alert.category].push(alert);
     return acc;
   }, {} as Record<string, ComplianceAlert[]>);
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="text-center">
@@ -162,19 +151,13 @@ const ComplianceAlerts = () => {
 
       {/* Alerts by Category */}
       <div className="space-y-6">
-        {Object.entries(alertsByCategory).map(([category, categoryAlerts]) => (
-          <div key={category}>
+        {Object.entries(alertsByCategory).map(([category, categoryAlerts]) => <div key={category}>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{category}</h3>
             <div className="space-y-3">
-              {categoryAlerts.map((alert) => {
-                const styles = getAlertStyles(alert.type);
-                const IconComponent = styles.icon;
-                
-                return (
-                  <Card 
-                    key={alert.id} 
-                    className={`${styles.bgColor} ${styles.borderColor} border`}
-                  >
+              {categoryAlerts.map(alert => {
+            const styles = getAlertStyles(alert.type);
+            const IconComponent = styles.icon;
+            return <Card key={alert.id} className={`${styles.bgColor} ${styles.borderColor} border`}>
                     <CardContent className="p-4">
                       <div className="flex items-start space-x-4">
                         <div className="flex-shrink-0">
@@ -193,14 +176,12 @@ const ComplianceAlerts = () => {
                             {alert.description}
                           </p>
                           
-                          {alert.action && (
-                            <div className="bg-white bg-opacity-60 p-3 rounded-lg">
+                          {alert.action && <div className="bg-white bg-opacity-60 p-3 rounded-lg">
                               <p className="text-sm font-medium text-gray-900 mb-1">
                                 Action Required:
                               </p>
                               <p className="text-sm text-gray-700">{alert.action}</p>
-                            </div>
-                          )}
+                            </div>}
                           
                           <div className="mt-3 text-xs text-gray-500">
                             {new Date(alert.date).toLocaleDateString()}
@@ -208,43 +189,14 @@ const ComplianceAlerts = () => {
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-                );
-              })}
+                  </Card>;
+          })}
             </div>
-          </div>
-        ))}
+          </div>)}
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Compliance Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Register Pets</h4>
-              <p className="text-sm text-blue-700 mb-3">
-                Complete pet registration to avoid violations.
-              </p>
-              <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                Go to Registration →
-              </button>
-            </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">Architectural Request</h4>
-              <p className="text-sm text-green-700 mb-3">
-                Submit requests for exterior modifications.
-              </p>
-              <button className="text-sm text-green-600 hover:text-green-800 font-medium">
-                Submit Request →
-              </button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+      
+    </div>;
 };
-
 export default ComplianceAlerts;
