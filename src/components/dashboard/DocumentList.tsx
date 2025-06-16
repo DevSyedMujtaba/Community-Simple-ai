@@ -1,8 +1,7 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Eye, Calendar, FileSize } from "lucide-react";
+import { FileText, Download, Eye, Calendar, File } from "lucide-react";
 
 interface Document {
   id: string;
@@ -136,7 +135,7 @@ const DocumentList = ({ documents }: DocumentListProps) => {
                     </div>
                     {document.size && (
                       <div className="flex items-center">
-                        <FileSize className="h-4 w-4 mr-1" />
+                        <File className="h-4 w-4 mr-1" />
                         {formatFileSize(document.size)}
                       </div>
                     )}
