@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
-  Upload, 
   MessageSquare, 
   FileText, 
   AlertCircle, 
@@ -26,7 +25,7 @@ import {
 
 interface HomeownerSidebarProps {
   hoaName?: string;
-  pendingDocuments?: number;
+  unreadMessages?: number;
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
@@ -38,7 +37,7 @@ interface HomeownerSidebarProps {
  */
 export function HomeownerSidebar({ 
   hoaName = "Select HOA",
-  pendingDocuments = 0,
+  unreadMessages = 0,
   activeTab,
   onTabChange
 }: HomeownerSidebarProps) {
@@ -55,23 +54,23 @@ export function HomeownerSidebar({
       description: 'Find and join your HOA community'
     },
     { 
-      id: 'upload', 
-      label: 'Upload Documents', 
-      icon: Upload, 
-      description: 'Upload HOA documents for AI analysis'
+      id: 'messages', 
+      label: 'Messages', 
+      icon: MessageSquare, 
+      description: 'Communicate with your HOA board',
+      badge: unreadMessages > 0 ? unreadMessages : undefined
     },
     { 
       id: 'chat', 
       label: 'AI Assistant', 
       icon: MessageSquare, 
-      description: 'Ask questions about your documents'
+      description: 'Ask questions about HOA documents'
     },
     { 
-      id: 'documents', 
-      label: 'My Documents', 
+      id: 'hoa-documents', 
+      label: 'HOA Documents', 
       icon: FileText, 
-      description: 'View uploaded documents and summaries',
-      badge: pendingDocuments > 0 ? pendingDocuments : undefined
+      description: 'View official HOA documents and policies'
     },
     { 
       id: 'alerts', 

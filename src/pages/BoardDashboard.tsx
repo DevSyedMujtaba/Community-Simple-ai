@@ -74,7 +74,7 @@ const BoardDashboard = () => {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-4 sm:p-6">
             <div className="space-y-6">
               {activeTab === 'overview' && (
                 <div className="space-y-6">
@@ -246,7 +246,7 @@ const BoardDashboard = () => {
                         Communications Center
                       </CardTitle>
                       <CardDescription>
-                        Message individual residents and broadcast community updates
+                        Manage communication with residents, reply to messages, and send community updates
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
