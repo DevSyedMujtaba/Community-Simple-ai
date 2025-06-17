@@ -1,10 +1,8 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Users, Search, Filter, Calendar, MapPin, Mail, Phone } from "lucide-react";
-
 interface HOAMember {
   id: string;
   name: string;
@@ -13,7 +11,6 @@ interface HOAMember {
   joinDate: string;
   status: 'active' | 'pending' | 'inactive';
 }
-
 interface HOA {
   id: string;
   name: string;
@@ -41,115 +38,96 @@ const HOAManagement = () => {
   const [expandedHOA, setExpandedHOA] = useState<string | null>(null);
 
   // Sample HOAs data
-  const hoas: HOA[] = [
-    {
+  const hoas: HOA[] = [{
+    id: '1',
+    name: 'Sunrise Valley HOA',
+    address: '123 Valley Drive',
+    city: 'Phoenix',
+    state: 'Arizona',
+    totalUnits: 156,
+    createdDate: '2023-01-15',
+    boardMembers: 2,
+    activeMembers: 78,
+    pendingRequests: 3,
+    contactEmail: 'board@sunrisevalley.com',
+    contactPhone: '(555) 123-4567',
+    members: [{
       id: '1',
-      name: 'Sunrise Valley HOA',
-      address: '123 Valley Drive',
-      city: 'Phoenix',
-      state: 'Arizona',
-      totalUnits: 156,
-      createdDate: '2023-01-15',
-      boardMembers: 2,
-      activeMembers: 78,
-      pendingRequests: 3,
-      contactEmail: 'board@sunrisevalley.com',
-      contactPhone: '(555) 123-4567',
-      members: [
-        {
-          id: '1',
-          name: 'Lisa Park',
-          email: 'lisa.park@email.com',
-          role: 'board',
-          joinDate: '2023-01-10',
-          status: 'active'
-        },
-        {
-          id: '2',
-          name: 'Sarah Johnson',
-          email: 'sarah.johnson@email.com',
-          role: 'homeowner',
-          joinDate: '2023-03-15',
-          status: 'active'
-        },
-        {
-          id: '3',
-          name: 'Mike Chen',
-          email: 'mike.chen@email.com',
-          role: 'homeowner',
-          joinDate: '2023-05-20',
-          status: 'active'
-        }
-      ]
-    },
-    {
+      name: 'Lisa Park',
+      email: 'lisa.park@email.com',
+      role: 'board',
+      joinDate: '2023-01-10',
+      status: 'active'
+    }, {
       id: '2',
-      name: 'Oak Ridge Community',
-      address: '456 Oak Street',
-      city: 'Austin',
-      state: 'Texas',
-      totalUnits: 203,
-      createdDate: '2023-02-20',
-      boardMembers: 1,
-      activeMembers: 124,
-      pendingRequests: 1,
-      contactEmail: 'admin@oakridge.com',
-      contactPhone: '(555) 987-6543',
-      members: [
-        {
-          id: '4',
-          name: 'Robert Kim',
-          email: 'robert.kim@email.com',
-          role: 'board',
-          joinDate: '2023-02-15',
-          status: 'active'
-        },
-        {
-          id: '5',
-          name: 'David Wilson',
-          email: 'david.wilson@email.com',
-          role: 'homeowner',
-          joinDate: '2023-02-28',
-          status: 'inactive'
-        }
-      ]
-    },
-    {
+      name: 'Sarah Johnson',
+      email: 'sarah.johnson@email.com',
+      role: 'homeowner',
+      joinDate: '2023-03-15',
+      status: 'active'
+    }, {
       id: '3',
-      name: 'Meadowbrook Community',
-      address: '789 Meadow Lane',
-      city: 'Denver',
-      state: 'Colorado',
-      totalUnits: 89,
-      createdDate: '2024-01-10',
-      boardMembers: 1,
-      activeMembers: 45,
-      pendingRequests: 5,
-      contactEmail: 'contact@meadowbrook.com',
-      contactPhone: '(555) 456-7890',
-      members: [
-        {
-          id: '6',
-          name: 'Emma Thompson',
-          email: 'emma.t@email.com',
-          role: 'homeowner',
-          joinDate: '2024-01-10',
-          status: 'active'
-        }
-      ]
-    }
-  ];
+      name: 'Mike Chen',
+      email: 'mike.chen@email.com',
+      role: 'homeowner',
+      joinDate: '2023-05-20',
+      status: 'active'
+    }]
+  }, {
+    id: '2',
+    name: 'Oak Ridge Community',
+    address: '456 Oak Street',
+    city: 'Austin',
+    state: 'Texas',
+    totalUnits: 203,
+    createdDate: '2023-02-20',
+    boardMembers: 1,
+    activeMembers: 124,
+    pendingRequests: 1,
+    contactEmail: 'admin@oakridge.com',
+    contactPhone: '(555) 987-6543',
+    members: [{
+      id: '4',
+      name: 'Robert Kim',
+      email: 'robert.kim@email.com',
+      role: 'board',
+      joinDate: '2023-02-15',
+      status: 'active'
+    }, {
+      id: '5',
+      name: 'David Wilson',
+      email: 'david.wilson@email.com',
+      role: 'homeowner',
+      joinDate: '2023-02-28',
+      status: 'inactive'
+    }]
+  }, {
+    id: '3',
+    name: 'Meadowbrook Community',
+    address: '789 Meadow Lane',
+    city: 'Denver',
+    state: 'Colorado',
+    totalUnits: 89,
+    createdDate: '2024-01-10',
+    boardMembers: 1,
+    activeMembers: 45,
+    pendingRequests: 5,
+    contactEmail: 'contact@meadowbrook.com',
+    contactPhone: '(555) 456-7890',
+    members: [{
+      id: '6',
+      name: 'Emma Thompson',
+      email: 'emma.t@email.com',
+      role: 'homeowner',
+      joinDate: '2024-01-10',
+      status: 'active'
+    }]
+  }];
 
   // Filter HOAs based on search and filters
   const filteredHOAs = hoas.filter(hoa => {
-    const matchesSearch = hoa.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         hoa.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         hoa.state.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && hoa.activeMembers > 0) ||
-                         (statusFilter === 'inactive' && hoa.activeMembers === 0);
-    
+    const matchesSearch = hoa.name.toLowerCase().includes(searchTerm.toLowerCase()) || hoa.city.toLowerCase().includes(searchTerm.toLowerCase()) || hoa.state.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || statusFilter === 'active' && hoa.activeMembers > 0 || statusFilter === 'inactive' && hoa.activeMembers === 0;
     return matchesSearch && matchesStatus;
   });
 
@@ -164,19 +142,26 @@ const HOAManagement = () => {
   // Get status color for members
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   // Get role color
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'homeowner': return 'bg-blue-100 text-blue-800';
-      case 'board': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'homeowner':
+        return 'bg-blue-100 text-blue-800';
+      case 'board':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -184,9 +169,7 @@ const HOAManagement = () => {
   const toggleHOAExpansion = (hoaId: string) => {
     setExpandedHOA(expandedHOA === hoaId ? null : hoaId);
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Platform Statistics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -219,22 +202,12 @@ const HOAManagement = () => {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search HOAs, cities, or states..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-          />
+          <input type="text" placeholder="Search HOAs, cities, or states..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
         </div>
 
         <div className="flex items-center space-x-2">
           <Filter className="h-4 w-4 text-gray-600" />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-          >
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary">
             <option value="all">All HOAs</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -244,8 +217,7 @@ const HOAManagement = () => {
 
       {/* HOAs List */}
       <div className="space-y-4">
-        {filteredHOAs.map((hoa) => (
-          <Card key={hoa.id} className="hover:shadow-md transition-shadow">
+        {filteredHOAs.map(hoa => <Card key={hoa.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="space-y-4">
                 {/* HOA Header */}
@@ -284,10 +256,7 @@ const HOAManagement = () => {
                       
                       {/* Quick Stats */}
                       <div className="grid grid-cols-3 gap-4 text-xs">
-                        <div className="bg-blue-50 p-2 rounded">
-                          <div className="font-medium text-blue-900">Board Members</div>
-                          <div className="text-blue-700">{hoa.boardMembers}</div>
-                        </div>
+                        
                         <div className="bg-green-50 p-2 rounded">
                           <div className="font-medium text-green-900">Active Members</div>
                           <div className="text-green-700">{hoa.activeMembers}</div>
@@ -301,33 +270,22 @@ const HOAManagement = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleHOAExpansion(hoa.id)}
-                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => toggleHOAExpansion(hoa.id)} className="text-blue-600 border-blue-600 hover:bg-blue-50">
                       {expandedHOA === hoa.id ? 'Hide Members' : 'View Members'}
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-purple-600 border-purple-600 hover:bg-purple-50"
-                    >
+                    <Button variant="outline" size="sm" className="text-purple-600 border-purple-600 hover:bg-purple-50">
                       Manage
                     </Button>
                   </div>
                 </div>
 
                 {/* Expanded Members List */}
-                {expandedHOA === hoa.id && (
-                  <div className="border-t pt-4">
+                {expandedHOA === hoa.id && <div className="border-t pt-4">
                     <h4 className="text-md font-semibold text-gray-900 mb-3">
                       Members ({hoa.members.length})
                     </h4>
                     <div className="space-y-3">
-                      {hoa.members.map((member) => (
-                        <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 rounded-lg">
+                      {hoa.members.map(member => <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center space-x-3 min-w-0 flex-1">
                             <div className="bg-gray-200 p-2 rounded-full">
                               <Users className="h-4 w-4 text-gray-600" />
@@ -351,42 +309,28 @@ const HOAManagement = () => {
                               </div>
                             </div>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-gray-600 border-gray-600 hover:bg-gray-100 w-full sm:w-auto"
-                          >
+                          <Button variant="outline" size="sm" className="text-gray-600 border-gray-600 hover:bg-gray-100 w-full sm:w-auto">
                             View Profile
                           </Button>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
-                  </div>
-                )}
+                  </div>}
               </div>
             </CardContent>
-          </Card>
-        ))}
+          </Card>)}
       </div>
 
-      {filteredHOAs.length === 0 && (
-        <Card className="border-dashed border-2 border-gray-300">
+      {filteredHOAs.length === 0 && <Card className="border-dashed border-2 border-gray-300">
           <CardContent className="p-12 text-center">
             <div className="mx-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
               <Building2 className="h-6 w-6 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No HOAs found</h3>
             <p className="text-gray-600">
-              {searchTerm || statusFilter !== 'all'
-                ? 'Adjust your search criteria or filters to see more results.'
-                : 'No HOAs registered in the system yet.'
-              }
+              {searchTerm || statusFilter !== 'all' ? 'Adjust your search criteria or filters to see more results.' : 'No HOAs registered in the system yet.'}
             </p>
           </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 };
-
 export default HOAManagement;
