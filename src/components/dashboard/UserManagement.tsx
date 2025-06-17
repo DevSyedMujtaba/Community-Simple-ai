@@ -23,6 +23,7 @@ interface User {
  * User Management Component for Admin Dashboard
  * Displays and manages all registered users across all HOAs
  * Provides filtering, search, and user analytics
+ * Fully responsive design for mobile and desktop
  */
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -179,48 +180,48 @@ const UserManagement = () => {
   return (
     <div className="space-y-6">
       {/* Platform Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">{stats.total}</div>
-            <div className="text-sm text-gray-600">Total Users</div>
+            <div className="text-xl lg:text-2xl font-bold text-purple-600">{stats.total}</div>
+            <div className="text-xs lg:text-sm text-gray-600">Total Users</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-            <div className="text-sm text-gray-600">Active</div>
+            <div className="text-xl lg:text-2xl font-bold text-green-600">{stats.active}</div>
+            <div className="text-xs lg:text-sm text-gray-600">Active</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.homeowners}</div>
-            <div className="text-sm text-gray-600">Homeowners</div>
+            <div className="text-xl lg:text-2xl font-bold text-blue-600">{stats.homeowners}</div>
+            <div className="text-xs lg:text-sm text-gray-600">Homeowners</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">{stats.boardMembers}</div>
-            <div className="text-sm text-gray-600">Board Members</div>
+            <div className="text-xl lg:text-2xl font-bold text-purple-600">{stats.boardMembers}</div>
+            <div className="text-xs lg:text-sm text-gray-600">Board Members</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-orange-600">{stats.totalMessages.toLocaleString()}</div>
-            <div className="text-sm text-gray-600">Messages</div>
+            <div className="text-xl lg:text-2xl font-bold text-orange-600">{stats.totalMessages.toLocaleString()}</div>
+            <div className="text-xs lg:text-sm text-gray-600">Messages</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">{(stats.totalTokens / 1000000).toFixed(1)}M</div>
-            <div className="text-sm text-gray-600">Tokens Used</div>
+            <div className="text-xl lg:text-2xl font-bold text-red-600">{(stats.totalTokens / 1000000).toFixed(1)}M</div>
+            <div className="text-xs lg:text-sm text-gray-600">Tokens Used</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col gap-4">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
@@ -231,17 +232,19 @@ const UserManagement = () => {
           />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Filter className="h-4 w-4 text-gray-600" />
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value as any)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
-          >
-            <option value="all">All Roles</option>
-            <option value="homeowner">Homeowners</option>
-            <option value="board">Board Members</option>
-          </select>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4 text-gray-600" />
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value as any)}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+            >
+              <option value="all">All Roles</option>
+              <option value="homeowner">Homeowners</option>
+              <option value="board">Board Members</option>
+            </select>
+          </div>
           
           <select
             value={statusFilter}
@@ -260,80 +263,85 @@ const UserManagement = () => {
       <div className="space-y-4">
         {filteredUsers.map((user) => (
           <Card key={user.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-gray-100 p-3 rounded-full">
-                    <Users className="h-6 w-6 text-gray-600" />
-                  </div>
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{user.name}</h3>
-                      <Badge className={getRoleColor(user.role)} variant="secondary">
-                        {user.role}
-                      </Badge>
-                      <Badge className={getStatusColor(user.status)} variant="secondary">
-                        {user.status}
-                      </Badge>
+            <CardContent className="p-4 lg:p-6">
+              <div className="space-y-4">
+                {/* User Header */}
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  <div className="flex items-start space-x-4 min-w-0 flex-1">
+                    <div className="bg-gray-100 p-3 rounded-full flex-shrink-0">
+                      <Users className="h-6 w-6 text-gray-600" />
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
-                      <div className="flex items-center">
-                        <Mail className="h-4 w-4 mr-2" />
-                        {user.email}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">{user.name}</h3>
+                        <div className="flex gap-2">
+                          <Badge className={getRoleColor(user.role)} variant="secondary">
+                            {user.role}
+                          </Badge>
+                          <Badge className={getStatusColor(user.status)} variant="secondary">
+                            {user.status}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-2" />
-                        {user.hoaName}
-                      </div>
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Joined {new Date(user.joinDate).toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center">
-                        <Activity className="h-4 w-4 mr-2" />
-                        Active {new Date(user.lastActive).toLocaleDateString()}
-                      </div>
-                    </div>
-                    
-                    {/* Usage Statistics */}
-                    <div className="grid grid-cols-3 gap-4 text-xs text-gray-500">
-                      <div className="bg-blue-50 p-2 rounded">
-                        <div className="font-medium text-blue-900">Messages Sent</div>
-                        <div className="text-blue-700">{user.messagesSent}</div>
-                      </div>
-                      <div className="bg-green-50 p-2 rounded">
-                        <div className="font-medium text-green-900">Messages Received</div>
-                        <div className="text-green-700">{user.messagesReceived}</div>
-                      </div>
-                      <div className="bg-purple-50 p-2 rounded">
-                        <div className="font-medium text-purple-900">Token Usage</div>
-                        <div className="text-purple-700">{user.tokenUsage.toLocaleString()}</div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
+                        <div className="flex items-center">
+                          <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">{user.email}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">{user.hoaName}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span>Joined {new Date(user.joinDate).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Activity className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span>Active {new Date(user.lastActive).toLocaleDateString()}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex flex-col space-y-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewUser(user.id)}
-                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                  >
-                    View Details
-                  </Button>
-                  {user.status !== 'suspended' && (
+                  
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleSuspendUser(user.id)}
-                      className="text-red-600 border-red-600 hover:bg-red-50"
+                      onClick={() => handleViewUser(user.id)}
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
                     >
-                      Suspend
+                      View Details
                     </Button>
-                  )}
+                    {user.status !== 'suspended' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSuspendUser(user.id)}
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                      >
+                        Suspend
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Usage Statistics */}
+                <div className="grid grid-cols-3 gap-4 text-xs">
+                  <div className="bg-blue-50 p-3 rounded">
+                    <div className="font-medium text-blue-900">Messages Sent</div>
+                    <div className="text-blue-700 text-lg font-semibold">{user.messagesSent}</div>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded">
+                    <div className="font-medium text-green-900">Messages Received</div>
+                    <div className="text-green-700 text-lg font-semibold">{user.messagesReceived}</div>
+                  </div>
+                  <div className="bg-purple-50 p-3 rounded">
+                    <div className="font-medium text-purple-900">Token Usage</div>
+                    <div className="text-purple-700 text-lg font-semibold">{user.tokenUsage.toLocaleString()}</div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -360,22 +368,22 @@ const UserManagement = () => {
 
       {/* Export and Bulk Actions */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+        <CardContent className="p-4 lg:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Bulk Actions</h3>
               <p className="text-sm text-gray-600">
                 Manage multiple users or export user data for analysis
               </p>
             </div>
-            <div className="flex space-x-3">
-              <Button variant="outline">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button variant="outline" className="w-full sm:w-auto">
                 Export CSV
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full sm:w-auto">
                 Send Notification
               </Button>
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Usage Analytics
               </Button>

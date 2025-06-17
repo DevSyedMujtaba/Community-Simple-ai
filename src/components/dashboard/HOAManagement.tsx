@@ -3,95 +3,165 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  MapPin, 
-  Users, 
-  Calendar, 
-  Edit, 
-  Settings,
-  Building,
-  Search
-} from "lucide-react";
+import { Building2, Users, Search, Filter, Calendar, MapPin, Mail, Phone } from "lucide-react";
+
+interface HOAMember {
+  id: string;
+  name: string;
+  email: string;
+  role: 'homeowner' | 'board';
+  joinDate: string;
+  status: 'active' | 'pending' | 'inactive';
+}
 
 interface HOA {
   id: string;
   name: string;
+  address: string;
   city: string;
   state: string;
   totalUnits: number;
-  activeMembers: number;
   createdDate: string;
-  status: 'active' | 'pending' | 'inactive';
+  boardMembers: number;
+  activeMembers: number;
+  pendingRequests: number;
+  contactEmail: string;
+  contactPhone: string;
+  members: HOAMember[];
 }
 
 /**
- * HOA Management Component
- * Allows board members to create new HOAs and manage existing ones
- * Includes geographic tagging and member management
+ * HOA Management Component for Admin Dashboard
+ * Displays all HOAs on the platform with their members and statistics
+ * Provides filtering, search, and HOA management capabilities
  */
 const HOAManagement = () => {
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newHOA, setNewHOA] = useState({
-    name: '',
-    city: '',
-    state: '',
-    totalUnits: ''
-  });
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [expandedHOA, setExpandedHOA] = useState<string | null>(null);
 
-  // Sample HOAs data - in real app this would come from backend
+  // Sample HOAs data
   const hoas: HOA[] = [
     {
       id: '1',
       name: 'Sunrise Valley HOA',
-      city: 'San Jose',
-      state: 'CA',
+      address: '123 Valley Drive',
+      city: 'Phoenix',
+      state: 'Arizona',
       totalUnits: 156,
-      activeMembers: 142,
-      createdDate: '2023-03-15',
-      status: 'active'
+      createdDate: '2023-01-15',
+      boardMembers: 2,
+      activeMembers: 78,
+      pendingRequests: 3,
+      contactEmail: 'board@sunrisevalley.com',
+      contactPhone: '(555) 123-4567',
+      members: [
+        {
+          id: '1',
+          name: 'Lisa Park',
+          email: 'lisa.park@email.com',
+          role: 'board',
+          joinDate: '2023-01-10',
+          status: 'active'
+        },
+        {
+          id: '2',
+          name: 'Sarah Johnson',
+          email: 'sarah.johnson@email.com',
+          role: 'homeowner',
+          joinDate: '2023-03-15',
+          status: 'active'
+        },
+        {
+          id: '3',
+          name: 'Mike Chen',
+          email: 'mike.chen@email.com',
+          role: 'homeowner',
+          joinDate: '2023-05-20',
+          status: 'active'
+        }
+      ]
     },
     {
       id: '2',
-      name: 'Oakwood Community',
+      name: 'Oak Ridge Community',
+      address: '456 Oak Street',
       city: 'Austin',
-      state: 'TX',
+      state: 'Texas',
+      totalUnits: 203,
+      createdDate: '2023-02-20',
+      boardMembers: 1,
+      activeMembers: 124,
+      pendingRequests: 1,
+      contactEmail: 'admin@oakridge.com',
+      contactPhone: '(555) 987-6543',
+      members: [
+        {
+          id: '4',
+          name: 'Robert Kim',
+          email: 'robert.kim@email.com',
+          role: 'board',
+          joinDate: '2023-02-15',
+          status: 'active'
+        },
+        {
+          id: '5',
+          name: 'David Wilson',
+          email: 'david.wilson@email.com',
+          role: 'homeowner',
+          joinDate: '2023-02-28',
+          status: 'inactive'
+        }
+      ]
+    },
+    {
+      id: '3',
+      name: 'Meadowbrook Community',
+      address: '789 Meadow Lane',
+      city: 'Denver',
+      state: 'Colorado',
       totalUnits: 89,
-      activeMembers: 76,
-      createdDate: '2023-07-20',
-      status: 'active'
+      createdDate: '2024-01-10',
+      boardMembers: 1,
+      activeMembers: 45,
+      pendingRequests: 5,
+      contactEmail: 'contact@meadowbrook.com',
+      contactPhone: '(555) 456-7890',
+      members: [
+        {
+          id: '6',
+          name: 'Emma Thompson',
+          email: 'emma.t@email.com',
+          role: 'homeowner',
+          joinDate: '2024-01-10',
+          status: 'active'
+        }
+      ]
     }
   ];
 
-  // US States for dropdown
-  const states = [
-    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
-  ];
+  // Filter HOAs based on search and filters
+  const filteredHOAs = hoas.filter(hoa => {
+    const matchesSearch = hoa.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         hoa.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         hoa.state.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && hoa.activeMembers > 0) ||
+                         (statusFilter === 'inactive' && hoa.activeMembers === 0);
+    
+    return matchesSearch && matchesStatus;
+  });
 
-  const filteredHOAs = hoas.filter(hoa =>
-    hoa.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hoa.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hoa.state.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleCreateHOA = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Creating HOA:', newHOA);
-    // In real implementation, this would call API to create HOA
-    setShowCreateForm(false);
-    setNewHOA({ name: '', city: '', state: '', totalUnits: '' });
+  // Calculate platform statistics
+  const stats = {
+    totalHOAs: hoas.length,
+    totalUnits: hoas.reduce((sum, hoa) => sum + hoa.totalUnits, 0),
+    totalMembers: hoas.reduce((sum, hoa) => sum + hoa.activeMembers, 0),
+    pendingRequests: hoas.reduce((sum, hoa) => sum + hoa.pendingRequests, 0)
   };
 
-  const handleEditHOA = (hoaId: string) => {
-    console.log('Editing HOA:', hoaId);
-    // In real implementation, this would open edit modal
-  };
-
+  // Get status color for members
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -101,200 +171,198 @@ const HOAManagement = () => {
     }
   };
 
+  // Get role color
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'homeowner': return 'bg-blue-100 text-blue-800';
+      case 'board': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Handle HOA expansion
+  const toggleHOAExpansion = (hoaId: string) => {
+    setExpandedHOA(expandedHOA === hoaId ? null : hoaId);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header with Create Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            HOA Communities ({filteredHOAs.length})
-          </h3>
-          <p className="text-sm text-gray-600">
-            Create and manage your HOA communities
-          </p>
-        </div>
-        <Button 
-          onClick={() => setShowCreateForm(true)}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create New HOA
-        </Button>
-      </div>
-
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search HOAs by name, city, or state..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-        />
-      </div>
-
-      {/* Create HOA Form */}
-      {showCreateForm && (
-        <Card className="border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building className="h-5 w-5 mr-2 text-primary" />
-              Create New HOA Community
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCreateHOA} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    HOA Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newHOA.name}
-                    onChange={(e) => setNewHOA({ ...newHOA, name: e.target.value })}
-                    placeholder="e.g., Sunrise Valley HOA"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Total Units *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    value={newHOA.totalUnits}
-                    onChange={(e) => setNewHOA({ ...newHOA, totalUnits: e.target.value })}
-                    placeholder="e.g., 150"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newHOA.city}
-                    onChange={(e) => setNewHOA({ ...newHOA, city: e.target.value })}
-                    placeholder="e.g., San Jose"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    State *
-                  </label>
-                  <select
-                    required
-                    value={newHOA.state}
-                    onChange={(e) => setNewHOA({ ...newHOA, state: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                  >
-                    <option value="">Select State</option>
-                    {states.map(state => (
-                      <option key={state} value={state}>{state}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              
-              <div className="flex space-x-3 pt-4">
-                <Button type="submit" className="bg-primary hover:bg-primary/90">
-                  Create HOA
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => setShowCreateForm(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
+      {/* Platform Statistics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-purple-600">{stats.totalHOAs}</div>
+            <div className="text-sm text-gray-600">Total HOAs</div>
           </CardContent>
         </Card>
-      )}
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{stats.totalUnits.toLocaleString()}</div>
+            <div className="text-sm text-gray-600">Total Units</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{stats.totalMembers.toLocaleString()}</div>
+            <div className="text-sm text-gray-600">Active Members</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-orange-600">{stats.pendingRequests}</div>
+            <div className="text-sm text-gray-600">Pending Requests</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search HOAs, cities, or states..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+          />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Filter className="h-4 w-4 text-gray-600" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+          >
+            <option value="all">All HOAs</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
 
       {/* HOAs List */}
       <div className="space-y-4">
         {filteredHOAs.map((hoa) => (
           <Card key={hoa.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <Building className="h-6 w-6 text-blue-600" />
+              <div className="space-y-4">
+                {/* HOA Header */}
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-purple-100 p-3 rounded-full">
+                      <Building2 className="h-6 w-6 text-purple-600" />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">{hoa.name}</h3>
+                        <Badge variant="outline" className="w-fit">
+                          {hoa.totalUnits} units
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-gray-600 mb-3">
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">{hoa.city}, {hoa.state}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span>Created {new Date(hoa.createdDate).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">{hoa.contactEmail}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span>{hoa.contactPhone}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Quick Stats */}
+                      <div className="grid grid-cols-3 gap-4 text-xs">
+                        <div className="bg-blue-50 p-2 rounded">
+                          <div className="font-medium text-blue-900">Board Members</div>
+                          <div className="text-blue-700">{hoa.boardMembers}</div>
+                        </div>
+                        <div className="bg-green-50 p-2 rounded">
+                          <div className="font-medium text-green-900">Active Members</div>
+                          <div className="text-green-700">{hoa.activeMembers}</div>
+                        </div>
+                        <div className="bg-orange-50 p-2 rounded">
+                          <div className="font-medium text-orange-900">Pending</div>
+                          <div className="text-orange-700">{hoa.pendingRequests}</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        {hoa.name}
-                      </h4>
-                      <Badge className={getStatusColor(hoa.status)} variant="secondary">
-                        {hoa.status}
-                      </Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        {hoa.city}, {hoa.state}
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-2" />
-                        {hoa.activeMembers}/{hoa.totalUnits} Members
-                      </div>
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Created {new Date(hoa.createdDate).toLocaleDateString()}
-                      </div>
-                    </div>
-                    
-                    {/* Quick Stats */}
-                    <div className="flex flex-wrap gap-3 mt-3">
-                      <div className="bg-green-50 px-3 py-1 rounded-full text-sm">
-                        <span className="text-green-800 font-medium">
-                          {Math.round((hoa.activeMembers / hoa.totalUnits) * 100)}% Occupied
-                        </span>
-                      </div>
-                      <div className="bg-blue-50 px-3 py-1 rounded-full text-sm">
-                        <span className="text-blue-800 font-medium">
-                          {hoa.totalUnits - hoa.activeMembers} Available Units
-                        </span>
-                      </div>
-                    </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleHOAExpansion(hoa.id)}
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                    >
+                      {expandedHOA === hoa.id ? 'Hide Members' : 'View Members'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-purple-600 border-purple-600 hover:bg-purple-50"
+                    >
+                      Manage
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditHOA(hoa.id)}
-                    className="text-gray-600 hover:text-gray-900"
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                  >
-                    <Settings className="h-4 w-4 mr-1" />
-                    Manage
-                  </Button>
-                </div>
+
+                {/* Expanded Members List */}
+                {expandedHOA === hoa.id && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-md font-semibold text-gray-900 mb-3">
+                      Members ({hoa.members.length})
+                    </h4>
+                    <div className="space-y-3">
+                      {hoa.members.map((member) => (
+                        <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3 min-w-0 flex-1">
+                            <div className="bg-gray-200 p-2 rounded-full">
+                              <Users className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                <span className="font-medium text-gray-900 truncate">{member.name}</span>
+                                <div className="flex gap-2">
+                                  <Badge className={getRoleColor(member.role)} variant="secondary">
+                                    {member.role}
+                                  </Badge>
+                                  <Badge className={getStatusColor(member.status)} variant="secondary">
+                                    {member.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                <span className="truncate block sm:inline">{member.email}</span>
+                                <span className="hidden sm:inline"> • </span>
+                                <span className="block sm:inline">Joined {new Date(member.joinDate).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-gray-600 border-gray-600 hover:bg-gray-100 w-full sm:w-auto"
+                          >
+                            View Profile
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -305,26 +373,15 @@ const HOAManagement = () => {
         <Card className="border-dashed border-2 border-gray-300">
           <CardContent className="p-12 text-center">
             <div className="mx-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-              <Building className="h-6 w-6 text-gray-400" />
+              <Building2 className="h-6 w-6 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm ? 'No HOAs found' : 'No HOAs created yet'}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {searchTerm 
-                ? `No HOAs match "${searchTerm}". Try a different search term.`
-                : 'Create your first HOA community to get started with managing homeowners and documents.'
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No HOAs found</h3>
+            <p className="text-gray-600">
+              {searchTerm || statusFilter !== 'all'
+                ? 'Adjust your search criteria or filters to see more results.'
+                : 'No HOAs registered in the system yet.'
               }
             </p>
-            {!searchTerm && (
-              <Button 
-                onClick={() => setShowCreateForm(true)}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First HOA
-              </Button>
-            )}
           </CardContent>
         </Card>
       )}

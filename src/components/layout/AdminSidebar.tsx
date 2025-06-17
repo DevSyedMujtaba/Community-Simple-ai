@@ -5,8 +5,7 @@ import {
   Shield, 
   Users, 
   BarChart3, 
-  Database, 
-  Settings
+  Building2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -55,16 +54,10 @@ export function AdminSidebar({
       description: 'Manage all platform users'
     },
     { 
-      id: 'analytics', 
-      label: 'System Analytics', 
-      icon: Database,
-      description: 'Usage metrics and analytics'
-    },
-    { 
-      id: 'settings', 
-      label: 'Platform Settings', 
-      icon: Settings,
-      description: 'Configure system settings'
+      id: 'hoas', 
+      label: 'HOAs Management', 
+      icon: Building2,
+      description: 'View and manage all HOAs'
     }
   ];
 
