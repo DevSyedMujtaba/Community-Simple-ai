@@ -273,9 +273,7 @@ const HOAManagement = () => {
                     <Button variant="outline" size="sm" onClick={() => toggleHOAExpansion(hoa.id)} className="text-blue-600 border-blue-600 hover:bg-blue-50">
                       {expandedHOA === hoa.id ? 'Hide Members' : 'View Members'}
                     </Button>
-                    <Button variant="outline" size="sm" className="text-purple-600 border-purple-600 hover:bg-purple-50">
-                      Manage
-                    </Button>
+                    
                   </div>
                 </div>
 
