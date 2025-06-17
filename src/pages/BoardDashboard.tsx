@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,7 +6,7 @@ import { Users, MessageSquare, FileText, Settings, Mail, TrendingUp } from "luci
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import Header from "@/components/layout/Header";
 import { BoardSidebar } from "@/components/layout/BoardSidebar";
-import MessageCenter from "@/components/dashboard/MessageCenter";
+import BoardMessages from "@/components/dashboard/BoardMessages";
 import CommunityManagement from "@/components/dashboard/CommunityManagement";
 import ComplianceOverview from "@/components/dashboard/ComplianceOverview";
 import DocumentList from "@/components/dashboard/DocumentList";
@@ -239,20 +240,7 @@ const BoardDashboard = () => {
 
               {activeTab === 'messages' && (
                 <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <MessageSquare className="h-6 w-6 mr-2 text-primary" />
-                        Communications Center
-                      </CardTitle>
-                      <CardDescription>
-                        Manage communication with residents, reply to messages, and send community updates
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <MessageCenter />
-                    </CardContent>
-                  </Card>
+                  <BoardMessages />
 
                   <Card>
                     <CardHeader>
