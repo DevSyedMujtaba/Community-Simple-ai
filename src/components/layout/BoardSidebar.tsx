@@ -1,8 +1,10 @@
+
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, MessageSquare, FileText, Settings, TrendingUp, Home, Bell } from "lucide-react";
+import { Users, MessageSquare, FileText, Settings, TrendingUp, Home, Bell, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, useSidebar } from "@/components/ui/sidebar";
+
 interface BoardSidebarProps {
   communityName: string;
   pendingRequests?: number;
@@ -51,19 +53,26 @@ export function BoardSidebar({
     description: 'Upload and manage HOA documents'
   }, {
     id: 'messages',
-    label: 'Communications',
+    label: 'Messages',
     icon: MessageSquare,
-    description: 'Messaging and notices'
+    description: 'Communication with residents'
+  }, {
+    id: 'notices',
+    label: 'Notices',
+    icon: AlertTriangle,
+    description: 'Create and manage notices'
   }, {
     id: 'compliance',
     label: 'Compliance',
     icon: Bell,
     description: 'Track violations and notices'
   }];
+
   const handleTabClick = (tabId: string) => {
     onTabChange(tabId);
   };
   const isActive = (tabId: string) => activeTab === tabId;
+  
   return <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader className="border-b">
         <div className="flex items-center space-x-3 p-2">

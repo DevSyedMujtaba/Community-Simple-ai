@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, MessageSquare, FileText, Settings, Mail, TrendingUp } from "lucide-react";
+import { Users, MessageSquare, FileText, Settings, Mail, TrendingUp, AlertTriangle } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import Header from "@/components/layout/Header";
 import { BoardSidebar } from "@/components/layout/BoardSidebar";
@@ -239,21 +239,37 @@ const BoardDashboard = () => {
               )}
 
               {activeTab === 'messages' && (
-                <div className="space-y-6">
-                  <BoardMessages />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <MessageSquare className="h-6 w-6 mr-2 text-primary" />
+                      Messages
+                    </CardTitle>
+                    <CardDescription>
+                      Communicate with residents and board members
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <BoardMessages />
+                  </CardContent>
+                </Card>
+              )}
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Notice Generation</CardTitle>
-                      <CardDescription>
-                        Create and send official notices to residents
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <NoticeGeneration />
-                    </CardContent>
-                  </Card>
-                </div>
+              {activeTab === 'notices' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <AlertTriangle className="h-6 w-6 mr-2 text-primary" />
+                      Notice Management
+                    </CardTitle>
+                    <CardDescription>
+                      Create, edit, and manage official notices to residents
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <NoticeGeneration />
+                  </CardContent>
+                </Card>
               )}
 
               {activeTab === 'compliance' && (

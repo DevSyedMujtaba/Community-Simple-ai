@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, FileText, AlertCircle, Home, User, Mail } from "lucide-react";
+import { MessageSquare, FileText, AlertCircle, Home, User, Mail, Bell } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { HomeownerSidebar } from "@/components/layout/HomeownerSidebar";
 import ChatInterface from "@/components/dashboard/ChatInterface";
@@ -11,6 +11,7 @@ import HOAJoinRequest from "@/components/dashboard/HOAJoinRequest";
 import HomeownerSettings from "@/components/dashboard/HomeownerSettings";
 import HomeownerMessages from "@/components/dashboard/HomeownerMessages";
 import HOADocumentsList from "@/components/dashboard/HOADocumentsList";
+import HomeownerNotices from "@/components/dashboard/HomeownerNotices";
 
 /**
  * Homeowner Dashboard - Enhanced with sidebar navigation
@@ -23,7 +24,8 @@ const HomeownerDashboard = () => {
   const userStatus = {
     isJoinedToHOA: false, // Set to true if user has joined an HOA
     hoaName: 'Sunrise Valley HOA',
-    unreadMessages: 3
+    unreadMessages: 3,
+    unreadNotices: 2
   };
 
   // Sample HOA documents for AI chat - these would be the board-uploaded documents
@@ -52,6 +54,7 @@ const HomeownerDashboard = () => {
           onTabChange={setActiveTab}
           hoaName={userStatus.isJoinedToHOA ? userStatus.hoaName : "Select HOA"}
           unreadMessages={userStatus.unreadMessages}
+          unreadNotices={userStatus.unreadNotices}
         />
         
         <SidebarInset className="flex-1">
@@ -91,23 +94,25 @@ const HomeownerDashboard = () => {
               )}
 
               {activeTab === 'messages' && (
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Mail className="h-6 w-6 mr-2 text-primary" />
-                        Messages
-                      </CardTitle>
-                      <CardDescription>
-                        Communicate directly with your HOA board members about community matters,
-                        requests, and questions.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <HomeownerMessages />
-                    </CardContent>
-                  </Card>
-                </div>
+                <HomeownerMessages />
+              )}
+
+              {activeTab === 'notices' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Bell className="h-6 w-6 mr-2 text-primary" />
+                      Notices
+                    </CardTitle>
+                    <CardDescription>
+                      View official notices from your HOA board including violations, 
+                      maintenance updates, and community announcements.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <HomeownerNotices />
+                  </CardContent>
+                </Card>
               )}
 
               {activeTab === 'chat' && (

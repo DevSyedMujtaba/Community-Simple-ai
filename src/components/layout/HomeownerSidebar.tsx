@@ -7,7 +7,8 @@ import {
   AlertCircle, 
   Home,
   Users,
-  Settings
+  Settings,
+  Bell
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -26,6 +27,7 @@ import {
 interface HomeownerSidebarProps {
   hoaName?: string;
   unreadMessages?: number;
+  unreadNotices?: number;
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
@@ -38,6 +40,7 @@ interface HomeownerSidebarProps {
 export function HomeownerSidebar({ 
   hoaName = "Select HOA",
   unreadMessages = 0,
+  unreadNotices = 0,
   activeTab,
   onTabChange
 }: HomeownerSidebarProps) {
@@ -59,6 +62,13 @@ export function HomeownerSidebar({
       icon: MessageSquare, 
       description: 'Communicate with your HOA board',
       badge: unreadMessages > 0 ? unreadMessages : undefined
+    },
+    { 
+      id: 'notices', 
+      label: 'Notices', 
+      icon: Bell, 
+      description: 'View notices from your HOA board',
+      badge: unreadNotices > 0 ? unreadNotices : undefined
     },
     { 
       id: 'chat', 
