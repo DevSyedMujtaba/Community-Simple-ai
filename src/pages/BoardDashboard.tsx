@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -64,96 +63,96 @@ const BoardDashboard = () => {
         />
         
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4">
             <SidebarTrigger className="-ml-1" />
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-semibold">Board Dashboard</span>
-              <Badge variant="outline" className="text-green-600 border-green-600">
+            <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
+              <span className="font-semibold truncate">Board Dashboard</span>
+              <Badge variant="outline" className="text-green-600 border-green-600 text-xs sm:text-sm flex-shrink-0">
                 Sunrise Valley HOA
               </Badge>
             </div>
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 p-4 sm:p-6">
-            <div className="space-y-6">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6">
+            <div className="space-y-4 sm:space-y-6">
               {activeTab === 'overview' && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Community Stats Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                     <Card>
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-2xl font-bold text-gray-900">{communityStats.totalHomes}</div>
-                          <Users className="h-8 w-8 text-blue-600 ml-auto" />
+                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{communityStats.totalHomes}</div>
+                          <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 ml-auto flex-shrink-0" />
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">Total Homes</p>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">Total Homes</p>
                       </CardContent>
                     </Card>
                     
                     <Card>
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-2xl font-bold text-gray-900">{communityStats.activeMember}</div>
-                          <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center ml-auto">
-                            <div className="h-3 w-3 bg-green-600 rounded-full"></div>
+                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{communityStats.activeMember}</div>
+                          <div className="h-6 w-6 sm:h-8 sm:w-8 bg-green-100 rounded-full flex items-center justify-center ml-auto flex-shrink-0">
+                            <div className="h-2 w-2 sm:h-3 sm:w-3 bg-green-600 rounded-full"></div>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">Active Members</p>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">Active Members</p>
                       </CardContent>
                     </Card>
 
                     <Card>
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-2xl font-bold text-gray-900">{communityStats.pendingCompliance}</div>
-                          <div className="h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center ml-auto">
-                            <div className="h-3 w-3 bg-orange-600 rounded-full"></div>
+                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{communityStats.pendingCompliance}</div>
+                          <div className="h-6 w-6 sm:h-8 sm:w-8 bg-orange-100 rounded-full flex items-center justify-center ml-auto flex-shrink-0">
+                            <div className="h-2 w-2 sm:h-3 sm:w-3 bg-orange-600 rounded-full"></div>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">Pending Issues</p>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">Pending Issues</p>
                       </CardContent>
                     </Card>
 
                     <Card>
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-2xl font-bold text-gray-900">{communityStats.messagesThisWeek}</div>
-                          <Mail className="h-8 w-8 text-purple-600 ml-auto" />
+                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{communityStats.messagesThisWeek}</div>
+                          <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 ml-auto flex-shrink-0" />
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">Messages This Week</p>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">Messages This Week</p>
                       </CardContent>
                     </Card>
                   </div>
 
                   {/* Recent Activity */}
                   <Card>
-                    <CardHeader>
-                      <CardTitle>Recent Community Activity</CardTitle>
-                      <CardDescription>Latest updates and actions in your community</CardDescription>
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="text-lg sm:text-xl">Recent Community Activity</CardTitle>
+                      <CardDescription className="text-sm sm:text-base">Latest updates and actions in your community</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center p-4 bg-blue-50 rounded-lg">
-                          <div className="bg-blue-100 p-2 rounded-lg mr-4">
-                            <FileText className="h-5 w-5 text-blue-600" />
+                    <CardContent className="pt-0">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex items-center p-3 sm:p-4 bg-blue-50 rounded-lg">
+                          <div className="bg-blue-100 p-2 rounded-lg mr-3 sm:mr-4 flex-shrink-0">
+                            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">New HOA document uploaded</p>
-                            <p className="text-sm text-gray-600">Updated parking regulations - Unit 205A</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 text-sm sm:text-base">New HOA document uploaded</p>
+                            <p className="text-xs sm:text-sm text-gray-600 truncate">Updated parking regulations - Unit 205A</p>
                           </div>
-                          <span className="text-sm text-gray-500">2 hours ago</span>
+                          <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">2 hours ago</span>
                         </div>
                         
-                        <div className="flex items-center p-4 bg-green-50 rounded-lg">
-                          <div className="bg-green-100 p-2 rounded-lg mr-4">
-                            <MessageSquare className="h-5 w-5 text-green-600" />
+                        <div className="flex items-center p-3 sm:p-4 bg-green-50 rounded-lg">
+                          <div className="bg-green-100 p-2 rounded-lg mr-3 sm:mr-4 flex-shrink-0">
+                            <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">Message from homeowner</p>
-                            <p className="text-sm text-gray-600">Question about pet policy - Unit 112B</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 text-sm sm:text-base">Message from homeowner</p>
+                            <p className="text-xs sm:text-sm text-gray-600 truncate">Question about pet policy - Unit 112B</p>
                           </div>
-                          <span className="text-sm text-gray-500">5 hours ago</span>
+                          <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">5 hours ago</span>
                         </div>
                       </div>
                     </CardContent>
@@ -163,16 +162,16 @@ const BoardDashboard = () => {
 
               {activeTab === 'hoa-management' && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Settings className="h-6 w-6 mr-2 text-primary" />
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="flex items-center text-lg sm:text-xl">
+                      <Settings className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
                       HOA Management
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-sm sm:text-base">
                       Create and manage HOA communities with geographic tagging
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <HOAManagement />
                   </CardContent>
                 </Card>
@@ -180,58 +179,58 @@ const BoardDashboard = () => {
 
               {activeTab === 'residents' && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Users className="h-6 w-6 mr-2 text-primary" />
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="flex items-center text-lg sm:text-xl">
+                      <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
                       Residents Management
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-sm sm:text-base">
                       Invite homeowners, approve requests, and manage resident accounts
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <ResidentsManagement />
                   </CardContent>
                 </Card>
               )}
 
               {activeTab === 'documents' && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <FileText className="h-6 w-6 mr-2 text-primary" />
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="flex items-center text-lg sm:text-xl">
+                        <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
                         Document Management
                       </CardTitle>
-                      <CardDescription>
+                      <CardDescription className="text-sm sm:text-base">
                         Upload official governing documents and view AI summaries
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <DocumentUpload onDocumentUploaded={handleDocumentUploaded} />
                     </CardContent>
                   </Card>
 
                   <Card>
-                    <CardHeader>
-                      <CardTitle>Uploaded Documents</CardTitle>
-                      <CardDescription>
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="text-lg sm:text-xl">Uploaded Documents</CardTitle>
+                      <CardDescription className="text-sm sm:text-base">
                         AI-analyzed documents with summaries and Q&A support
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <DocumentList documents={documents} />
                     </CardContent>
                   </Card>
 
                   <Card>
-                    <CardHeader>
-                      <CardTitle>AI Assistant</CardTitle>
-                      <CardDescription>
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="text-lg sm:text-xl">AI Assistant</CardTitle>
+                      <CardDescription className="text-sm sm:text-base">
                         Ask questions about your uploaded documents
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <ChatInterface documents={documents} />
                     </CardContent>
                   </Card>
@@ -240,16 +239,16 @@ const BoardDashboard = () => {
 
               {activeTab === 'messages' && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <MessageSquare className="h-6 w-6 mr-2 text-primary" />
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="flex items-center text-lg sm:text-xl">
+                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
                       Messages
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-sm sm:text-base">
                       Communicate with residents and board members
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <BoardMessages />
                   </CardContent>
                 </Card>
@@ -257,16 +256,16 @@ const BoardDashboard = () => {
 
               {activeTab === 'notices' && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <AlertTriangle className="h-6 w-6 mr-2 text-primary" />
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="flex items-center text-lg sm:text-xl">
+                      <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
                       Notice Management
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-sm sm:text-base">
                       Create, edit, and manage official notices to residents
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <NoticeGeneration />
                   </CardContent>
                 </Card>
@@ -274,16 +273,16 @@ const BoardDashboard = () => {
 
               {activeTab === 'compliance' && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <FileText className="h-6 w-6 mr-2 text-primary" />
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="flex items-center text-lg sm:text-xl">
+                      <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
                       Compliance Monitor
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-sm sm:text-base">
                       Track violations, generate notices, and monitor community compliance
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <ComplianceOverview />
                   </CardContent>
                 </Card>

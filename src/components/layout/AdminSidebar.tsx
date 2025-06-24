@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
@@ -68,22 +67,22 @@ export function AdminSidebar({
   const isActive = (tabId: string) => activeTab === tabId;
 
   return (
-    <Sidebar collapsible="icon" className="border-r bg-gradient-to-b from-purple-50 to-white">
-      <SidebarHeader className="border-b bg-gradient-to-r from-purple-600 to-purple-700">
-        <div className="flex items-center space-x-3 p-2">
-          <div className="bg-white bg-opacity-20 p-2 rounded-lg">
-            <Shield className="h-5 w-5 text-white" />
+    <Sidebar collapsible="icon" className="border-r bg-white">
+      <SidebarHeader className="border-b border-gray-200 bg-white h-16 flex items-center p-0">
+        <div className="flex items-center space-x-3 px-3 h-full w-full">
+          <div className="bg-blue-100 p-2 rounded-lg flex items-center justify-center h-10 w-10">
+            <Shield className="h-5 w-5 text-blue-600" />
           </div>
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <h1 className="text-sm font-semibold text-white truncate">
+              <h1 className="text-sm font-semibold text-blue-900 truncate">
                 Admin Dashboard
               </h1>
-              <p className="text-xs text-purple-100 truncate">Platform Management</p>
+              <p className="text-xs text-blue-500 truncate">Platform Management</p>
             </div>
           )}
           {!isCollapsed && (
-            <Badge variant="secondary" className="bg-white bg-opacity-20 text-white border-white border-opacity-20 text-xs">
+            <Badge variant="outline" className="text-blue-600 border-blue-600 bg-blue-50 text-xs">
               Admin
             </Badge>
           )}
@@ -92,22 +91,21 @@ export function AdminSidebar({
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-blue-700">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
                 const IconComponent = item.icon;
                 const active = isActive(item.id);
-                
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       onClick={() => handleTabClick(item.id)}
                       isActive={active}
                       tooltip={isCollapsed ? item.label : undefined}
-                      className="cursor-pointer"
+                      className={`cursor-pointer ${active ? 'bg-blue-50 text-blue-700' : 'hover:bg-blue-50 text-gray-700'}`}
                     >
-                      <IconComponent className="h-4 w-4" />
+                      <IconComponent className={`h-4 w-4 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
                       {!isCollapsed && (
                         <span className="flex-1">{item.label}</span>
                       )}
