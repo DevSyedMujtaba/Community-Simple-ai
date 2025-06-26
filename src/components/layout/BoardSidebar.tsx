@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Users, MessageSquare, FileText, Settings, TrendingUp, Home, Bell, AlertTriangle } from "lucide-react";
@@ -74,9 +73,9 @@ export function BoardSidebar({
   const isActive = (tabId: string) => activeTab === tabId;
   
   return <Sidebar collapsible="icon" className="border-r">
-      <SidebarHeader className="border-b">
-        <div className="flex items-center space-x-3 p-2">
-          <div className="bg-green-100 p-2 rounded-lg">
+      <SidebarHeader className="border-b h-16 flex-shrink-0 px-3 sm:px-4 flex items-center">
+        <div className="flex items-center space-x-3 w-full">
+          <div className="bg-green-100 p-2 rounded-lg flex-shrink-0">
             <Home className="h-5 w-5 text-green-600" />
           </div>
           {!isCollapsed && <div className="min-w-0 flex-1">

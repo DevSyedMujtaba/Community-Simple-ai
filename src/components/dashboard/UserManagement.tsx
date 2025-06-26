@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -180,41 +179,41 @@ const UserManagement = () => {
   return (
     <div className="space-y-6">
       {/* Platform Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-xl lg:text-2xl font-bold text-purple-600">{stats.total}</div>
-            <div className="text-xs lg:text-sm text-gray-600">Total Users</div>
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+        <Card className="rounded-xl border">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl lg:text-2xl font-bold text-purple-600">{stats.total}</div>
+            <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Total Users</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-xl lg:text-2xl font-bold text-green-600">{stats.active}</div>
-            <div className="text-xs lg:text-sm text-gray-600">Active</div>
+        <Card className="rounded-xl border">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl lg:text-2xl font-bold text-green-600">{stats.active}</div>
+            <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Active</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-xl lg:text-2xl font-bold text-blue-600">{stats.homeowners}</div>
-            <div className="text-xs lg:text-sm text-gray-600">Homeowners</div>
+        <Card className="rounded-xl border">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl lg:text-2xl font-bold text-blue-600">{stats.homeowners}</div>
+            <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Homeowners</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-xl lg:text-2xl font-bold text-purple-600">{stats.boardMembers}</div>
-            <div className="text-xs lg:text-sm text-gray-600">Board Members</div>
+        <Card className="rounded-xl border">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl lg:text-2xl font-bold text-purple-600">{stats.boardMembers}</div>
+            <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Board Members</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-xl lg:text-2xl font-bold text-orange-600">{stats.totalMessages.toLocaleString()}</div>
-            <div className="text-xs lg:text-sm text-gray-600">Messages</div>
+        <Card className="rounded-xl border">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl lg:text-2xl font-bold text-orange-600">{stats.totalMessages.toLocaleString()}</div>
+            <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Messages</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-xl lg:text-2xl font-bold text-red-600">{(stats.totalTokens / 1000000).toFixed(1)}M</div>
-            <div className="text-xs lg:text-sm text-gray-600">Tokens Used</div>
+        <Card className="rounded-xl border">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl lg:text-2xl font-bold text-red-600">{(stats.totalTokens / 1000000).toFixed(1)}M</div>
+            <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Tokens Used</div>
           </CardContent>
         </Card>
       </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -139,31 +138,31 @@ const ChatInterface = ({ documents }: ChatInterfaceProps) => {
       )}
 
       {/* Chat Messages */}
-      <Card className="h-96">
+      <Card className="min-h-[300px] h-full flex flex-col">
         <CardContent className="p-0 h-full flex flex-col">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  className={`max-w-[90vw] sm:max-w-xs lg:max-w-md px-2 sm:px-4 py-2 rounded-lg break-words whitespace-pre-line word-break min-w-0 ${
                     message.type === 'user'
                       ? 'bg-primary text-white'
                       : 'bg-gray-100 text-gray-900'
                   }`}
                 >
-                  <div className="flex items-start space-x-2">
+                  <div className="flex items-start gap-2 min-w-0">
                     {message.type === 'bot' && (
                       <Bot className="h-4 w-4 mt-1 text-gray-600" />
                     )}
                     {message.type === 'user' && (
                       <User className="h-4 w-4 mt-1 text-white" />
                     )}
-                    <div className="flex-1">
-                      <p className="text-sm">{message.content}</p>
-                      <p className={`text-xs mt-1 ${
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm break-words whitespace-pre-line min-w-0">{message.content}</p>
+                      <p className={`text-[11px] sm:text-xs mt-1 ${
                         message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
                       }`}>
                         {message.timestamp.toLocaleTimeString()}
@@ -192,8 +191,8 @@ const ChatInterface = ({ documents }: ChatInterfaceProps) => {
           </div>
 
           {/* Message Input */}
-          <div className="border-t p-4">
-            <div className="flex space-x-2">
+          <div className="border-t p-2 sm:p-4">
+            <div className="flex flex-col xs:flex-row gap-2">
               <input
                 type="text"
                 value={inputMessage}
@@ -205,12 +204,12 @@ const ChatInterface = ({ documents }: ChatInterfaceProps) => {
                     : "Ask about your HOA rules, fees, or policies..."
                 }
                 disabled={documents.length === 0 || isTyping}
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="flex-1 p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed text-xs sm:text-base min-h-[40px] sm:min-h-[44px]"
               />
               <Button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || documents.length === 0 || isTyping}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-primary hover:bg-primary/90 min-h-[40px] sm:min-h-[44px] px-3 sm:px-4"
               >
                 <Send className="h-4 w-4" />
               </Button>

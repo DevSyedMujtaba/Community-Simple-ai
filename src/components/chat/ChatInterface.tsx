@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -127,20 +126,20 @@ const ChatInterface = ({
   };
 
   return (
-    <div className="h-[600px] flex border rounded-lg overflow-hidden bg-white">
+    <div className="min-h-[400px] h-full flex flex-col md:flex-row border rounded-lg overflow-hidden bg-white max-h-[80vh] w-full min-w-0">
       {/* Conversations List - Hidden on mobile when chat is open */}
-      <div className={`w-full md:w-1/3 border-r bg-gray-50 flex flex-col ${
-        showMobileChat ? 'hidden md:flex' : 'flex'
-      }`}>
+      <div className={`w-full md:w-1/3 border-r bg-gray-50 flex flex-col min-h-[300px] max-h-full min-w-0 ${
+        selectedConversationId && !showNewChat ? 'hidden' : 'flex'
+      } md:flex`}>
         {/* Header */}
-        <div className="p-4 border-b bg-white">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900">Messages</h3>
+        <div className="p-2 xs:p-3 sm:p-4 border-b bg-white">
+          <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 mb-2 xs:mb-3">
+            <h3 className="font-semibold text-gray-900 text-base sm:text-lg min-w-0 break-words">Messages</h3>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowNewChat(!showNewChat)}
-              className="text-primary border-primary hover:bg-primary hover:text-white"
+              className="text-primary border-primary hover:bg-primary hover:text-white min-h-[40px] w-full xs:w-auto"
             >
               <Search className="h-4 w-4 mr-1" />
               New
@@ -148,19 +147,19 @@ const ChatInterface = ({
           </div>
           
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative mt-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search users..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-sm min-h-[40px] w-full"
             />
           </div>
         </div>
 
         {/* Conversations or New Chat Users */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0 max-h-full">
           {showNewChat ? (
             <div className="p-2">
               <div className="text-sm text-gray-600 mb-2 px-2">Start new conversation</div>
@@ -172,7 +171,7 @@ const ChatInterface = ({
                     setShowNewChat(false);
                     setSearchQuery('');
                   }}
-                  className="flex items-center p-3 hover:bg-white rounded-lg cursor-pointer transition-colors"
+                  className="flex items-center p-3 hover:bg-white rounded-lg cursor-pointer transition-colors min-h-[44px]"
                 >
                   <Avatar className="h-10 w-10 mr-3">
                     <AvatarFallback className="bg-blue-100 text-blue-600">
@@ -195,45 +194,42 @@ const ChatInterface = ({
               )}
             </div>
           ) : (
-            <div className="p-2">
+            <div className="p-1 xs:p-2 min-w-0">
               {filteredConversations.map((conversation) => {
                 const otherParticipant = conversation.participants.find(p => p.id !== currentUserId);
                 const isActive = conversation.id === selectedConversationId;
-                
                 return (
                   <div
                     key={conversation.id}
                     onClick={() => handleMobileConversationSelect(conversation.id)}
-                    className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${
+                    className={`flex items-center gap-2 p-2 xs:p-3 rounded-lg cursor-pointer transition-colors min-h-[40px] min-w-0 ${
                       isActive ? 'bg-primary text-white' : 'hover:bg-white'
                     }`}
                   >
-                    <Avatar className="h-12 w-12 mr-3">
+                    <Avatar className="h-9 w-9 xs:h-10 xs:w-10 sm:h-12 sm:w-12 mr-2 sm:mr-3 flex-shrink-0">
                       <AvatarFallback className={isActive ? 'bg-white text-primary' : 'bg-blue-100 text-blue-600'}>
                         {getUserInitials(otherParticipant?.name || 'Unknown')}
                       </AvatarFallback>
                     </Avatar>
-                    
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div className={`font-medium truncate ${isActive ? 'text-white' : 'text-gray-900'}`}>
+                      <div className="flex items-center justify-between min-w-0 gap-2">
+                        <div className={`font-medium truncate ${isActive ? 'text-white' : 'text-gray-900'} min-w-0`} style={{maxWidth: '50vw'}}>
                           {otherParticipant?.name || 'Unknown User'}
                         </div>
                         {conversation.lastMessage && (
-                          <div className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                          <div className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500'} ml-2 flex-shrink-0`}>
                             {formatTime(conversation.lastMessage.timestamp)}
                           </div>
                         )}
                       </div>
-                      
-                      <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center justify-between mt-1 min-w-0 gap-2">
                         {conversation.lastMessage && (
-                          <div className={`text-sm truncate ${isActive ? 'text-white/80' : 'text-gray-600'}`}>
+                          <div className={`text-xs xs:text-sm truncate ${isActive ? 'text-white/80' : 'text-gray-600'} min-w-0`} style={{maxWidth: '40vw'}}>
                             {conversation.lastMessage.content}
                           </div>
                         )}
                         {conversation.unreadCount > 0 && !isActive && (
-                          <Badge variant="destructive" className="ml-2 text-xs">
+                          <Badge variant="destructive" className="ml-2 text-xs flex-shrink-0 w-6 h-6 flex items-center justify-center">
                             {conversation.unreadCount}
                           </Badge>
                         )}
@@ -255,57 +251,52 @@ const ChatInterface = ({
       </div>
 
       {/* Chat Area - Full width on mobile when conversation is selected */}
-      <div className={`w-full md:w-2/3 flex flex-col ${
-        !showMobileChat && selectedConversationId ? 'hidden md:flex' : 
-        showMobileChat || selectedConversationId ? 'flex' : 'hidden md:flex'
-      }`}>
+      <div className={`w-full md:w-2/3 flex flex-col min-h-[300px] max-h-full min-w-0 ${
+        selectedConversationId ? 'flex' : 'hidden'
+      } md:flex`}>
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b bg-white flex items-center">
+            <div className="p-2 xs:p-3 sm:p-4 border-b bg-white flex items-center min-h-[40px] gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 className="md:hidden mr-2"
-                onClick={() => setShowMobileChat(false)}
+                onClick={() => onSelectConversation("")}
+                aria-label="Back to conversations"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               
-              <Avatar className="h-10 w-10 mr-3">
+              <Avatar className="h-9 w-9 xs:h-10 xs:w-10 mr-2 xs:mr-3">
                 <AvatarFallback className="bg-blue-100 text-blue-600">
                   {getUserInitials(selectedConversation.participants.find(p => p.id !== currentUserId)?.name || 'Unknown')}
                 </AvatarFallback>
               </Avatar>
               
-              <div>
-                <div className="font-medium text-gray-900">
-                  {selectedConversation.participants.find(p => p.id !== currentUserId)?.name || 'Unknown User'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {selectedConversation.participants.find(p => p.id !== currentUserId)?.type === 'board' ? 'Board Member' : 'Homeowner'}
-                </div>
+              <div className="font-medium text-gray-900 text-base sm:text-lg min-w-0 break-words">
+                {selectedConversation.participants.find(p => p.id !== currentUserId)?.name || 'Unknown User'}
               </div>
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-4">
+            <ScrollArea className="flex-1 p-2 xs:p-3 sm:p-4 min-h-0 max-h-full">
+              <div className="space-y-2 xs:space-y-3">
                 {messages.map((message) => {
                   const isOwn = message.senderId === currentUserId;
                   return (
                     <div
                       key={message.id}
-                      className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${isOwn ? 'justify-end' : 'justify-start'} min-w-0`}
                     >
                       <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        className={`max-w-[80vw] sm:max-w-xs lg:max-w-md px-3 xs:px-4 py-2 rounded-lg break-words ${
                           isOwn
                             ? 'bg-primary text-white'
                             : 'bg-gray-100 text-gray-900'
                         }`}
                       >
-                        <div className="text-sm">{message.content}</div>
+                        <div className="text-sm break-words">{message.content}</div>
                         <div
                           className={`text-xs mt-1 ${
                             isOwn ? 'text-white/80' : 'text-gray-500'
@@ -322,19 +313,19 @@ const ChatInterface = ({
             </ScrollArea>
 
             {/* Message Input */}
-            <div className="p-4 border-t bg-white">
-              <div className="flex items-center space-x-2">
+            <div className="p-2 xs:p-3 sm:p-4 border-t bg-white">
+              <div className="flex items-center gap-2">
                 <Input
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type a message..."
-                  className="flex-1"
+                  className="flex-1 min-h-[40px] text-sm"
                 />
                 <Button
                   onClick={handleSendMessage}
                   disabled={!newMessage.trim()}
-                  className="bg-primary hover:bg-primary/90"
+                  className="bg-primary hover:bg-primary/90 min-h-[40px] w-10 xs:w-12"
                 >
                   <Send className="h-4 w-4" />
                 </Button>

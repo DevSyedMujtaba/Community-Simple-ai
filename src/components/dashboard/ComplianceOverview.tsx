@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -132,11 +131,11 @@ const ComplianceOverview = () => {
   return (
     <div className="space-y-6">
       {/* Compliance Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-blue-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-            <div className="text-sm text-gray-600">Total Issues</div>
+      <div className="flex flex-col gap-2 w-full">
+        <Card className="border-blue-200 rounded-xl">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl sm:text-2xl font-bold text-blue-600">{stats.total}</div>
+            <div className="text-xs xs:text-sm text-gray-600">Total Issues</div>
             <div className="flex items-center justify-center mt-1 text-xs text-green-600">
               <TrendingDown className="h-3 w-3 mr-1" />
               -12% vs last month
@@ -144,10 +143,10 @@ const ComplianceOverview = () => {
           </CardContent>
         </Card>
         
-        <Card className="border-red-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">{stats.open}</div>
-            <div className="text-sm text-gray-600">Open Issues</div>
+        <Card className="border-red-200 rounded-xl">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl sm:text-2xl font-bold text-red-600">{stats.open}</div>
+            <div className="text-xs xs:text-sm text-gray-600">Open Issues</div>
             <div className="flex items-center justify-center mt-1 text-xs text-red-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +2 this week
@@ -155,10 +154,10 @@ const ComplianceOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-yellow-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
-            <div className="text-sm text-gray-600">In Progress</div>
+        <Card className="border-yellow-200 rounded-xl">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl sm:text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
+            <div className="text-xs xs:text-sm text-gray-600">In Progress</div>
             <div className="flex items-center justify-center mt-1 text-xs text-gray-600">
               <Clock className="h-3 w-3 mr-1" />
               Avg 3.2 days
@@ -166,10 +165,10 @@ const ComplianceOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-green-200">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
-            <div className="text-sm text-gray-600">Resolved</div>
+        <Card className="border-green-200 rounded-xl">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
+            <div className="text-base xs:text-xl sm:text-2xl font-bold text-green-600">{stats.resolved}</div>
+            <div className="text-xs xs:text-sm text-gray-600">Resolved</div>
             <div className="flex items-center justify-center mt-1 text-xs text-green-600">
               <CheckCircle className="h-3 w-3 mr-1" />
               80% this month
@@ -179,7 +178,7 @@ const ComplianceOverview = () => {
       </div>
 
       {/* Category Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Issues by Category</CardTitle>
@@ -259,40 +258,29 @@ const ComplianceOverview = () => {
           <CardTitle>Recent Compliance Issues</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             {complianceIssues.slice(0, 5).map((issue) => (
-              <div key={issue.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h4 className="font-medium text-gray-900">
-                        {issue.homeowner} - Unit {issue.unit}
-                      </h4>
-                      <Badge variant="outline" className="text-xs">
-                        {issue.category}
-                      </Badge>
-                      <Badge className={getSeverityColor(issue.severity)} variant="outline">
-                        {issue.severity}
-                      </Badge>
+              <div key={issue.id} className="border border-gray-200 rounded-lg p-2 xs:p-3 sm:p-4">
+                <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-2 min-w-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col xs:flex-row xs:items-center gap-2 mb-2 min-w-0">
+                      <h4 className="font-medium text-gray-900 truncate min-w-0">{issue.homeowner} - Unit {issue.unit}</h4>
+                      <Badge variant="outline" className="text-xs">{issue.category}</Badge>
+                      <Badge className={getSeverityColor(issue.severity)} variant="outline">{issue.severity}</Badge>
                     </div>
-                    
-                    <p className="text-sm text-gray-700 mb-3">{issue.description}</p>
-                    
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                    <p className="text-xs xs:text-sm text-gray-700 mb-2 break-words min-w-0">{issue.description}</p>
+                    <div className="flex flex-col xs:flex-row xs:items-center gap-2 text-xs text-gray-500 min-w-0">
                       <span>Reported: {new Date(issue.reportDate).toLocaleDateString()}</span>
                       <span>Updated: {new Date(issue.lastUpdate).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Badge className={getStatusColor(issue.status)} variant="secondary">
-                      {issue.status.replace('-', ' ')}
-                    </Badge>
+                  <div className="flex flex-col xs:flex-row gap-2 flex-shrink-0 w-full xs:w-auto mt-2 xs:mt-0">
+                    <Badge className={getStatusColor(issue.status)} variant="secondary">{issue.status.replace('-', ' ')}</Badge>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleViewIssue(issue.id)}
-                      className="text-gray-600 hover:text-gray-900"
+                      className="text-gray-600 hover:text-gray-900 w-full xs:w-auto"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -316,33 +304,33 @@ const ComplianceOverview = () => {
           <CardTitle>Compliance Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
+            <Button variant="outline" className="h-auto p-3 xs:p-4 flex flex-col items-start w-full">
               <div className="flex items-center w-full mb-2">
                 <AlertTriangle className="h-5 w-5 mr-2 text-orange-600" />
                 <span className="font-medium">Create Violation</span>
               </div>
-              <span className="text-sm text-gray-600 text-left">
+              <span className="text-xs xs:text-sm text-gray-600 text-left">
                 Report a new compliance violation
               </span>
             </Button>
             
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+            <Button variant="outline" className="h-auto p-3 xs:p-4 flex flex-col items-start w-full">
               <div className="flex items-center w-full mb-2">
                 <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
                 <span className="font-medium">Generate Report</span>
               </div>
-              <span className="text-sm text-gray-600 text-left">
+              <span className="text-xs xs:text-sm text-gray-600 text-left">
                 Export compliance activity report
               </span>
             </Button>
             
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+            <Button variant="outline" className="h-auto p-3 xs:p-4 flex flex-col items-start w-full">
               <div className="flex items-center w-full mb-2">
                 <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
                 <span className="font-medium">View Analytics</span>
               </div>
-              <span className="text-sm text-gray-600 text-left">
+              <span className="text-xs xs:text-sm text-gray-600 text-left">
                 Detailed compliance trends and metrics
               </span>
             </Button>

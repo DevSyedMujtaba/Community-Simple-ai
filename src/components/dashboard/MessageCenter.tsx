@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,8 @@ interface Message {
  */
 const MessageCenter = () => {
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'unread' | 'replied'>('all');
+  type FilterType = 'all' | 'unread' | 'replied';
+  const [filter, setFilter] = useState<FilterType>('all');
   const [replyText, setReplyText] = useState('');
 
   // Sample messages data
@@ -128,7 +128,7 @@ const MessageCenter = () => {
   return (
     <div className="space-y-6">
       {/* Message Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-blue-600">
@@ -164,19 +164,19 @@ const MessageCenter = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
         <div className="flex items-center space-x-2">
           <Filter className="h-4 w-4 text-gray-600" />
           <span className="text-sm font-medium text-gray-700">Filter:</span>
         </div>
         <div className="flex space-x-2">
-          {['all', 'unread', 'replied'].map((filterOption) => (
+          {(['all', 'unread', 'replied'] as FilterType[]).map((filterOption) => (
             <Button
               key={filterOption}
               variant={filter === filterOption ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setFilter(filterOption as any)}
-              className="capitalize"
+              onClick={() => setFilter(filterOption)}
+              className="capitalize min-w-[80px]"
             >
               {filterOption}
             </Button>
@@ -185,7 +185,7 @@ const MessageCenter = () => {
       </div>
 
       {/* Messages List */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {filteredMessages.map((message) => (
           <Card 
             key={message.id} 
@@ -194,22 +194,20 @@ const MessageCenter = () => {
             }`}
             onClick={() => setSelectedMessage(selectedMessage === message.id ? null : message.id)}
           >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 min-w-0">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <div className="bg-gray-100 p-2 rounded-full">
                       <User className="h-4 w-4 text-gray-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">{message.sender}</h4>
-                      <p className="text-sm text-gray-600">Unit Homeowner</p>
+                      <h4 className="font-medium text-gray-900 text-sm sm:text-base break-words">{message.sender}</h4>
+                      <p className="text-xs sm:text-sm text-gray-600 break-words">Unit Homeowner</p>
                     </div>
                   </div>
-                  
-                  <h3 className="font-semibold text-gray-900 mb-2">{message.subject}</h3>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                  <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg break-words">{message.subject}</h3>
+                  <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-600 mb-3 break-words">
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 mr-1" />
                       {message.timestamp.toLocaleDateString()}
@@ -218,28 +216,26 @@ const MessageCenter = () => {
                       {message.category}
                     </Badge>
                   </div>
-                  
                   {selectedMessage === message.id && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                      <p className="text-gray-700 leading-relaxed mb-4">
+                    <div className="mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                      <p className="text-gray-700 leading-relaxed mb-4 text-sm sm:text-base break-words">
                         {message.content}
                       </p>
-                      
                       {/* Reply Section */}
                       <div className="border-t pt-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Reply to {message.sender}</h4>
+                        <h4 className="font-medium text-gray-900 mb-3 text-sm sm:text-base">Reply to {message.sender}</h4>
                         <textarea
                           value={replyText}
                           onChange={(e) => setReplyText(e.target.value)}
                           placeholder="Type your response..."
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                          className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none text-sm sm:text-base min-h-[44px] break-words"
                           rows={4}
                         />
                         <div className="flex justify-end mt-3">
                           <Button
                             onClick={() => handleSendReply(message.id)}
                             disabled={!replyText.trim()}
-                            className="bg-primary hover:bg-primary/90"
+                            className="bg-primary hover:bg-primary/90 min-h-[44px]"
                           >
                             <Send className="h-4 w-4 mr-2" />
                             Send Reply
@@ -249,8 +245,7 @@ const MessageCenter = () => {
                     </div>
                   )}
                 </div>
-                
-                <div className="flex flex-col items-end space-y-2">
+                <div className="flex flex-row sm:flex-col items-end sm:items-end space-x-2 sm:space-x-0 sm:space-y-2 mt-2 sm:mt-0">
                   <Badge className={getPriorityColor(message.priority)} variant="outline">
                     {message.priority} priority
                   </Badge>
@@ -266,12 +261,12 @@ const MessageCenter = () => {
 
       {filteredMessages.length === 0 && (
         <Card className="border-dashed border-2 border-gray-300">
-          <CardContent className="p-12 text-center">
+          <CardContent className="p-8 sm:p-12 text-center">
             <div className="mx-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
               <MessageSquare className="h-6 w-6 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No messages found</h3>
-            <p className="text-gray-600">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No messages found</h3>
+            <p className="text-gray-600 text-sm sm:text-base">
               {filter === 'all' 
                 ? 'No messages from homeowners yet.' 
                 : `No ${filter} messages at this time.`

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
@@ -187,25 +186,27 @@ const BoardMessages = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <MessageSquare className="h-6 w-6 mr-2 text-primary" />
+    <div className="space-y-4">
+      <Card className="w-full min-w-0">
+        <CardHeader className="pb-2 sm:pb-4">
+          <CardTitle className="flex items-center text-base sm:text-lg min-w-0 break-words">
+            <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
             Community Messages
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ChatInterface
-            currentUserId={currentUserId}
-            currentUserType={currentUserType}
-            conversations={conversations}
-            messages={selectedConversationId ? getMessagesForConversation(selectedConversationId) : []}
-            onSendMessage={handleSendMessage}
-            onStartNewConversation={handleStartNewConversation}
-            onSelectConversation={handleSelectConversation}
-            selectedConversationId={selectedConversationId}
-          />
+        <CardContent className="p-2 xs:p-3 sm:p-4 min-w-0">
+          <div className="min-w-0">
+            <ChatInterface
+              currentUserId={currentUserId}
+              currentUserType={currentUserType}
+              conversations={conversations}
+              messages={selectedConversationId ? getMessagesForConversation(selectedConversationId) : []}
+              onSendMessage={handleSendMessage}
+              onStartNewConversation={handleStartNewConversation}
+              onSelectConversation={handleSelectConversation}
+              selectedConversationId={selectedConversationId}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

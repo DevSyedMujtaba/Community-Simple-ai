@@ -132,27 +132,28 @@ const BoardDashboard = () => {
                       <CardDescription className="text-sm sm:text-base">Latest updates and actions in your community</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <div className="space-y-3 sm:space-y-4">
-                        <div className="flex items-center p-3 sm:p-4 bg-blue-50 rounded-lg">
-                          <div className="bg-blue-100 p-2 rounded-lg mr-3 sm:mr-4 flex-shrink-0">
+                      <div className="space-y-2 sm:space-y-4">
+                        {/* Activity: New HOA document uploaded */}
+                        <div className="flex flex-col xs:flex-row items-start xs:items-center p-2 sm:p-4 bg-blue-50 rounded-lg gap-2 xs:gap-4 min-w-0">
+                          <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0 mb-1 xs:mb-0">
                             <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 text-sm sm:text-base">New HOA document uploaded</p>
+                            <p className="font-medium text-gray-900 text-xs sm:text-base break-words truncate">New HOA document uploaded</p>
                             <p className="text-xs sm:text-sm text-gray-600 truncate">Updated parking regulations - Unit 205A</p>
                           </div>
-                          <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">2 hours ago</span>
+                          <span className="text-[11px] sm:text-xs text-gray-500 flex-shrink-0 ml-0 xs:ml-2">2 hours ago</span>
                         </div>
-                        
-                        <div className="flex items-center p-3 sm:p-4 bg-green-50 rounded-lg">
-                          <div className="bg-green-100 p-2 rounded-lg mr-3 sm:mr-4 flex-shrink-0">
+                        {/* Activity: Message from homeowner */}
+                        <div className="flex flex-col xs:flex-row items-start xs:items-center p-2 sm:p-4 bg-green-50 rounded-lg gap-2 xs:gap-4 min-w-0">
+                          <div className="bg-green-100 p-2 rounded-lg flex-shrink-0 mb-1 xs:mb-0">
                             <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 text-sm sm:text-base">Message from homeowner</p>
+                            <p className="font-medium text-gray-900 text-xs sm:text-base break-words truncate">Message from homeowner</p>
                             <p className="text-xs sm:text-sm text-gray-600 truncate">Question about pet policy - Unit 112B</p>
                           </div>
-                          <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">5 hours ago</span>
+                          <span className="text-[11px] sm:text-xs text-gray-500 flex-shrink-0 ml-0 xs:ml-2">5 hours ago</span>
                         </div>
                       </div>
                     </CardContent>

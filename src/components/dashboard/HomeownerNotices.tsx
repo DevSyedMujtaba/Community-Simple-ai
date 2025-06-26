@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -164,7 +163,7 @@ const HomeownerNotices = () => {
   return (
     <div className="space-y-6">
       {/* Header with stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -198,27 +197,27 @@ const HomeownerNotices = () => {
 
       {/* Filters and Search */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             {/* Search */}
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search notices..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
               />
             </div>
             
             {/* Filter buttons */}
-            <div className="flex space-x-2">
+            <div className="flex flex-row flex-wrap gap-2 sm:space-x-2">
               <Button
                 variant={selectedFilter === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedFilter('all')}
-                className="text-xs"
+                className="text-xs min-w-[70px]"
               >
                 All ({notices.length})
               </Button>
@@ -226,7 +225,7 @@ const HomeownerNotices = () => {
                 variant={selectedFilter === 'unread' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedFilter('unread')}
-                className="text-xs"
+                className="text-xs min-w-[70px]"
               >
                 Unread ({unreadCount})
               </Button>
@@ -234,7 +233,7 @@ const HomeownerNotices = () => {
                 variant={selectedFilter === 'urgent' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedFilter('urgent')}
-                className="text-xs"
+                className="text-xs min-w-[70px]"
               >
                 Urgent ({urgentCount})
               </Button>
@@ -244,7 +243,7 @@ const HomeownerNotices = () => {
       </Card>
 
       {/* Notices List */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {filteredNotices.length === 0 ? (
           <Card className="border-dashed border-2 border-gray-300">
             <CardContent className="p-8 text-center">
@@ -266,21 +265,20 @@ const HomeownerNotices = () => {
 
             return (
               <Card key={notice.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-start space-x-3 mb-3">
-                        <div className="bg-gray-100 p-2 rounded-lg">
+                <CardContent className="p-3 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 min-w-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start space-x-2 sm:space-x-3 mb-3 min-w-0">
+                        <div className="bg-gray-100 p-2 rounded-lg flex-shrink-0">
                           <TypeIcon className={`h-5 w-5 ${typeConfig.color}`} />
                         </div>
-                        
-                        <div className="flex-1">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                            <h4 className="text-lg font-semibold text-gray-900">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2 min-w-0">
+                            <h4 className="text-base sm:text-lg font-semibold text-gray-900 break-words min-w-0">
                               {notice.title}
                             </h4>
-                            <div className="flex items-center gap-2">
-                              <Badge className={statusConfig.color} variant="secondary">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge className={statusConfig.color + ' text-xs'} variant="secondary">
                                 <StatusIcon className="h-3 w-3 mr-1" />
                                 {statusConfig.label}
                               </Badge>
@@ -295,8 +293,7 @@ const HomeownerNotices = () => {
                               )}
                             </div>
                           </div>
-                          
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm text-gray-600 mb-3 break-words">
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-2" />
                               Sent: {new Date(notice.createdDate).toLocaleDateString()}
@@ -308,48 +305,44 @@ const HomeownerNotices = () => {
                               </div>
                             )}
                             <div className="flex items-center">
-                              <span className="font-medium">From: {notice.sender}</span>
+                              <span className="font-medium break-words">From: {notice.sender}</span>
                             </div>
                           </div>
-                          
-                          <p className="text-sm text-gray-700 mb-4">
+                          <p className="text-xs sm:text-sm text-gray-700 mb-4 break-words">
                             {notice.content}
                           </p>
                         </div>
                       </div>
                     </div>
-                    
                     {/* Action buttons */}
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
                       {notice.status === 'unread' && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleMarkAsRead(notice.id)}
-                          className="text-xs"
+                          className="text-xs min-w-[80px]"
                         >
                           <Eye className="h-3 w-3 mr-1" />
                           Mark Read
                         </Button>
                       )}
-                      
                       {notice.status === 'read' && !notice.requiresResponse && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleAcknowledge(notice.id)}
-                          className="text-xs"
+                          className="text-xs min-w-[80px]"
                         >
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Acknowledge
                         </Button>
                       )}
-                      
                       {notice.requiresResponse && notice.status !== 'responded' && (
                         <Button
                           size="sm"
                           onClick={() => handleRespond(notice.id)}
-                          className="bg-primary hover:bg-primary/90 text-xs"
+                          className="bg-primary hover:bg-primary/90 text-xs min-w-[80px]"
                         >
                           <FileText className="h-3 w-3 mr-1" />
                           Respond

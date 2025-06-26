@@ -87,30 +87,27 @@ const DocumentList = ({ documents }: DocumentListProps) => {
       </div>
 
       {/* Documents List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {documents.map((document, index) => (
           <Card key={document.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start space-x-4">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col xs:flex-row xs:items-start gap-2 xs:gap-4 min-w-0">
                 {/* Document Icon */}
-                <div className="flex-shrink-0">
-                  <div className="bg-red-100 p-3 rounded-lg">
-                    <FileText className="h-6 w-6 text-red-600" />
+                <div className="flex-shrink-0 mx-auto xs:mx-0">
+                  <div className="bg-red-100 p-2 xs:p-3 rounded-lg">
+                    <FileText className="h-5 w-5 xs:h-6 xs:w-6 text-red-600" />
                   </div>
                 </div>
-                
                 {/* Document Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-medium text-gray-900 truncate">
-                      {document.name}
-                    </h4>
-                    <div className="flex items-center space-x-2">
+                  <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 mb-1 min-w-0">
+                    <h4 className="text-base sm:text-lg font-medium text-gray-900 truncate min-w-0">{document.name}</h4>
+                    <div className="flex flex-col xs:flex-row gap-2 w-full xs:w-auto">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleViewDocument(document)}
-                        className="text-gray-600 hover:text-gray-900"
+                        className="text-gray-600 hover:text-gray-900 w-full xs:w-auto"
                       >
                         <Eye className="h-4 w-4 mr-1" />
                         View
@@ -119,63 +116,30 @@ const DocumentList = ({ documents }: DocumentListProps) => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleDownloadDocument(document)}
-                        className="text-gray-600 hover:text-gray-900"
+                        className="text-gray-600 hover:text-gray-900 w-full xs:w-auto"
                       >
                         <Download className="h-4 w-4 mr-1" />
                         Download
                       </Button>
                     </div>
                   </div>
-                  
                   {/* Document Meta */}
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {formatDate(document.uploadDate)}
+                  <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs sm:text-sm text-gray-600 mb-2 min-w-0">
+                    <div className="flex items-center min-w-0">
+                      <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">{formatDate(document.uploadDate)}</span>
                     </div>
                     {document.size && (
-                      <div className="flex items-center">
-                        <File className="h-4 w-4 mr-1" />
-                        {formatFileSize(document.size)}
+                      <div className="flex items-center min-w-0">
+                        <File className="h-4 w-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{formatFileSize(document.size)}</span>
                       </div>
                     )}
-                    <Badge variant="secondary" className="text-xs">
-                      PDF Document
-                    </Badge>
+                    <Badge variant="secondary" className="text-xs">PDF Document</Badge>
                   </div>
-                  
                   {/* AI Summary */}
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="bg-blue-100 p-1 rounded mr-2">
-                        <FileText className="h-3 w-3 text-blue-600" />
-                      </div>
-                      <span className="text-sm font-medium text-blue-900">
-                        AI Summary
-                      </span>
-                      <Badge variant="outline" className="ml-2 text-xs text-blue-600 border-blue-600">
-                        Auto-generated
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-blue-800 leading-relaxed">
-                      {document.summary}
-                    </p>
-                  </div>
-                  
-                  {/* Compliance Tags */}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      Pet Policy
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      Parking Rules
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      Noise Ordinance
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      HOA Fees
-                    </Badge>
+                  <div className="text-xs sm:text-sm text-gray-700 break-words min-w-0">
+                    {document.summary}
                   </div>
                 </div>
               </div>

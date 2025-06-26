@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
@@ -104,9 +103,9 @@ export function HomeownerSidebar({
 
   return (
     <Sidebar collapsible="icon" className="border-r">
-      <SidebarHeader className="border-b">
-        <div className="flex items-center space-x-3 p-2">
-          <div className="bg-blue-100 p-2 rounded-lg">
+      <SidebarHeader className="border-b border-gray-200 bg-white h-16 flex items-center p-0">
+        <div className="flex items-center space-x-3 px-3 h-full w-full">
+          <div className="bg-blue-100 p-2 rounded-lg flex items-center justify-center h-10 w-10">
             <Home className="h-5 w-5 text-blue-600" />
           </div>
           {!isCollapsed && (

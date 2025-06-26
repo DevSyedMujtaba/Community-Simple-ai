@@ -171,29 +171,29 @@ const HOAManagement = () => {
   };
   return <div className="space-y-6">
       {/* Platform Statistics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">{stats.totalHOAs}</div>
-            <div className="text-sm text-gray-600">Total HOAs</div>
+      <div className="flex flex-col gap-2 w-full">
+        <Card className="rounded-xl border w-full">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center w-full">
+            <div className="text-base xs:text-lg md:text-xl font-bold text-purple-600 break-words">{stats.totalHOAs}</div>
+            <div className="text-xs xs:text-sm md:text-sm text-gray-600 break-words">Total HOAs</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.totalUnits.toLocaleString()}</div>
-            <div className="text-sm text-gray-600">Total Units</div>
+        <Card className="rounded-xl border w-full">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center w-full">
+            <div className="text-base xs:text-lg md:text-xl font-bold text-blue-600 break-words">{stats.totalUnits.toLocaleString()}</div>
+            <div className="text-xs xs:text-sm md:text-sm text-gray-600 break-words">Total Units</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.totalMembers.toLocaleString()}</div>
-            <div className="text-sm text-gray-600">Active Members</div>
+        <Card className="rounded-xl border w-full">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center w-full">
+            <div className="text-base xs:text-lg md:text-xl font-bold text-green-600 break-words">{stats.totalMembers.toLocaleString()}</div>
+            <div className="text-xs xs:text-sm md:text-sm text-gray-600 break-words">Active Members</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-orange-600">{stats.pendingRequests}</div>
-            <div className="text-sm text-gray-600">Pending Requests</div>
+        <Card className="rounded-xl border w-full">
+          <CardContent className="p-2 xs:p-3 sm:p-4 text-center w-full">
+            <div className="text-base xs:text-lg md:text-xl font-bold text-orange-600 break-words">{stats.pendingRequests}</div>
+            <div className="text-xs xs:text-sm md:text-sm text-gray-600 break-words">Pending Requests</div>
           </CardContent>
         </Card>
       </div>

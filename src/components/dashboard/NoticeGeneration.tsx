@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -143,67 +142,59 @@ const NoticeGeneration = () => {
 
       {/* Notices List */}
       {activeTab === 'notices' && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {notices.map((notice) => {
             const IconComponent = getTypeIcon(notice.type);
             return (
-              <Card key={notice.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <div className="bg-gray-100 p-3 rounded-lg">
-                        <IconComponent className="h-6 w-6 text-gray-600" />
+              <Card key={notice.id} className="hover:shadow-md transition-shadow rounded-xl border border-gray-200">
+                <CardContent className="p-2 xs:p-3 sm:p-4">
+                  <div className="flex flex-col gap-2 min-w-0">
+                    <div className="flex flex-row gap-2 min-w-0 items-start">
+                      <div className="bg-gray-100 p-2 xs:p-3 rounded-lg flex-shrink-0">
+                        <IconComponent className="h-5 w-5 xs:h-6 xs:w-6 text-gray-600" />
                       </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h4 className="text-lg font-semibold text-gray-900">
-                            {notice.title}
-                          </h4>
-                          <Badge className={getStatusColor(notice.status)} variant="secondary">
-                            {notice.status}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {notice.type}
-                          </Badge>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col gap-2 mb-1 min-w-0">
+                          <h4 className="text-base xs:text-lg font-semibold text-gray-900 break-words min-w-0">{notice.title}</h4>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge className={getStatusColor(notice.status) + ' text-xs'} variant="secondary">
+                              {notice.status}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">{notice.type}</Badge>
+                          </div>
                         </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
-                          <div className="flex items-center">
-                            <Users className="h-4 w-4 mr-2" />
-                            {notice.recipient}
+                        <div className="grid grid-cols-1 gap-2 text-xs xs:text-sm text-gray-600 mb-2 min-w-0">
+                          <div className="flex items-center min-w-0">
+                            <Users className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span className="break-words min-w-0">{notice.recipient}</span>
                           </div>
                           {notice.unit && (
-                            <div className="flex items-center">
-                              <span className="font-medium">Unit: {notice.unit}</span>
+                            <div className="flex items-center min-w-0">
+                              <span className="font-medium break-words min-w-0">Unit: {notice.unit}</span>
                             </div>
                           )}
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2" />
-                            {new Date(notice.createdDate).toLocaleDateString()}
+                          <div className="flex items-center min-w-0">
+                            <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span className="break-words min-w-0">{new Date(notice.createdDate).toLocaleDateString()}</span>
                           </div>
                         </div>
-                        
-                        <p className="text-sm text-gray-700 line-clamp-2">
-                          {notice.content}
-                        </p>
+                        <p className="text-xs xs:text-sm text-gray-700 break-words min-w-0">{notice.content}</p>
                       </div>
                     </div>
-                    
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
+                    <div className="flex flex-col gap-2 w-full mt-2">
+                      <Button variant="outline" size="sm" className="w-full">
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
                       {notice.status === 'draft' && (
                         <>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="w-full">
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
                           <Button
                             onClick={() => handleSendNotice(notice.id)}
-                            className="bg-primary hover:bg-primary/90"
+                            className="bg-primary hover:bg-primary/90 w-full"
                             size="sm"
                           >
                             <Send className="h-4 w-4 mr-1" />

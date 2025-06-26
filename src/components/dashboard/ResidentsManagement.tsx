@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -201,44 +200,41 @@ const ResidentsManagement = () => {
           <div className="space-y-3">
             {filteredResidents.map((resident) => (
               <Card key={resident.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="bg-blue-100 p-2 rounded-full">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 min-w-0">
+                    <div className="flex flex-col xs:flex-row xs:items-center gap-2 min-w-0 flex-1">
+                      <div className="bg-blue-100 p-2 rounded-full flex-shrink-0 mx-auto xs:mx-0">
                         <Users className="h-5 w-5 text-blue-600" />
                       </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-1">
-                          <h4 className="font-semibold text-gray-900">{resident.name}</h4>
-                          <Badge className={getStatusColor(resident.status)} variant="secondary">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col xs:flex-row xs:items-center gap-2 mb-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 truncate min-w-0">{resident.name}</h4>
+                          <Badge className={getStatusColor(resident.status) + ' text-xs'} variant="secondary">
                             {resident.status}
                           </Badge>
                         </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-600">
-                          <div className="flex items-center">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            Unit {resident.unit}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs sm:text-sm text-gray-600 min-w-0">
+                          <div className="flex items-center min-w-0">
+                            <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">Unit {resident.unit}</span>
                           </div>
-                          <div className="flex items-center">
-                            <Mail className="h-3 w-3 mr-1" />
-                            {resident.email}
+                          <div className="flex items-center min-w-0">
+                            <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{resident.email}</span>
                           </div>
-                          <div className="flex items-center">
-                            <Phone className="h-3 w-3 mr-1" />
-                            {resident.phone}
+                          <div className="flex items-center min-w-0">
+                            <Phone className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{resident.phone}</span>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
+                    <div className="flex flex-col xs:flex-row gap-2 w-full xs:w-auto mt-2 xs:mt-0">
+                      <Button variant="outline" size="sm" className="w-full xs:w-auto">
                         <Mail className="h-3 w-3 mr-1" />
                         Message
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="w-full xs:w-auto">
                         <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>

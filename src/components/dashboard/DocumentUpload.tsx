@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -130,7 +129,7 @@ const DocumentUpload = ({ onDocumentUploaded }: DocumentUploadProps) => {
     <div className="space-y-6">
       {/* File Drop Zone */}
       <div
-        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        className={`relative border-2 border-dashed rounded-lg p-4 xs:p-6 sm:p-8 text-center transition-colors w-full min-w-0 ${
           dragActive 
             ? 'border-primary bg-primary/5' 
             : 'border-gray-300 hover:border-gray-400'
@@ -148,57 +147,48 @@ const DocumentUpload = ({ onDocumentUploaded }: DocumentUploadProps) => {
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
         
-        <div className="space-y-4">
-          <div className="mx-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-            <Upload className="h-6 w-6 text-gray-600" />
+        <div className="space-y-2 xs:space-y-3">
+          <div className="mx-auto w-10 h-10 xs:w-12 xs:h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+            <Upload className="h-5 w-5 xs:h-6 xs:w-6 text-gray-600" />
           </div>
           <div>
-            <p className="text-lg font-medium text-gray-900">
-              Drop your HOA documents here
-            </p>
-            <p className="text-sm text-gray-600 mt-1">
-              or click to browse files
-            </p>
+            <p className="text-base xs:text-lg font-medium text-gray-900 break-words">Drop your HOA documents here</p>
+            <p className="text-xs xs:text-sm text-gray-600 mt-1 break-words">or click to browse files</p>
           </div>
-          <p className="text-xs text-gray-500">
-            Supports PDF files up to 25MB each
-          </p>
+          <p className="text-xs text-gray-500 break-words">Supports PDF files up to 25MB each</p>
         </div>
       </div>
 
       {/* Selected Files List */}
       {selectedFiles.length > 0 && (
         <Card>
-          <CardContent className="p-4">
-            <h3 className="font-medium text-gray-900 mb-4">Selected Files</h3>
-            <div className="space-y-3">
+          <CardContent className="p-2 xs:p-3 sm:p-4">
+            <h3 className="font-medium text-gray-900 mb-2 xs:mb-4">Selected Files</h3>
+            <div className="space-y-2 xs:space-y-3">
               {selectedFiles.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="h-5 w-5 text-red-600" />
-                    <div>
-                      <p className="font-medium text-gray-900">{file.name}</p>
-                      <p className="text-sm text-gray-600">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+                <div key={index} className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 p-2 xs:p-3 bg-gray-50 rounded-lg min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="h-5 w-5 text-red-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 truncate min-w-0">{file.name}</p>
+                      <p className="text-xs xs:text-sm text-gray-600 truncate min-w-0">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removeFile(index)}
-                    className="text-gray-500 hover:text-red-600"
+                    className="text-gray-500 hover:text-red-600 w-full xs:w-auto"
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
             </div>
-            
-            <div className="mt-4 flex justify-end">
+            <div className="mt-2 xs:mt-4 flex flex-col xs:flex-row xs:justify-end gap-2">
               <Button 
                 onClick={uploadFiles}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-primary hover:bg-primary/90 w-full xs:w-auto"
                 disabled={uploadingFiles.length > 0}
               >
                 {uploadingFiles.length > 0 ? (
