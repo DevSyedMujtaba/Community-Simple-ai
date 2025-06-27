@@ -158,8 +158,8 @@ const NoticeGeneration = () => {
                           <h4 className="text-base xs:text-lg font-semibold text-gray-900 break-words min-w-0">{notice.title}</h4>
                           <div className="flex flex-wrap gap-2">
                             <Badge className={getStatusColor(notice.status) + ' text-xs'} variant="secondary">
-                              {notice.status}
-                            </Badge>
+                            {notice.status}
+                          </Badge>
                             <Badge variant="outline" className="text-xs">{notice.type}</Badge>
                           </div>
                         </div>

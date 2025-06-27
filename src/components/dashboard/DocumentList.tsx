@@ -139,7 +139,7 @@ const DocumentList = ({ documents }: DocumentListProps) => {
                   </div>
                   {/* AI Summary */}
                   <div className="text-xs sm:text-sm text-gray-700 break-words min-w-0">
-                    {document.summary}
+                      {document.summary}
                   </div>
                 </div>
               </div>

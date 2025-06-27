@@ -196,16 +196,16 @@ const BoardMessages = () => {
         </CardHeader>
         <CardContent className="p-2 xs:p-3 sm:p-4 min-w-0">
           <div className="min-w-0">
-            <ChatInterface
-              currentUserId={currentUserId}
-              currentUserType={currentUserType}
-              conversations={conversations}
-              messages={selectedConversationId ? getMessagesForConversation(selectedConversationId) : []}
-              onSendMessage={handleSendMessage}
-              onStartNewConversation={handleStartNewConversation}
-              onSelectConversation={handleSelectConversation}
-              selectedConversationId={selectedConversationId}
-            />
+          <ChatInterface
+            currentUserId={currentUserId}
+            currentUserType={currentUserType}
+            conversations={conversations}
+            messages={selectedConversationId ? getMessagesForConversation(selectedConversationId) : []}
+            onSendMessage={handleSendMessage}
+            onStartNewConversation={handleStartNewConversation}
+            onSelectConversation={handleSelectConversation}
+            selectedConversationId={selectedConversationId}
+          />
           </div>
         </CardContent>
       </Card>

@@ -32,7 +32,7 @@ const NotFound = () => {
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white"
             >
               <Home className="h-4 w-4 mr-2" />
-              Return to Home
+          Return to Home
             </Button>
             <Button 
               variant="outline" 

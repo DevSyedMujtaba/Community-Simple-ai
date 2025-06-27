@@ -275,7 +275,7 @@ const ChatInterface = ({
               </Avatar>
               
               <div className="font-medium text-gray-900 text-base sm:text-lg min-w-0 break-words">
-                {selectedConversation.participants.find(p => p.id !== currentUserId)?.name || 'Unknown User'}
+                  {selectedConversation.participants.find(p => p.id !== currentUserId)?.name || 'Unknown User'}
               </div>
             </div>
 
