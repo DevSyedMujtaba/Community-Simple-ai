@@ -1,8 +1,9 @@
 import { HiCheckCircle } from "react-icons/hi";
 import img1 from '../../public/img1.jpg';
-import logo from '../../public/logo.png';
+import logo2 from '../../public/logo2.png';
 import dottedCircle from '../../public/dotted-circle.png';
 import type { JSX } from 'react';
+import { useState } from 'react';
 
 // import heroImg from "../assets/hero-hoa-couple.png"; // Commented out due to missing file
 
@@ -12,6 +13,8 @@ import type { JSX } from 'react';
  * Fully mobile responsive with optimized layout for all screen sizes
  */
 const Index = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#f5faff] flex flex-col">
       {/* Top blue compliance bar */}
@@ -22,9 +25,14 @@ const Index = () => {
       <nav className="w-full bg-white shadow-sm flex items-center justify-between px-4 sm:px-8 py-3 sticky top-0 z-10">
         {/* Logo */}
         <div className="flex items-center gap-2 ">
-          <img src={logo} alt="Neighbor.Simple Logo" className="h-10 w-auto" />
+          <img
+            src={logo2}
+            alt="Community.Simple Logo"
+            className="h-10 sm:h-12 md:h-14 w-auto"
+            style={{ maxWidth: '160px' }}
+          />
         </div>
-        {/* Nav Links */}
+        {/* Desktop Nav Links */}
         <div className="hidden md:flex gap-6 mx-auto">
           <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Home</a>
           <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Services</a>
@@ -33,10 +41,48 @@ const Index = () => {
           <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Blog</a>
           <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Contact</a>
         </div>
-        {/* CTA Button */}
-        <a href="#" className="ml-auto md:ml-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm">
+        {/* Desktop CTA Button */}
+        <a href="#" className="ml-auto md:ml-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
           GET STARTED
         </a>
+        {/* Hamburger Icon for Mobile */}
+        <button
+          className="md:hidden ml-auto flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Open menu"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex justify-end md:hidden" onClick={() => setMobileMenuOpen(false)}>
+            <div className="bg-white w-64 h-full shadow-lg flex flex-col p-6 relative" onClick={e => e.stopPropagation()}>
+              {/* Close button */}
+              <button
+                className="absolute top-4 right-4 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Close menu"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M6 6l12 12M6 18L18 6" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+              <nav className="flex flex-col gap-6 mt-10">
+                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Home</a>
+                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Services</a>
+                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Management</a>
+                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Blog</a>
+                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Contact</a>
+                <a href="#" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center" onClick={() => setMobileMenuOpen(false)}>
+                  GET STARTED
+                </a>
+              </nav>
+            </div>
+          </div>
+        )}
       </nav>
       {/* Hero Section */}
       <main className="flex-1 flex flex-col justify-center items-center px-4 py-8 sm:py-16">
@@ -74,37 +120,37 @@ const Index = () => {
   {/* Left: Image with overlapping SVGs */}
   <div className="relative w-full max-w-md md:max-w-none md:w-auto flex justify-center">
     <div className="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[444px] md:h-[444px]">
-      {/* Rectangle: Top-left (under image) */}
-      <svg
+    {/* Rectangle: Top-left (under image) */}
+    <svg
         className="absolute top-[-32px] sm:top-[-40px] md:top-[-74px] right-[-12px] sm:right-[-16px] md:right-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
-        viewBox="0 0 328 328"
-      >
-        <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
-      </svg>
+      viewBox="0 0 328 328"
+    >
+      <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
+    </svg>
 
-      {/* Rectangle: Bottom-left (under image) */}
-      <svg
+    {/* Rectangle: Bottom-left (under image) */}
+    <svg
         className="absolute bottom-[18px] sm:bottom-[30px] md:bottom-[40px] left-[-12px] sm:left-[-16px] md:left-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
-        viewBox="0 0 328 328"
-      >
-        <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
-      </svg>
+      viewBox="0 0 328 328"
+    >
+      <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
+    </svg>
 
-      {/* Dotted Circle: Top-left, mostly under image */}
+    {/* Dotted Circle: Top-left, mostly under image */}
       <img
         src={dottedCircle}
         alt="Dotted circle decoration"
         className="absolute top-[-18px] sm:top-[-28px] md:top-[-46px] left-[-18px] sm:left-[-28px] md:left-[-40px] w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] md:w-[113px] md:h-[113px] z-0 select-none pointer-events-none"
       />
 
-      {/* Image (on top of all shapes) */}
-      <div className="relative z-10 w-full h-full">
-        <img
-          src={img1}
-          alt="Happy couple in front of house"
+    {/* Image (on top of all shapes) */}
+    <div className="relative z-10 w-full h-full">
+      <img
+        src={img1}
+        alt="Happy couple in front of house"
           className="w-full h-full object-cover rounded-md shadow-lg border border-gray-100"
           style={{ aspectRatio: '1/1' }}
-        />
+      />
       </div>
     </div>
   </div>
@@ -255,37 +301,37 @@ const Index = () => {
   {/* Right: Image with overlapping SVGs */}
   <div className="relative w-full max-w-md md:max-w-none md:w-auto flex justify-center">
     <div className="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[444px] md:h-[444px]">
-      {/* Rectangle: Top-left (under image) */}
-      <svg
+    {/* Rectangle: Top-left (under image) */}
+    <svg
         className="absolute top-[-32px] sm:top-[-40px] md:top-[-74px] right-[-12px] sm:right-[-16px] md:right-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
-        viewBox="0 0 328 328"
-      >
-        <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
-      </svg>
+      viewBox="0 0 328 328"
+    >
+      <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
+    </svg>
 
-      {/* Rectangle: Bottom-left (under image) */}
-      <svg
+    {/* Rectangle: Bottom-left (under image) */}
+    <svg
         className="absolute bottom-[18px] sm:bottom-[30px] md:bottom-[40px] left-[-12px] sm:left-[-16px] md:left-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
-        viewBox="0 0 328 328"
-      >
-        <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
-      </svg>
+      viewBox="0 0 328 328"
+    >
+      <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
+    </svg>
 
-      {/* Dotted Circle: Top-left, mostly under image */}
+    {/* Dotted Circle: Top-left, mostly under image */}
       <img
         src={dottedCircle}
         alt="Dotted circle decoration"
         className="absolute top-[-18px] sm:top-[-28px] md:top-[-46px] left-[-18px] sm:left-[-28px] md:left-[-40px] w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] md:w-[113px] md:h-[113px] z-0 select-none pointer-events-none"
       />
 
-      {/* Image (on top of all shapes) */}
-      <div className="relative z-10 w-full h-full">
-        <img
-          src={img1}
-          alt="Happy couple in front of house"
+    {/* Image (on top of all shapes) */}
+    <div className="relative z-10 w-full h-full">
+      <img
+        src={img1}
+        alt="Happy couple in front of house"
           className="w-full h-full object-cover rounded-md shadow-lg border border-gray-100"
           style={{ aspectRatio: '1/1' }}
-        />
+      />
       </div>
     </div>
   </div>
@@ -296,37 +342,37 @@ const Index = () => {
   {/* Left: Image with overlapping SVGs */}
   <div className="relative w-full max-w-md md:max-w-none md:w-auto flex justify-center">
     <div className="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[444px] md:h-[444px]">
-      {/* Rectangle: Top-left (under image) */}
-      <svg
+    {/* Rectangle: Top-left (under image) */}
+    <svg
         className="absolute top-[-32px] sm:top-[-40px] md:top-[-74px] right-[-12px] sm:right-[-16px] md:right-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
-        viewBox="0 0 328 328"
-      >
-        <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
-      </svg>
+      viewBox="0 0 328 328"
+    >
+      <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
+    </svg>
 
-      {/* Rectangle: Bottom-left (under image) */}
-      <svg
+    {/* Rectangle: Bottom-left (under image) */}
+    <svg
         className="absolute bottom-[18px] sm:bottom-[30px] md:bottom-[40px] left-[-12px] sm:left-[-16px] md:left-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
-        viewBox="0 0 328 328"
-      >
-        <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
-      </svg>
+      viewBox="0 0 328 328"
+    >
+      <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
+    </svg>
 
-      {/* Dotted Circle: Top-left, mostly under image */}
+    {/* Dotted Circle: Top-left, mostly under image */}
       <img
         src={dottedCircle}
         alt="Dotted circle decoration"
         className="absolute top-[-18px] sm:top-[-28px] md:top-[-46px] left-[-18px] sm:left-[-28px] md:left-[-40px] w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] md:w-[113px] md:h-[113px] z-0 select-none pointer-events-none"
       />
 
-      {/* Image (on top of all shapes) */}
-      <div className="relative z-10 w-full h-full">
-        <img
-          src={img1}
-          alt="Happy couple in front of house"
+    {/* Image (on top of all shapes) */}
+    <div className="relative z-10 w-full h-full">
+      <img
+        src={img1}
+        alt="Happy couple in front of house"
           className="w-full h-full object-cover rounded-md shadow-lg border border-gray-100"
           style={{ aspectRatio: '1/1' }}
-        />
+      />
       </div>
     </div>
   </div>
@@ -503,7 +549,7 @@ const Index = () => {
     {/* Logo and Description */}
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <img src={logo} alt="Neighbor.Simple Logo" className="h-10 w-auto" />
+        <img src={logo2} alt="Neighbor.Simple Logo" className="h-10 w-auto" />
         
       </div>
       <p className="text-gray-600 text-sm mb-6 max-w-xs">Neighbor.Simple helps HOA boards, managers, and homeowners understand and follow complex HOA rules—without expensive legal fees.</p>
