@@ -42,7 +42,7 @@ const Index = () => {
           <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Contact</a>
         </div>
         {/* Desktop CTA Button */}
-        <a href="#" className="ml-auto md:ml-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
+        <a href="/signup" className="ml-auto md:ml-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
           GET STARTED
         </a>
         {/* Hamburger Icon for Mobile */}
@@ -76,7 +76,7 @@ const Index = () => {
                 <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
                 <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Blog</a>
                 <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Contact</a>
-                <a href="#" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center" onClick={() => setMobileMenuOpen(false)}>
+                <a href="/signup" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center" onClick={() => setMobileMenuOpen(false)}>
                   GET STARTED
                 </a>
               </nav>
@@ -98,7 +98,7 @@ const Index = () => {
             <p className="text-base sm:text-lg text-gray-700 mb-6 max-w-md">
               Neighbor.Simple helps HOA boards, managers, and homeowners understand and follow complex HOA rules—without expensive legal fees.
             </p>
-            <a href="#" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-full sm:w-auto text-center">
+            <a href="/signup" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-full sm:w-auto text-center">
               JOIN THE WAITLIST
             </a>
           </div>
@@ -116,7 +116,7 @@ const Index = () => {
                     </div>
       </main>
       {/* Problems Section */}
-      <section className="w-full flex flex-col md:flex-row items-center justify-center px-4 py-20 bg-white gap-12 md:gap-20">
+      <section className="w-full flex flex-col md:flex-row items-center justify-center px-4 py-20 bg-white gap-12 md:gap-20 mt-8 md:mt-16">
   {/* Left: Image with overlapping SVGs */}
   <div className="relative w-full max-w-md md:max-w-none md:w-auto flex justify-center">
     <div className="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[444px] md:h-[444px]">
@@ -180,7 +180,7 @@ const Index = () => {
       ))}
     </ul>
     <a
-      href="#"
+      href="/signup"
       className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-full sm:w-auto text-center"
     >
       READ MORE ABOUT US
@@ -386,7 +386,7 @@ const Index = () => {
       Neighbor.Simple was founded by an experienced attorney who saw firsthand how difficult and expensive HOA compliance can be. Our mission: to make legal clarity simple, affordable, and accessible for every community.
     </p>
     <a
-      href="#"
+      href="/signup"
       className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-sm shadow-md transition w-full sm:w-auto text-center"
     >
       JOIN THE NEIGHBOR.SIMPLE WAITLIST FOR EARLY ACCESS
@@ -574,6 +574,8 @@ const Index = () => {
         <li><a href="/homeowner" className="hover:text-blue-600">Homeowner Dashboard</a></li>
         <li><a href="/board" className="hover:text-blue-600">Board Dashboard</a></li>
         <li><a href="/admin" className="hover:text-blue-600">Admin Dashboard</a></li>
+        <li><a href="/test-flow" className="hover:text-blue-600">Test Onboarding Flow</a></li>
+        
       </ul>
     </div>
     {/* Help Center */}
