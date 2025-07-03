@@ -504,7 +504,7 @@ const Index = () => {
 {/* Happy Customers/Testimonial Section */}
 <section id="testimonials" className="w-full py-20 flex flex-col items-center justify-center bg-white">
   <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Happy Customers</span>
-  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">How Community Simple will Helping to<br />our customers</h2>
+  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">How Community Simple will help<br />our customers</h2>
   <p className="text-gray-600 text-sm sm:text-base mb-12 text-center max-w-2xl mx-auto">
     Community Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
   </p>
