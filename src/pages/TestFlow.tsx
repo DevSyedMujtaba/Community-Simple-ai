@@ -52,7 +52,7 @@ const TestFlow = () => {
         <div className="flex items-center gap-2">
           <img
             src={logo2}
-            alt="Neighbor.Simple Logo"
+            alt="Community Simple Logo"
             className="h-10 sm:h-12 w-auto"
             style={{ maxWidth: '140px' }}
           />

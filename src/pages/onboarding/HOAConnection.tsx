@@ -120,7 +120,7 @@ const HOAConnection = () => {
           <div className="flex items-center gap-2">
             <img
               src={logo2}
-              alt="Neighbor.Simple Logo"
+              alt="Community Simple Logo"
               className="h-8 sm:h-10 lg:h-12 w-auto"
               style={{ maxWidth: '120px' }}
             />
@@ -174,7 +174,7 @@ const HOAConnection = () => {
         <div className="flex items-center gap-2">
           <img
             src={logo2}
-            alt="Neighbor.Simple Logo"
+            alt="Community Simple Logo"
             className="h-8 sm:h-10 lg:h-12 w-auto"
             style={{ maxWidth: '120px' }}
           />
@@ -337,7 +337,7 @@ const HOAConnection = () => {
                       <div>
                         <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Create Your HOA Community</h4>
                         <p className="text-xs sm:text-sm text-blue-700">
-                          Set up your HOA on Neighbor.Simple to start managing your community more effectively. 
+                          Set up your HOA on Community Simple to start managing your community more effectively. 
                           You'll be able to invite homeowners, upload documents, and manage compliance.
                         </p>
                       </div>

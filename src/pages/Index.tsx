@@ -15,14 +15,21 @@ import { useState } from 'react';
 const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Smooth scroll function for anchor links
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f5faff] flex flex-col">
       {/* Top blue compliance bar */}
-      <div className="w-full" style={{ backgroundColor: '#254F70' }}>
-        <span className="text-white text-xs text-center py-1 font-medium tracking-wide block">
-          FILE NOW TO COMPLY WITH THE CORPORATE TRANSPARENCY ACT
-        </span>
-      </div>
+     
       {/* Custom Navbar */}
       <nav className="w-full bg-white shadow-sm flex items-center justify-between px-4 sm:px-8 py-3 sticky top-0 z-10">
         {/* Logo */}
@@ -36,18 +43,17 @@ const Index = () => {
         </div>
         {/* Desktop Nav Links */}
         <div className="hidden md:flex gap-6 mx-auto">
-          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Home</a>
-          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Services</a>
-          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Management</a>
-          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Pricing</a>
-          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Blog</a>
-          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Contact</a>
-          
+          <button onClick={() => scrollToSection('home')} className="text-gray-700 hover:text-[#254F70] font-medium transition">Home</button>
+          <button onClick={() => scrollToSection('why-us')} className="text-gray-700 hover:text-[#254F70] font-medium transition">Why Us</button>
+          <button onClick={() => scrollToSection('how-it-works')} className="text-gray-700 hover:text-[#254F70] font-medium transition">How It Works</button>
+          <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-[#254F70] font-medium transition">Features</button>
+          <button onClick={() => scrollToSection('who-we-serve')} className="text-gray-700 hover:text-[#254F70] font-medium transition">Who We Serve</button>
+          <button onClick={() => scrollToSection('testimonials')} className="text-gray-700 hover:text-[#254F70] font-medium transition">Testimonials</button>
         </div>
         {/* Desktop CTA Button */}
-        <a href="/signup" className="ml-auto md:ml-0 bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
-          GET STARTED
-        </a>
+        <button onClick={() => scrollToSection('get-started')} className="ml-auto md:ml-0 bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
+          Get Started Now
+        </button>
         {/* Hamburger Icon for Mobile */}
         <button
           className="md:hidden ml-auto flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#254F70]"
@@ -73,22 +79,22 @@ const Index = () => {
                 </svg>
               </button>
               <nav className="flex flex-col gap-6 mt-10">
-                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Home</a>
-                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Services</a>
-                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Management</a>
-                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
-                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Blog</a>
-                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Contact</a>
-                <a href="/signup" className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center" onClick={() => setMobileMenuOpen(false)}>
-                  GET STARTED
-                </a>
+                <button onClick={() => { scrollToSection('home'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">Home</button>
+                <button onClick={() => { scrollToSection('why-us'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">Why Us</button>
+                <button onClick={() => { scrollToSection('how-it-works'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">How It Works</button>
+                <button onClick={() => { scrollToSection('features'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">Features</button>
+                <button onClick={() => { scrollToSection('who-we-serve'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">Who We Serve</button>
+                <button onClick={() => { scrollToSection('testimonials'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">Testimonials</button>
+                <button onClick={() => { scrollToSection('get-started'); setMobileMenuOpen(false); }} className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center">
+                  Get Started Now
+                </button>
               </nav>
             </div>
           </div>
         )}
       </nav>
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col justify-center items-center px-4 py-8 sm:py-16">
+      <main id="home" className="flex-1 flex flex-col justify-center items-center px-4 py-8 sm:py-16">
         <div className="w-full max-w-6xl flex flex-col md:flex-row items-center gap-8 md:gap-16">
           {/* Left: Text */}
           <div className="w-full md:w-1/2 flex flex-col items-start justify-center text-left">
@@ -99,7 +105,7 @@ const Index = () => {
               Stay HOA Compliant
           </h1>
             <p className="text-base sm:text-lg text-gray-700 mb-6 max-w-md">
-              Neighbor.Simple helps HOA boards, managers, and homeowners understand and follow complex HOA rules—without expensive legal fees.
+              Community Simple helps HOA boards, managers, and homeowners understand and follow complex HOA rules—without expensive legal fees.
             </p>
             <a href="/signup" className="bg-[#254F70] hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-full sm:w-auto text-center">
               JOIN THE WAITLIST
@@ -119,7 +125,7 @@ const Index = () => {
                     </div>
       </main>
       {/* Problems Section */}
-      <section className="w-full flex flex-col md:flex-row items-center justify-center px-4 py-20 bg-white gap-12 md:gap-20 mt-8 md:mt-16">
+      <section id="why-us" className="w-full flex flex-col md:flex-row items-center justify-center px-4 py-20 bg-white gap-12 md:gap-20 mt-8 md:mt-16">
   {/* Left: Image with overlapping SVGs */}
   <div className="relative w-full max-w-md md:max-w-none md:w-auto flex justify-center">
     <div className="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[444px] md:h-[444px]">
@@ -192,11 +198,11 @@ const Index = () => {
 </section>
 
 {/* Solutions Section */}
-<section className="w-full bg-[#f3f8fe] py-16 flex flex-col items-center justify-center">
+<section id="how-it-works" className="w-full bg-[#f3f8fe] py-16 flex flex-col items-center justify-center">
   <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Solutions</span>
-  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">How Neighbor.Simple Makes HOA Compliance Easy</h2>
+  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">How Community Simple Makes HOA Compliance Easy</h2>
   <p className="text-gray-600 text-sm sm:text-base mb-10 text-center max-w-2xl mx-auto">
-    Neighbor.Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
+    Community Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
   </p>
   <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-4">
     {/* Card 1 */}
@@ -243,7 +249,7 @@ const Index = () => {
       Powerful Features to<br />HOA Compliance
     </h2>
     <p className="text-sm sm:text-base text-gray-700 mb-6 max-w-md">
-      Whether you're on the HOA board, managing properties, or a concerned resident — Neighbor.Simple puts legal clarity in your pocket.
+      Whether you're on the HOA board, managing properties, or a concerned resident — Community Simple puts legal clarity in your pocket.
     </p>
     <div className="flex flex-col gap-4 w-full">
       {/* Feature 1 */}
@@ -386,23 +392,74 @@ const Index = () => {
       Created by a Lawyer.<br />Designed for Your Community.
     </h2>
     <p className="text-sm sm:text-base text-gray-700 mb-6 max-w-md">
-      Neighbor.Simple was founded by an experienced attorney who saw firsthand how difficult and expensive HOA compliance can be. Our mission: to make legal clarity simple, affordable, and accessible for every community.
+      Community Simple was founded by an experienced attorney who saw firsthand how difficult and expensive HOA compliance can be. Our mission: to make legal clarity simple, affordable, and accessible for every community.
     </p>
     <a
       href="/signup"
       className="bg-[#254F70] hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-sm shadow-md transition w-full sm:w-auto text-center"
     >
-      JOIN THE NEIGHBOR.SIMPLE WAITLIST FOR EARLY ACCESS
+      JOIN THE Community Simple WAITLIST FOR EARLY ACCESS
     </a>
   </div>
 </section>
 
-{/* Who Neighbor.Simple Helps Section */}
-<section className="w-full bg-[#f3f8fe] py-20 flex flex-col items-center justify-center">
-  <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Who Us Helps</span>
-  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">Who Neighbor.Simple Helps</h2>
+{/* Features Section */}
+<section id="features" className="w-full bg-white py-20 flex flex-col items-center justify-center">
+  <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Features</span>
+  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">Powerful Features for HOA Management</h2>
   <p className="text-gray-600 text-sm sm:text-base mb-12 text-center max-w-2xl mx-auto">
-    Neighbor.Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
+    Everything you need to manage HOA compliance efficiently and effectively.
+  </p>
+  <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+    {/* Feature 1: AI Document Analysis */}
+    <div className="bg-[#f3f8fe] rounded-2xl p-8 flex flex-col items-center text-center">
+      <div className="bg-[#254F70] rounded-full p-4 mb-6 flex items-center justify-center">
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" className="text-white">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="white" strokeWidth="2"/>
+          <polyline points="14,2 14,8 20,8" stroke="white" strokeWidth="2"/>
+          <line x1="16" y1="13" x2="8" y2="13" stroke="white" strokeWidth="2"/>
+          <line x1="16" y1="17" x2="8" y2="17" stroke="white" strokeWidth="2"/>
+          <polyline points="10,9 9,9 8,9" stroke="white" strokeWidth="2"/>
+        </svg>
+      </div>
+      <h3 className="font-bold text-xl mb-3 text-gray-900">AI Document Analysis</h3>
+      <p className="text-gray-600 text-sm">Upload your HOA documents and get instant AI-powered analysis and insights.</p>
+    </div>
+    
+    {/* Feature 2: Compliance Tracking */}
+    <div className="bg-[#f3f8fe] rounded-2xl p-8 flex flex-col items-center text-center">
+      <div className="bg-[#254F70] rounded-full p-4 mb-6 flex items-center justify-center">
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" className="text-white">
+          <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2"/>
+          <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z" stroke="white" strokeWidth="2"/>
+          <path d="M3 12c1 0 2-1 2-2s-1-2-2-2-2 1-2 2 1 2 2 2z" stroke="white" strokeWidth="2"/>
+          <path d="M12 3c0 1-1 2-2 2s-2-1-2-2 1-2 2-2 2 1 2 2z" stroke="white" strokeWidth="2"/>
+          <path d="M12 21c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2z" stroke="white" strokeWidth="2"/>
+        </svg>
+      </div>
+      <h3 className="font-bold text-xl mb-3 text-gray-900">Compliance Tracking</h3>
+      <p className="text-gray-600 text-sm">Monitor violations, track resolutions, and maintain compliance records.</p>
+    </div>
+    
+    {/* Feature 3: Communication Tools */}
+    <div className="bg-[#f3f8fe] rounded-2xl p-8 flex flex-col items-center text-center">
+      <div className="bg-[#254F70] rounded-full p-4 mb-6 flex items-center justify-center">
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" className="text-white">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" strokeWidth="2"/>
+        </svg>
+      </div>
+      <h3 className="font-bold text-xl mb-3 text-gray-900">Communication Tools</h3>
+      <p className="text-gray-600 text-sm">Built-in messaging and notification system for seamless communication.</p>
+    </div>
+  </div>
+</section>
+
+{/* Who Community Simple Helps Section */}
+<section id="who-we-serve" className="w-full bg-[#f3f8fe] py-20 flex flex-col items-center justify-center">
+  <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Who Us Helps</span>
+  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">Who Community Simple Helps</h2>
+  <p className="text-gray-600 text-sm sm:text-base mb-12 text-center max-w-2xl mx-auto">
+    Community Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
   </p>
   <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
     {/* Card 1: HOA Board Members */}
@@ -448,11 +505,11 @@ const Index = () => {
 </section>
 
 {/* Happy Customers/Testimonial Section */}
-<section className="w-full py-20 flex flex-col items-center justify-center bg-white">
+<section id="testimonials" className="w-full py-20 flex flex-col items-center justify-center bg-white">
   <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Happy Customers</span>
-  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">How Neighbor.Simple will Helping to<br />our customers</h2>
+  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">How Community Simple will Helping to<br />our customers</h2>
   <p className="text-gray-600 text-sm sm:text-base mb-12 text-center max-w-2xl mx-auto">
-    Neighbor.Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
+    Community Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
   </p>
   <div className="relative w-full max-w-6xl flex items-center justify-center">
     {/* Left Arrow */}
@@ -528,11 +585,11 @@ const Index = () => {
 </section>
 
 {/* Early Access CTA Section */}
-<section className="w-full flex flex-col md:flex-row items-stretch justify-center min-h-[340px]">
+<section id="get-started" className="w-full flex flex-col md:flex-row items-stretch justify-center min-h-[340px]">
   {/* Left: Blue CTA */}
   <div className="flex-1 bg-[#254F70] flex flex-col justify-center px-8 py-12 md:py-0 md:px-16">
-    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">Get Early Access to<br />Neighbor.Simple</h2>
-    <p className="text-white text-base sm:text-lg mb-8 max-w-md">Neighbor.Simple is launching soon. Be among the first to simplify HOA compliance with AI. Join our early access list today.</p>
+    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">Get Early Access to<br />Community Simple</h2>
+    <p className="text-white text-base sm:text-lg mb-8 max-w-md">Community Simple is launching soon. Be among the first to simplify HOA compliance with AI. Join our early access list today.</p>
     <button className="bg-white text-[#254F70] font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-fit hover:bg-blue-50">JOIN THE WAITLIST</button>
   </div>
   {/* Right: Image */}
@@ -552,10 +609,10 @@ const Index = () => {
     {/* Logo and Description */}
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <img src={logo2} alt="Neighbor.Simple Logo" className="h-10 w-auto" />
+        <img src={logo2} alt="Community Simple Logo" className="h-10 w-auto" />
         
       </div>
-      <p className="text-gray-600 text-sm mb-6 max-w-xs">Neighbor.Simple helps HOA boards, managers, and homeowners understand and follow complex HOA rules—without expensive legal fees.</p>
+      <p className="text-gray-600 text-sm mb-6 max-w-xs">Community Simple helps HOA boards, managers, and homeowners understand and follow complex HOA rules—without expensive legal fees.</p>
       <div className="font-semibold text-base mb-2">Follow us</div>
       <div className="flex gap-3">
         <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H6v4h4v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z" stroke="#254F70" strokeWidth="2"/></svg></a>
@@ -568,12 +625,7 @@ const Index = () => {
     <div>
       <div className="font-semibold text-base mb-3">Useful Links</div>
       <ul className="space-y-2 text-gray-700 text-sm">
-        <li><a href="#" className="hover:text-blue-600">Home</a></li>
-        <li><a href="#" className="hover:text-blue-600">Services</a></li>
-        <li><a href="#" className="hover:text-blue-600">Management</a></li>
-        <li><a href="#" className="hover:text-blue-600">Pricing</a></li>
-        <li><a href="#" className="hover:text-blue-600">Blog</a></li>
-        <li><a href="#" className="hover:text-blue-600">Contact</a></li>
+        <li><a href="/contact" className="hover:text-blue-600">Contact</a></li>
         <li><a href="/homeowner" className="hover:text-blue-600">Homeowner Dashboard</a></li>
         <li><a href="/board" className="hover:text-blue-600">Board Dashboard</a></li>
         <li><a href="/admin" className="hover:text-blue-600">Admin Dashboard</a></li>
@@ -591,10 +643,6 @@ const Index = () => {
       <div className="font-semibold text-base mb-3">Help center</div>
       <ul className="space-y-2 text-gray-700 text-sm">
         <li><a href="/terms-and-conditions" className="hover:text-blue-600">Terms & Conditions</a></li>
-        <li><a href="/privacy-policy" className="hover:text-blue-600">Policies</a></li>
-        <li><a href="#" className="hover:text-blue-600">Rewards FAQ</a></li>
-        <li><a href="#" className="hover:text-blue-600">Find Us In Store</a></li>
-        <li><a href="#" className="hover:text-blue-600">Shipping & Returns</a></li>
         <li><a href="/privacy-policy" className="hover:text-blue-600">Privacy Policy</a></li>
       </ul>
     </div>

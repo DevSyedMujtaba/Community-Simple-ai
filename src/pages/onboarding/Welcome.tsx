@@ -85,7 +85,7 @@ const Welcome = () => {
 
   const tutorialSteps = [
     {
-      title: "Welcome to Neighbor.Simple",
+      title: "Welcome to Community Simple",
       description: "Let's take a quick tour of your new HOA management platform",
       action: "Start Tour"
     },
@@ -101,7 +101,7 @@ const Welcome = () => {
     },
     {
       title: "You're All Set!",
-      description: "Ready to start using Neighbor.Simple? Let's get you to your dashboard",
+      description: "Ready to start using Community Simple? Let's get you to your dashboard",
       action: "Go to Dashboard"
     }
   ];
@@ -148,7 +148,7 @@ const Welcome = () => {
         <div className="flex items-center gap-2">
           <img
             src={logo2}
-            alt="Neighbor.Simple Logo"
+            alt="Community Simple Logo"
             className="h-8 sm:h-10 lg:h-12 w-auto"
             style={{ maxWidth: '120px' }}
           />
@@ -178,7 +178,7 @@ const Welcome = () => {
                 <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
               </div>
               <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                Welcome to Neighbor.Simple!
+                Welcome to Community Simple!
               </CardTitle>
               <CardDescription className="text-sm sm:text-base text-gray-600">
                 {userType === 'homeowner' 
@@ -229,7 +229,7 @@ const Welcome = () => {
               <div>
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 text-center">
                   {userType === 'homeowner' 
-                    ? 'What you can do with Neighbor.Simple'
+                    ? 'What you can do with Community Simple'
                     : 'Powerful features for HOA management'
                   }
                 </h3>

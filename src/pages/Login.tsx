@@ -52,7 +52,7 @@ const Login = () => {
         <div className="flex items-center gap-2">
           <img
             src={logo2}
-            alt="Neighbor.Simple Logo"
+            alt="Community Simple Logo"
             className="h-8 sm:h-10 lg:h-12 w-auto"
             style={{ maxWidth: '120px' }}
           />
@@ -76,7 +76,7 @@ const Login = () => {
                 Welcome Back
               </CardTitle>
               <CardDescription className="text-sm sm:text-base text-gray-600">
-                Sign in to your Neighbor.Simple account
+                Sign in to your Neighbor.Simpl account
               </CardDescription>
             </CardHeader>
             

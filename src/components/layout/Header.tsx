@@ -5,7 +5,7 @@ import { useState } from "react";
 
 /**
  * Header component with navigation and branding
- * Displays the Neighbor.Simple logo and home navigation
+ * Displays the Community Simple logo and home navigation
  * Fully mobile responsive with collapsible navigation
  */
 const Header = () => {
