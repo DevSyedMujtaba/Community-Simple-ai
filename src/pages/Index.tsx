@@ -468,7 +468,6 @@ const Index = () => {
         <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="#254F70" strokeWidth="2"/><rect x="7" y="3" width="10" height="4" rx="1" stroke="#254F70" strokeWidth="2"/></svg>
       </div>
       <div className="font-bold text-lg mb-1 text-gray-900">For HOA Board Members</div>
-      <div className="text-gray-500 text-sm mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod to the a tempor incididunt to he a to the tempor.</div>
       <ul className="space-y-2">
         <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Make clear, defensible decisions</li>
         <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Reduce legal liability</li>
@@ -481,7 +480,6 @@ const Index = () => {
         <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="#254F70" strokeWidth="2"/><path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="#254F70" strokeWidth="2"/></svg>
       </div>
       <div className="font-bold text-lg mb-1 text-gray-900">For Property Managers</div>
-      <div className="text-gray-500 text-sm mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod to the a tempor incididunt to he a to the tempor.</div>
       <ul className="space-y-2">
         <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Resolve disputes faster</li>
         <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Lower legal and operating costs</li>
@@ -494,7 +492,6 @@ const Index = () => {
         <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="10" r="4" stroke="#254F70" strokeWidth="2"/><path d="M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" stroke="#254F70" strokeWidth="2"/></svg>
       </div>
       <div className="font-bold text-lg mb-1 text-gray-900">For Homeowners</div>
-      <div className="text-gray-500 text-sm mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod to the a tempor incididunt to he a to the tempor.</div>
       <ul className="space-y-2">
         <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Understand your rights</li>
         <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Proactively avoid costly violations</li>
