@@ -35,9 +35,13 @@ const AdminDashboard = () => {
             <SidebarTrigger className="-ml-1 text-blue-700 hover:bg-blue-50" />
             <div className="flex items-center gap-2 text-sm text-blue-900 flex-1 min-w-0">
               <span className="font-semibold truncate">Admin Dashboard</span>
-              <Badge variant="outline" className="text-blue-600 border-blue-600 bg-blue-50 text-xs sm:text-sm flex-shrink-0">
+              <Badge variant="outline" className="text-[#254F70] border-[#254F70] bg-blue-50 text-xs sm:text-sm flex-shrink-0">
                 Admin Access
               </Badge>
+              <button className="ml-4 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80" disabled>
+                HOA - Property Lawyer Market Place
+                <span className="ml-2 text-[10px] text-gray-500 font-normal">Beta - In Development - Coming soon</span>
+              </button>
             </div>
           </header>
 
@@ -118,7 +122,7 @@ const AdminDashboard = () => {
                             <p className="font-medium text-gray-900 text-sm sm:text-base truncate">Oak Ridge Community</p>
                             <p className="text-xs sm:text-sm text-gray-600">203 units • 76% active</p>
                           </div>
-                          <Badge variant="outline" className="text-blue-600 border-blue-600 w-fit text-xs sm:text-sm">
+                          <Badge variant="outline" className="text-[#254F70] border-[#254F70] w-fit text-xs sm:text-sm">
                             Growing
                           </Badge>
                         </div>
@@ -132,7 +136,7 @@ const AdminDashboard = () => {
                 <Card>
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+                      <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
                       User Management
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">
@@ -149,7 +153,7 @@ const AdminDashboard = () => {
                 <Card>
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Building2 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+                      <Building2 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
                       HOAs Management
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">

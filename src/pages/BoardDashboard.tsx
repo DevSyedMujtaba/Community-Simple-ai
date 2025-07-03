@@ -70,6 +70,10 @@ const BoardDashboard = () => {
               <Badge variant="outline" className="text-green-600 border-green-600 text-xs sm:text-sm flex-shrink-0">
                 Sunrise Valley HOA
               </Badge>
+              <button className="ml-4 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80" disabled>
+                HOA - Property Lawyer Market Place
+                <span className="ml-2 text-[10px] text-gray-500 font-normal">Beta - In Development - Coming soon</span>
+              </button>
             </div>
           </header>
 
@@ -84,7 +88,7 @@ const BoardDashboard = () => {
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
                           <div className="text-xl sm:text-2xl font-bold text-gray-900">{communityStats.totalHomes}</div>
-                          <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 ml-auto flex-shrink-0" />
+                          <Users className="h-6 w-6 sm:h-8 sm:w-8 text-[#254F70] ml-auto flex-shrink-0" />
                         </div>
                         <p className="text-xs sm:text-sm text-gray-600 mt-1">Total Homes</p>
                       </CardContent>
@@ -136,7 +140,7 @@ const BoardDashboard = () => {
                         {/* Activity: New HOA document uploaded */}
                         <div className="flex flex-col xs:flex-row items-start xs:items-center p-2 sm:p-4 bg-blue-50 rounded-lg gap-2 xs:gap-4 min-w-0">
                           <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0 mb-1 xs:mb-0">
-                            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-[#254F70]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-900 text-xs sm:text-base break-words truncate">New HOA document uploaded</p>
@@ -165,7 +169,7 @@ const BoardDashboard = () => {
                 <Card>
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Settings className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+                      <Settings className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0 " />
                       HOA Management
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">
@@ -182,7 +186,7 @@ const BoardDashboard = () => {
                 <Card>
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+                      <Users className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
                       Residents Management
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">
@@ -200,7 +204,7 @@ const BoardDashboard = () => {
                   <Card>
                     <CardHeader className="pb-3 sm:pb-4">
                       <CardTitle className="flex items-center text-lg sm:text-xl">
-                        <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+                        <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
                         Document Management
                       </CardTitle>
                       <CardDescription className="text-sm sm:text-base">
@@ -242,7 +246,7 @@ const BoardDashboard = () => {
                 <Card>
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
                       Messages
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">
@@ -276,7 +280,7 @@ const BoardDashboard = () => {
                 <Card>
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+                      <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70]   flex-shrink-0" />
                       Compliance Monitor
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">

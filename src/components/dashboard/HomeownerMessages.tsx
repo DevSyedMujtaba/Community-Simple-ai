@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail } from "lucide-react";
@@ -151,7 +150,7 @@ const HomeownerMessages = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Mail className="h-6 w-6 mr-2 text-primary" />
+            <Mail className="h-6 w-6 mr-2 text-[#254F70]" />
             Messages
           </CardTitle>
         </CardHeader>

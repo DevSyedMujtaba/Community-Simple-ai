@@ -209,7 +209,7 @@ const ChatInterface = ({ documents }: ChatInterfaceProps) => {
               <Button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || documents.length === 0 || isTyping}
-                className="bg-primary hover:bg-primary/90 min-h-[40px] sm:min-h-[44px] px-3 sm:px-4"
+                className="bg-[#254F70] hover:bg-primary/90 min-h-[40px] sm:min-h-[44px] px-3 sm:px-4"
               >
                 <Send className="h-4 w-4" />
               </Button>

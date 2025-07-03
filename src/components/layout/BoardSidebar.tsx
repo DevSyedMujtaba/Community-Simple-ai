@@ -73,19 +73,8 @@ export function BoardSidebar({
   const isActive = (tabId: string) => activeTab === tabId;
   
   return <Sidebar collapsible="icon" className="border-r">
-      <SidebarHeader className="border-b h-16 flex-shrink-0 px-3 sm:px-4 flex items-center">
-        <div className="flex items-center space-x-3 w-full">
-          <div className="bg-green-100 p-2 rounded-lg flex-shrink-0">
-            <Home className="h-5 w-5 text-green-600" />
-          </div>
-          {!isCollapsed && <div className="min-w-0 flex-1">
-              <h1 className="text-sm font-semibold text-gray-900 truncate">
-                Board Dashboard
-              </h1>
-              <p className="text-xs text-gray-600 truncate">{communityName}</p>
-            </div>}
-          {!isCollapsed && pendingRequests > 0}
-        </div>
+      <SidebarHeader className="border-b h-16 flex-shrink-0 flex items-center justify-center">
+        <img src="/logo2.png" alt="Logo" className="h-20 w-32 object-contain" />
       </SidebarHeader>
 
       <SidebarContent>

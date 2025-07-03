@@ -139,7 +139,7 @@ const ChatInterface = ({
               variant="outline"
               size="sm"
               onClick={() => setShowNewChat(!showNewChat)}
-              className="text-primary border-primary hover:bg-primary hover:text-white min-h-[40px] w-full xs:w-auto"
+              className="text-[#254F70] border-[#254F70] hover:bg-primary hover:text-white min-h-[40px] w-full xs:w-auto"
             >
               <Search className="h-4 w-4 mr-1" />
               New
@@ -174,7 +174,7 @@ const ChatInterface = ({
                   className="flex items-center p-3 hover:bg-white rounded-lg cursor-pointer transition-colors min-h-[44px]"
                 >
                   <Avatar className="h-10 w-10 mr-3">
-                    <AvatarFallback className="bg-blue-100 text-blue-600">
+                    <AvatarFallback className="bg-[#254F70] text-white">
                       {getUserInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>

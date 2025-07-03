@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -90,9 +89,7 @@ const HomeownerNavigation = ({
       <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <Home className="h-5 w-5 text-blue-600" />
-            </div>
+            <img src="/logo2.png" alt="Logo" className="h-8 w-8 object-contain" />
             <div>
               <h1 className="text-lg font-semibold text-gray-900">Homeowner Dashboard</h1>
               <p className="text-xs text-gray-600">{hoaName}</p>
@@ -171,16 +168,14 @@ const HomeownerNavigation = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Home className="h-6 w-6 text-blue-600" />
-              </div>
+              <img src="/logo2.png" alt="Logo" className="h-10 w-10 object-contain" />
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Homeowner Dashboard</h1>
                 <p className="text-sm text-gray-600">{hoaName}</p>
               </div>
             </div>
             
-            <Badge variant="outline" className="text-blue-600 border-blue-600">
+            <Badge variant="outline" className="text-[#254F70] border-[#254F70]">
               {hoaName}
             </Badge>
           </div>

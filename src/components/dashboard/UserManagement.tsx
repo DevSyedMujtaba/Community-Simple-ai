@@ -310,7 +310,7 @@ const UserManagement = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleViewUser(user.id)}
-                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                      className="text-[#254F70] border-[#254F70] hover:bg-blue-50"
                     >
                       View Details
                     </Button>
@@ -382,7 +382,7 @@ const UserManagement = () => {
               <Button variant="outline" className="w-full sm:w-auto">
                 Send Notification
               </Button>
-              <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+              <Button className="bg-[#254F70] hover:bg-primary/90 w-full sm:w-auto">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Usage Analytics
               </Button>

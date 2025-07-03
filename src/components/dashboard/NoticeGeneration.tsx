@@ -194,7 +194,7 @@ const NoticeGeneration = () => {
                           </Button>
                           <Button
                             onClick={() => handleSendNotice(notice.id)}
-                            className="bg-primary hover:bg-primary/90 w-full"
+                            className="bg-[#254F70] hover:bg-primary/90 w-full"
                             size="sm"
                           >
                             <Send className="h-4 w-4 mr-1" />
@@ -308,7 +308,7 @@ const NoticeGeneration = () => {
               </div>
               
               <div className="flex space-x-3">
-                <Button type="submit" className="bg-primary hover:bg-primary/90">
+                <Button type="submit" className="bg-[#254F70] hover:bg-primary/90">
                   <FileText className="h-4 w-4 mr-2" />
                   Save as Draft
                 </Button>

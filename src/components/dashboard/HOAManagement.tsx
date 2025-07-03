@@ -270,7 +270,7 @@ const HOAManagement = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Button variant="outline" size="sm" onClick={() => toggleHOAExpansion(hoa.id)} className="text-blue-600 border-blue-600 hover:bg-blue-50">
+                    <Button variant="outline" size="sm" onClick={() => toggleHOAExpansion(hoa.id)} className="text-[#254F70] border-[#254F70] hover:bg-blue-50">
                       {expandedHOA === hoa.id ? 'Hide Members' : 'View Members'}
                     </Button>
                     

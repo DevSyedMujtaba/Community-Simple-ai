@@ -231,7 +231,7 @@ const HOADocumentsList = ({ hoaName = "Your HOA" }: HOADocumentsListProps) => {
                 Use the AI Assistant to ask questions about any HOA document
               </p>
             </div>
-            <Button variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white w-full sm:w-auto">
+            <Button variant="outline" className="text-[#254F70] border-[#254F70] hover:bg-blue-600 hover:text-white w-full sm:w-auto">
               Open AI Assistant
             </Button>
           </div>

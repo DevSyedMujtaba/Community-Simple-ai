@@ -380,7 +380,7 @@ const ResidentsManagement = () => {
                 />
               </div>
               
-              <Button type="submit" className="bg-primary hover:bg-primary/90">
+              <Button type="submit" className="bg-[#254F70] hover:bg-primary/90">
                 <Mail className="h-4 w-4 mr-2" />
                 Send Invitation
               </Button>

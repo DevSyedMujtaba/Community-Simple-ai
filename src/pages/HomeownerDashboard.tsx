@@ -62,10 +62,14 @@ const HomeownerDashboard = () => {
             <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
               <span className="font-semibold truncate">Homeowner Dashboard</span>
               {userStatus.isJoinedToHOA && (
-                <Badge variant="outline" className="text-blue-600 border-blue-600 text-xs sm:text-sm flex-shrink-0">
+                <Badge variant="outline" className="text-[#254F70] border-[#254F70] text-xs sm:text-sm flex-shrink-0">
                   {userStatus.hoaName}
                 </Badge>
               )}
+              <button className="ml-4 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80" disabled>
+                HOA - Property Lawyer Market Place
+                <span className="ml-2 text-[10px] text-gray-500 font-normal">Beta - In Development - Coming soon</span>
+              </button>
             </div>
           </header>
 
@@ -100,7 +104,7 @@ const HomeownerDashboard = () => {
                 <Card>
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Bell className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+                      <Bell className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
                       Notices
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">

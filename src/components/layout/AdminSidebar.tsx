@@ -68,30 +68,13 @@ export function AdminSidebar({
 
   return (
     <Sidebar collapsible="icon" className="border-r bg-white">
-      <SidebarHeader className="border-b border-gray-200 bg-white h-16 flex items-center p-0">
-        <div className="flex items-center space-x-3 px-3 h-full w-full">
-          <div className="bg-blue-100 p-2 rounded-lg flex items-center justify-center h-10 w-10">
-            <Shield className="h-5 w-5 text-blue-600" />
-          </div>
-          {!isCollapsed && (
-            <div className="min-w-0 flex-1">
-              <h1 className="text-sm font-semibold text-blue-900 truncate">
-                Admin Dashboard
-              </h1>
-              <p className="text-xs text-blue-500 truncate">Platform Management</p>
-            </div>
-          )}
-          {!isCollapsed && (
-            <Badge variant="outline" className="text-blue-600 border-blue-600 bg-blue-50 text-xs">
-              Admin
-            </Badge>
-          )}
-        </div>
+      <SidebarHeader className="border-b border-gray-200 bg-white h-16 flex items-center justify-center p-0">
+        <img src="/logo2.png" alt="Logo" className="h-20 w-32 object-contain" />
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-blue-700">Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[#254F70]">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -120,9 +119,7 @@ const BoardNavigation = ({
       <div className="lg:hidden bg-white border-b border-gray-200 mb-6">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-3">
-            <div className="bg-green-100 p-2 rounded-lg">
-              <Home className="h-5 w-5 text-green-600" />
-            </div>
+            <img src="/logo2.png" alt="Logo" className="h-8 w-8 object-contain" />
             <div>
               <h2 className="font-semibold text-gray-900">{communityName}</h2>
               <p className="text-sm text-gray-600">Board Dashboard</p>

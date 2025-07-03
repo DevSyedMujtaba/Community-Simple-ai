@@ -101,7 +101,7 @@ const HomeownerNotices = () => {
       case 'unread':
         return { color: 'bg-red-100 text-red-800', icon: AlertCircle, label: 'Unread' };
       case 'read':
-        return { color: 'bg-blue-100 text-blue-800', icon: Eye, label: 'Read' };
+        return { color: 'bg-[#e6eef3] text-[#254F70]', icon: Eye, label: 'Read' };
       case 'acknowledged':
         return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Acknowledged' };
       case 'responded':
@@ -133,7 +133,7 @@ const HomeownerNotices = () => {
       case 'maintenance':
         return { color: 'text-orange-600', icon: Bell, label: 'Maintenance' };
       case 'community':
-        return { color: 'text-blue-600', icon: FileText, label: 'Community' };
+        return { color: 'text-[#254F70]', icon: FileText, label: 'Community' };
       case 'urgent':
         return { color: 'text-purple-600', icon: AlertTriangle, label: 'Urgent' };
       default:
@@ -168,7 +168,7 @@ const HomeownerNotices = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="text-2xl font-bold text-gray-900">{notices.length}</div>
-              <Bell className="h-6 w-6 text-blue-600 ml-auto" />
+              <Bell className="h-6 w-6 text-[#254F70] ml-auto" />
             </div>
             <p className="text-sm text-gray-600 mt-1">Total Notices</p>
           </CardContent>
@@ -217,7 +217,7 @@ const HomeownerNotices = () => {
                 variant={selectedFilter === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedFilter('all')}
-                className="text-xs min-w-[70px]"
+                className="text-xs min-w-[70px] bg-[#254F70] hover:bg-primary/90"
               >
                 All ({notices.length})
               </Button>
@@ -342,7 +342,7 @@ const HomeownerNotices = () => {
                         <Button
                           size="sm"
                           onClick={() => handleRespond(notice.id)}
-                          className="bg-primary hover:bg-primary/90 text-xs min-w-[80px]"
+                          className="bg-[#254F70] hover:bg-primary/90 text-xs min-w-[80px]"
                         >
                           <FileText className="h-3 w-3 mr-1" />
                           Respond

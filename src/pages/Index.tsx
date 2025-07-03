@@ -18,8 +18,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#f5faff] flex flex-col">
       {/* Top blue compliance bar */}
-      <div className="w-full bg-blue-600 text-white text-xs text-center py-1 font-medium tracking-wide">
-        FILE NOW TO COMPLY WITH THE CORPORATE TRANSPARENCY ACT
+      <div className="w-full" style={{ backgroundColor: '#254F70' }}>
+        <span className="text-white text-xs text-center py-1 font-medium tracking-wide block">
+          FILE NOW TO COMPLY WITH THE CORPORATE TRANSPARENCY ACT
+        </span>
       </div>
       {/* Custom Navbar */}
       <nav className="w-full bg-white shadow-sm flex items-center justify-between px-4 sm:px-8 py-3 sticky top-0 z-10">
@@ -34,25 +36,26 @@ const Index = () => {
         </div>
         {/* Desktop Nav Links */}
         <div className="hidden md:flex gap-6 mx-auto">
-          <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Home</a>
-          <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Services</a>
-          <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Management</a>
-          <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Pricing</a>
-          <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Blog</a>
-          <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition">Contact</a>
+          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Home</a>
+          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Services</a>
+          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Management</a>
+          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Pricing</a>
+          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Blog</a>
+          <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition">Contact</a>
+          
         </div>
         {/* Desktop CTA Button */}
-        <a href="/signup" className="ml-auto md:ml-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
+        <a href="/signup" className="ml-auto md:ml-0 bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
           GET STARTED
         </a>
         {/* Hamburger Icon for Mobile */}
         <button
-          className="md:hidden ml-auto flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="md:hidden ml-auto flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#254F70]"
           aria-label="Open menu"
           onClick={() => setMobileMenuOpen(true)}
         >
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="#254F70" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
         {/* Mobile Menu Overlay */}
@@ -61,22 +64,22 @@ const Index = () => {
             <div className="bg-white w-64 h-full shadow-lg flex flex-col p-6 relative" onClick={e => e.stopPropagation()}>
               {/* Close button */}
               <button
-                className="absolute top-4 right-4 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="absolute top-4 right-4 p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#254F70]"
                 aria-label="Close menu"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <path d="M6 6l12 12M6 18L18 6" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M6 6l12 12M6 18L18 6" stroke="#254F70" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
               <nav className="flex flex-col gap-6 mt-10">
-                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Home</a>
-                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Services</a>
-                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Management</a>
-                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
-                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Blog</a>
-                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition" onClick={() => setMobileMenuOpen(false)}>Contact</a>
-                <a href="/signup" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center" onClick={() => setMobileMenuOpen(false)}>
+                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Home</a>
+                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Services</a>
+                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Management</a>
+                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Blog</a>
+                <a href="#" className="text-gray-700 hover:text-[#254F70] font-medium transition" onClick={() => setMobileMenuOpen(false)}>Contact</a>
+                <a href="/signup" className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center" onClick={() => setMobileMenuOpen(false)}>
                   GET STARTED
                 </a>
               </nav>
@@ -89,7 +92,7 @@ const Index = () => {
         <div className="w-full max-w-6xl flex flex-col md:flex-row items-center gap-8 md:gap-16">
           {/* Left: Text */}
           <div className="w-full md:w-1/2 flex flex-col items-start justify-center text-left">
-            <span className="uppercase text-xs font-semibold text-blue-600 mb-2 tracking-wide">
+            <span className="uppercase text-xs font-semibold text-[#254F70] mb-2 tracking-wide">
               AI-POWERED HOA COMPLIANCE ASSISTANT
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
@@ -98,7 +101,7 @@ const Index = () => {
             <p className="text-base sm:text-lg text-gray-700 mb-6 max-w-md">
               Neighbor.Simple helps HOA boards, managers, and homeowners understand and follow complex HOA rules—without expensive legal fees.
             </p>
-            <a href="/signup" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-full sm:w-auto text-center">
+            <a href="/signup" className="bg-[#254F70] hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-full sm:w-auto text-center">
               JOIN THE WAITLIST
             </a>
           </div>
@@ -157,7 +160,7 @@ const Index = () => {
 
   {/* Right: Text Content */}
   <div className="w-full md:w-1/2 flex flex-col items-start justify-center text-left max-w-xl">
-    <span className="uppercase text-sm font-semibold text-blue-600 mb-3 tracking-wide">
+    <span className="uppercase text-sm font-semibold text-[#254F70] mb-3 tracking-wide">
       Problems
     </span>
     <h2 className="text-3xl sm:text-4xl md:text-[40px] font-bold text-gray-900 mb-4 leading-tight">
@@ -174,14 +177,14 @@ const Index = () => {
         "Homeowners often feel powerless",
       ].map((text, i) => (
         <li key={i} className="flex items-start gap-3 text-gray-800 text-sm">
-          <HiCheckCircle className="text-blue-600 mt-0.5 flex-shrink-0" size={20} />
+          <HiCheckCircle className="text-[#254F70] mt-0.5 flex-shrink-0" size={20} />
           <span>{text}</span>
         </li>
       ))}
     </ul>
     <a
       href="/signup"
-      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-full sm:w-auto text-center"
+      className="bg-[#254F70] hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-full sm:w-auto text-center"
     >
       READ MORE ABOUT US
     </a>
@@ -190,7 +193,7 @@ const Index = () => {
 
 {/* Solutions Section */}
 <section className="w-full bg-[#f3f8fe] py-16 flex flex-col items-center justify-center">
-  <span className="uppercase text-xs font-semibold text-blue-600 mb-3 tracking-wide text-center block">Solutions</span>
+  <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Solutions</span>
   <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">How Neighbor.Simple Makes HOA Compliance Easy</h2>
   <p className="text-gray-600 text-sm sm:text-base mb-10 text-center max-w-2xl mx-auto">
     Neighbor.Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
@@ -198,32 +201,32 @@ const Index = () => {
   <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-4">
     {/* Card 1 */}
     <div className="bg-white rounded-md shadow-md flex flex-col items-center p-8 text-center">
-      <div className="bg-blue-50 rounded-full p-3 mb-4 flex items-center justify-center">
-        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#3B82F6" strokeWidth="2"/><path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/></svg>
+      <div className="bg-[#e6eef3] rounded-full p-3 mb-4 flex items-center justify-center">
+        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#254F70" strokeWidth="2"/><path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" stroke="#254F70" strokeWidth="2" strokeLinecap="round"/></svg>
       </div>
       <div className="font-semibold text-lg mb-1 text-gray-900">Ask any HOA-related question</div>
       <div className="text-gray-500 text-sm">Get fast, reliable guidance</div>
     </div>
     {/* Card 2 */}
     <div className="bg-white rounded-md shadow-md flex flex-col items-center p-8 text-center">
-      <div className="bg-blue-50 rounded-full p-3 mb-4 flex items-center justify-center">
-        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#3B82F6" strokeWidth="2"/><path d="M12 8v4l2 2" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/></svg>
+      <div className="bg-[#e6eef3] rounded-full p-3 mb-4 flex items-center justify-center">
+        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#254F70" strokeWidth="2"/><path d="M12 8v4l2 2" stroke="#254F70" strokeWidth="2" strokeLinecap="round"/></svg>
       </div>
       <div className="font-semibold text-lg mb-1 text-gray-900">Draft letters and resolve disputes</div>
       <div className="text-gray-500 text-sm">AI-assisted legal templates</div>
     </div>
     {/* Card 3 */}
     <div className="bg-white rounded-md shadow-md flex flex-col items-center p-8 text-center">
-      <div className="bg-blue-50 rounded-full p-3 mb-4 flex items-center justify-center">
-        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#3B82F6" strokeWidth="2"/><path d="M12 8v4" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="16" r="1" fill="#3B82F6"/></svg>
+      <div className="bg-[#e6eef3] rounded-full p-3 mb-4 flex items-center justify-center">
+        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#254F70" strokeWidth="2"/><path d="M12 8v4" stroke="#254F70" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="16" r="1" fill="#254F70"/></svg>
       </div>
       <div className="font-semibold text-lg mb-1 text-gray-900">Stay ahead of violations</div>
       <div className="text-gray-500 text-sm">Get proactive alerts and tips</div>
     </div>
     {/* Card 4 */}
     <div className="bg-white rounded-md shadow-md flex flex-col items-center p-8 text-center">
-      <div className="bg-blue-50 rounded-full p-3 mb-4 flex items-center justify-center">
-        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="12" rx="2" stroke="#3B82F6" strokeWidth="2"/><rect x="8" y="18" width="8" height="2" rx="1" stroke="#3B82F6" strokeWidth="2"/></svg>
+      <div className="bg-[#e6eef3] rounded-full p-3 mb-4 flex items-center justify-center">
+        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="12" rx="2" stroke="#254F70" strokeWidth="2"/><rect x="8" y="18" width="8" height="2" rx="1" stroke="#254F70" strokeWidth="2"/></svg>
       </div>
       <div className="font-semibold text-lg mb-1 text-gray-900">Accessible anytime</div>
       <div className="text-gray-500 text-sm">Desktop and mobile optimized</div>
@@ -235,7 +238,7 @@ const Index = () => {
 <section className="w-full flex flex-col md:flex-row items-center justify-center px-4 py-16 bg-white gap-8 md:gap-16">
   {/* Left: Text and Features */}
   <div className="w-full md:w-1/2 flex flex-col items-start justify-center text-left max-w-xl">
-    <span className="uppercase text-xs font-semibold text-blue-600 mb-2 tracking-wide">Powerful Features</span>
+    <span className="uppercase text-xs font-semibold text-[#254F70] mb-2 tracking-wide">Powerful Features</span>
     <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 leading-tight">
       Powerful Features to<br />HOA Compliance
     </h2>
@@ -245,10 +248,10 @@ const Index = () => {
     <div className="flex flex-col gap-4 w-full">
       {/* Feature 1 */}
       <div className="flex items-start gap-4">
-        <div className="bg-blue-50 rounded-full p-2 flex items-center justify-center">
+        <div className="bg-[#e6eef3] rounded-full p-2 flex items-center justify-center">
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9" stroke="#3B82F6" strokeWidth="2"/>
-            <path d="M12 8v4l2 2" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="12" cy="12" r="9" stroke="#254F70" strokeWidth="2"/>
+            <path d="M12 8v4l2 2" stroke="#254F70" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         </div>
         <div>
@@ -258,10 +261,10 @@ const Index = () => {
       </div>
       {/* Feature 2 */}
       <div className="flex items-start gap-4">
-        <div className="bg-blue-50 rounded-full p-2 flex items-center justify-center">
+        <div className="bg-[#e6eef3] rounded-full p-2 flex items-center justify-center">
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="18" height="18" rx="3" stroke="#3B82F6" strokeWidth="2"/>
-            <path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/>
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="#254F70" strokeWidth="2"/>
+            <path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" stroke="#254F70" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         </div>
         <div>
@@ -271,10 +274,10 @@ const Index = () => {
       </div>
       {/* Feature 3 */}
       <div className="flex items-start gap-4">
-        <div className="bg-blue-50 rounded-full p-2 flex items-center justify-center">
+        <div className="bg-[#e6eef3] rounded-full p-2 flex items-center justify-center">
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-            <path d="M4 17V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10" stroke="#3B82F6" strokeWidth="2"/>
-            <path d="M8 10h8M8 14h5" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M4 17V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10" stroke="#254F70" strokeWidth="2"/>
+            <path d="M8 10h8M8 14h5" stroke="#254F70" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         </div>
         <div>
@@ -284,11 +287,11 @@ const Index = () => {
       </div>
       {/* Feature 4 */}
       <div className="flex items-start gap-4">
-        <div className="bg-blue-50 rounded-full p-2 flex items-center justify-center">
+        <div className="bg-[#e6eef3] rounded-full p-2 flex items-center justify-center">
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-            <path d="M4 17V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10" stroke="#3B82F6" strokeWidth="2"/>
-            <path d="M8 10h8M8 14h5" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/>
-            <circle cx="12" cy="18" r="2" stroke="#3B82F6" strokeWidth="2"/>
+            <path d="M4 17V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10" stroke="#254F70" strokeWidth="2"/>
+            <path d="M8 10h8M8 14h5" stroke="#254F70" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="12" cy="18" r="2" stroke="#254F70" strokeWidth="2"/>
           </svg>
         </div>
         <div>
@@ -378,7 +381,7 @@ const Index = () => {
   </div>
   {/* Right: Text and CTA */}
   <div className="w-full md:w-1/2 flex flex-col items-start justify-center text-left max-w-xl">
-    <span className="uppercase text-xs font-semibold text-blue-600 mb-2 tracking-wide">HOA Legal Software Created by Lawyers</span>
+    <span className="uppercase text-xs font-semibold text-[#254F70] mb-2 tracking-wide">HOA Legal Software Created by Lawyers</span>
     <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 leading-tight">
       Created by a Lawyer.<br />Designed for Your Community.
     </h2>
@@ -387,7 +390,7 @@ const Index = () => {
     </p>
     <a
       href="/signup"
-      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-sm shadow-md transition w-full sm:w-auto text-center"
+      className="bg-[#254F70] hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-sm shadow-md transition w-full sm:w-auto text-center"
     >
       JOIN THE NEIGHBOR.SIMPLE WAITLIST FOR EARLY ACCESS
     </a>
@@ -396,7 +399,7 @@ const Index = () => {
 
 {/* Who Neighbor.Simple Helps Section */}
 <section className="w-full bg-[#f3f8fe] py-20 flex flex-col items-center justify-center">
-  <span className="uppercase text-xs font-semibold text-blue-600 mb-3 tracking-wide text-center block">Who Us Helps</span>
+  <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Who Us Helps</span>
   <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">Who Neighbor.Simple Helps</h2>
   <p className="text-gray-600 text-sm sm:text-base mb-12 text-center max-w-2xl mx-auto">
     Neighbor.Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
@@ -404,41 +407,41 @@ const Index = () => {
   <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
     {/* Card 1: HOA Board Members */}
     <div className="bg-white rounded-2xl shadow-md flex flex-col items-start p-8">
-      <div className="bg-blue-50 rounded-full p-4 mb-4 flex items-center justify-center">
-        <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="#3B82F6" strokeWidth="2"/><rect x="7" y="3" width="10" height="4" rx="1" stroke="#3B82F6" strokeWidth="2"/></svg>
+      <div className="bg-[#e6eef3] rounded-full p-4 mb-4 flex items-center justify-center">
+        <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="#254F70" strokeWidth="2"/><rect x="7" y="3" width="10" height="4" rx="1" stroke="#254F70" strokeWidth="2"/></svg>
       </div>
       <div className="font-bold text-lg mb-1 text-gray-900">For HOA Board Members</div>
       <div className="text-gray-500 text-sm mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod to the a tempor incididunt to he a to the tempor.</div>
       <ul className="space-y-2">
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Make clear, defensible decisions</li>
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Reduce legal liability</li>
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Improve community trust</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Make clear, defensible decisions</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Reduce legal liability</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Improve community trust</li>
       </ul>
     </div>
     {/* Card 2: Property Managers */}
     <div className="bg-white rounded-2xl shadow-md flex flex-col items-start p-8">
-      <div className="bg-blue-50 rounded-full p-4 mb-4 flex items-center justify-center">
-        <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="#3B82F6" strokeWidth="2"/><path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="#3B82F6" strokeWidth="2"/></svg>
+      <div className="bg-[#e6eef3] rounded-full p-4 mb-4 flex items-center justify-center">
+        <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="#254F70" strokeWidth="2"/><path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="#254F70" strokeWidth="2"/></svg>
       </div>
       <div className="font-bold text-lg mb-1 text-gray-900">For Property Managers</div>
       <div className="text-gray-500 text-sm mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod to the a tempor incididunt to he a to the tempor.</div>
       <ul className="space-y-2">
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Resolve disputes faster</li>
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Lower legal and operating costs</li>
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Maintain HOA compliance easily</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Resolve disputes faster</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Lower legal and operating costs</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Maintain HOA compliance easily</li>
       </ul>
     </div>
     {/* Card 3: Homeowners */}
     <div className="bg-white rounded-2xl shadow-md flex flex-col items-start p-8">
-      <div className="bg-blue-50 rounded-full p-4 mb-4 flex items-center justify-center">
-        <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="10" r="4" stroke="#3B82F6" strokeWidth="2"/><path d="M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" stroke="#3B82F6" strokeWidth="2"/></svg>
+      <div className="bg-[#e6eef3] rounded-full p-4 mb-4 flex items-center justify-center">
+        <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="10" r="4" stroke="#254F70" strokeWidth="2"/><path d="M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" stroke="#254F70" strokeWidth="2"/></svg>
       </div>
       <div className="font-bold text-lg mb-1 text-gray-900">For Homeowners</div>
       <div className="text-gray-500 text-sm mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod to the a tempor incididunt to he a to the tempor.</div>
       <ul className="space-y-2">
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Understand your rights</li>
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Proactively avoid costly violations</li>
-        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-blue-600" size={18} /> Communicate with boards more effectively</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Understand your rights</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Proactively avoid costly violations</li>
+        <li className="flex items-center gap-2 text-gray-800 text-sm"><HiCheckCircle className="text-[#254F70]" size={18} /> Communicate with boards more effectively</li>
       </ul>
     </div>
   </div>
@@ -446,7 +449,7 @@ const Index = () => {
 
 {/* Happy Customers/Testimonial Section */}
 <section className="w-full py-20 flex flex-col items-center justify-center bg-white">
-  <span className="uppercase text-xs font-semibold text-blue-600 mb-3 tracking-wide text-center block">Happy Customers</span>
+  <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">Happy Customers</span>
   <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">How Neighbor.Simple will Helping to<br />our customers</h2>
   <p className="text-gray-600 text-sm sm:text-base mb-12 text-center max-w-2xl mx-auto">
     Neighbor.Simple is your on-demand HOA legal assistant. No jargon. No billable hours. Just clear answers and practical tools.
@@ -454,7 +457,7 @@ const Index = () => {
   <div className="relative w-full max-w-6xl flex items-center justify-center">
     {/* Left Arrow */}
     <button className="absolute left-[-32px] top-1/2 -translate-y-1/2 bg-white rounded-full shadow p-2 flex items-center justify-center hover:bg-blue-50 transition hidden md:flex">
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke="#254F70" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
     </button>
     {/* Testimonials */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
@@ -472,7 +475,7 @@ const Index = () => {
           <span className="text-xs text-gray-600">Rated (4.9 of 5)</span>
           <div className="flex gap-1 ml-2">
             {[...Array(5)].map((_, i) => (
-              <svg key={i} width="18" height="18" fill="#3B82F6" viewBox="0 0 20 20"><polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36"/></svg>
+              <svg key={i} width="18" height="18" fill="#254F70" viewBox="0 0 20 20"><polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36"/></svg>
             ))}
           </div>
         </div>
@@ -491,7 +494,7 @@ const Index = () => {
           <span className="text-xs text-gray-600">Rated (4.9 of 5)</span>
           <div className="flex gap-1 ml-2">
             {[...Array(5)].map((_, i) => (
-              <svg key={i} width="18" height="18" fill="#3B82F6" viewBox="0 0 20 20"><polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36"/></svg>
+              <svg key={i} width="18" height="18" fill="#254F70" viewBox="0 0 20 20"><polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36"/></svg>
             ))}
           </div>
         </div>
@@ -510,27 +513,27 @@ const Index = () => {
           <span className="text-xs text-gray-600">Rated (4.9 of 5)</span>
           <div className="flex gap-1 ml-2">
             {[...Array(5)].map((_, i) => (
-              <svg key={i} width="18" height="18" fill="#3B82F6" viewBox="0 0 20 20"><polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36"/></svg>
+              <svg key={i} width="18" height="18" fill="#254F70" viewBox="0 0 20 20"><polygon points="10,1 12.59,7.36 19.51,7.64 14,12.14 15.82,18.99 10,15.27 4.18,18.99 6,12.14 0.49,7.64 7.41,7.36"/></svg>
             ))}
           </div>
         </div>
       </div>
     </div>
     {/* Right Arrow */}
-    <button className="absolute right-[-32px] top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full shadow p-2 flex items-center justify-center hover:bg-blue-700 transition hidden md:flex">
+    <button className="absolute right-[-32px] top-1/2 -translate-y-1/2 bg-[#254F70] text-white rounded-full shadow p-2 flex items-center justify-center hover:bg-blue-700 transition hidden md:flex">
       <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
     </button>
   </div>
-  <button className="mt-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition">JOIN THE WAITLIST</button>
+  <button className="mt-12 bg-[#254F70] hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-md text-base shadow-md transition">JOIN THE WAITLIST</button>
 </section>
 
 {/* Early Access CTA Section */}
 <section className="w-full flex flex-col md:flex-row items-stretch justify-center min-h-[340px]">
   {/* Left: Blue CTA */}
-  <div className="flex-1 bg-blue-600 flex flex-col justify-center px-8 py-12 md:py-0 md:px-16">
+  <div className="flex-1 bg-[#254F70] flex flex-col justify-center px-8 py-12 md:py-0 md:px-16">
     <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">Get Early Access to<br />Neighbor.Simple</h2>
     <p className="text-white text-base sm:text-lg mb-8 max-w-md">Neighbor.Simple is launching soon. Be among the first to simplify HOA compliance with AI. Join our early access list today.</p>
-    <button className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-fit hover:bg-blue-50">JOIN THE WAITLIST</button>
+    <button className="bg-white text-[#254F70] font-semibold px-8 py-3 rounded-md text-base shadow-md transition w-fit hover:bg-blue-50">JOIN THE WAITLIST</button>
   </div>
   {/* Right: Image */}
   <div className="flex-1 min-h-[340px] flex items-center justify-center overflow-hidden">
@@ -555,10 +558,10 @@ const Index = () => {
       <p className="text-gray-600 text-sm mb-6 max-w-xs">Neighbor.Simple helps HOA boards, managers, and homeowners understand and follow complex HOA rules—without expensive legal fees.</p>
       <div className="font-semibold text-base mb-2">Follow us</div>
       <div className="flex gap-3">
-        <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H6v4h4v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z" stroke="#3B82F6" strokeWidth="2"/></svg></a>
-        <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.4.36a9.09 9.09 0 0 1-2.88 1.1A4.52 4.52 0 0 0 16.11 0c-2.5 0-4.52 2.02-4.52 4.52 0 .35.04.7.11 1.03A12.94 12.94 0 0 1 3.1.67a4.52 4.52 0 0 0-.61 2.28c0 1.57.8 2.96 2.02 3.77A4.48 4.48 0 0 1 2 6.13v.06c0 2.2 1.56 4.03 3.64 4.45a4.52 4.52 0 0 1-2.04.08c.57 1.77 2.23 3.06 4.2 3.1A9.05 9.05 0 0 1 0 19.54a12.8 12.8 0 0 0 6.95 2.04c8.34 0 12.9-6.91 12.9-12.9 0-.2 0-.39-.01-.58A9.22 9.22 0 0 0 24 4.59a9.1 9.1 0 0 1-2.6.71A4.52 4.52 0 0 0 23 3z" stroke="#3B82F6" strokeWidth="2"/></svg></a>
-        <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#3B82F6" strokeWidth="2"/><path d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" stroke="#3B82F6" strokeWidth="2"/></svg></a>
-        <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" stroke="#3B82F6" strokeWidth="2"/><circle cx="12" cy="12" r="3" stroke="#3B82F6" strokeWidth="2"/></svg></a>
+        <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H6v4h4v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z" stroke="#254F70" strokeWidth="2"/></svg></a>
+        <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.4.36a9.09 9.09 0 0 1-2.88 1.1A4.52 4.52 0 0 0 16.11 0c-2.5 0-4.52 2.02-4.52 4.52 0 .35.04.7.11 1.03A12.94 12.94 0 0 1 3.1.67a4.52 4.52 0 0 0-.61 2.28c0 1.57.8 2.96 2.02 3.77A4.48 4.48 0 0 1 2 6.13v.06c0 2.2 1.56 4.03 3.64 4.45a4.52 4.52 0 0 1-2.04.08c.57 1.77 2.23 3.06 4.2 3.1A9.05 9.05 0 0 1 0 19.54a12.8 12.8 0 0 0 6.95 2.04c8.34 0 12.9-6.91 12.9-12.9 0-.2 0-.39-.01-.58A9.22 9.22 0 0 0 24 4.59a9.1 9.1 0 0 1-2.6.71A4.52 4.52 0 0 0 23 3z" stroke="#254F70" strokeWidth="2"/></svg></a>
+        <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#254F70" strokeWidth="2"/><path d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" stroke="#254F70" strokeWidth="2"/></svg></a>
+        <a href="#" className="border border-blue-400 rounded-full p-2 text-blue-500 hover:bg-blue-50 transition"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" stroke="#254F70" strokeWidth="2"/><circle cx="12" cy="12" r="3" stroke="#254F70" strokeWidth="2"/></svg></a>
       </div>
     </div>
     {/* Useful Links */}
@@ -575,7 +578,12 @@ const Index = () => {
         <li><a href="/board" className="hover:text-blue-600">Board Dashboard</a></li>
         <li><a href="/admin" className="hover:text-blue-600">Admin Dashboard</a></li>
         <li><a href="/test-flow" className="hover:text-blue-600">Test Onboarding Flow</a></li>
-        
+        <li>
+          <button className="mt-2 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80 w-full text-left" disabled>
+            HOA - Property Lawyer Market Place
+            <span className="ml-2 text-[10px] text-gray-500 font-normal">Beta - In Development - Coming soon</span>
+          </button>
+        </li>
       </ul>
     </div>
     {/* Help Center */}
@@ -596,7 +604,7 @@ const Index = () => {
       <div className="text-gray-700 text-sm mb-3">Sign up for our newsletter - enter your email below</div>
       <form className="flex items-center bg-blue-50 rounded-md overflow-hidden">
         <input type="email" placeholder="Enter Your Email" className="bg-blue-50 px-4 py-2 outline-none text-gray-700 w-full" />
-        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 flex items-center justify-center">
+        <button type="submit" className="bg-[#254F70] hover:bg-blue-600 text-white px-3 py-2 flex items-center justify-center">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
       </form>
@@ -604,7 +612,7 @@ const Index = () => {
   </div>
   <hr className="my-8 border-gray-200" />
   <div className="text-center text-gray-500 text-sm">
-    Copyright © <span className="text-blue-600 font-semibold">Neighbor Simple 2025</span>. All rights reserved.
+    Copyright © <span className="text-[#254F70] font-semibold">Neighbor Simple 2025</span>. All rights reserved.
   </div>
 </footer>
 

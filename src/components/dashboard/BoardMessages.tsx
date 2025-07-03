@@ -190,7 +190,7 @@ const BoardMessages = () => {
       <Card className="w-full min-w-0">
         <CardHeader className="pb-2 sm:pb-4">
           <CardTitle className="flex items-center text-base sm:text-lg min-w-0 break-words">
-            <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-primary flex-shrink-0" />
+            <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
             Community Messages
           </CardTitle>
         </CardHeader>

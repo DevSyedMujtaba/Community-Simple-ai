@@ -95,7 +95,7 @@ const HomeownerSettings = () => {
         <CardHeader>
           <CardTitle className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2">
             <div className="flex items-center min-w-0">
-              <User className="h-5 w-5 mr-2 text-primary flex-shrink-0" />
+              <User className="h-5 w-5 mr-2 text-[#254F70] flex-shrink-0" />
               <span className="truncate text-base sm:text-lg">Profile Information</span>
             </div>
             <Button
@@ -219,7 +219,7 @@ const HomeownerSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-base sm:text-lg">
-            <Bell className="h-5 w-5 mr-2 text-primary flex-shrink-0" />
+            <Bell className="h-5 w-5 mr-2 text-[#254F70] flex-shrink-0" />
             Notification Preferences
           </CardTitle>
         </CardHeader>
@@ -234,7 +234,7 @@ const HomeownerSettings = () => {
                 variant={notifications.emailNotifications ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('emailNotifications')}
-                className="w-full xs:w-auto text-xs px-3 py-2"
+                className="w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90"
               >
                 {notifications.emailNotifications ? 'Enabled' : 'Disabled'}
               </Button>
@@ -262,7 +262,7 @@ const HomeownerSettings = () => {
                 variant={notifications.complianceAlerts ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('complianceAlerts')}
-                className="w-full xs:w-auto text-xs px-3 py-2"
+                className="w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90"
               >
                 {notifications.complianceAlerts ? 'Enabled' : 'Disabled'}
               </Button>
@@ -276,7 +276,7 @@ const HomeownerSettings = () => {
                 variant={notifications.documentUpdates ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('documentUpdates')}
-                className="w-full xs:w-auto text-xs px-3 py-2"
+                className="w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90"
               >
                 {notifications.documentUpdates ? 'Enabled' : 'Disabled'}
               </Button>
@@ -290,7 +290,7 @@ const HomeownerSettings = () => {
                 variant={notifications.communityAnnouncements ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('communityAnnouncements')}
-                className="w-full xs:w-auto text-xs px-3 py-2"
+                className="w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90"
               >
                 {notifications.communityAnnouncements ? 'Enabled' : 'Disabled'}
               </Button>
@@ -303,7 +303,7 @@ const HomeownerSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-base sm:text-lg">
-            <SettingsIcon className="h-5 w-5 mr-2 text-primary flex-shrink-0" />
+            <SettingsIcon className="h-5 w-5 mr-2 text-[#254F70] flex-shrink-0" />
             Account Management
           </CardTitle>
         </CardHeader>

@@ -160,7 +160,7 @@ const DocumentList = ({ documents }: DocumentListProps) => {
                 Use the AI Assistant tab to chat about your documents
               </p>
             </div>
-            <Button variant="outline" className="text-primary border-primary hover:bg-primary hover:text-white">
+            <Button variant="outline" className="text-[#254F70] border-[#254F70] hover:bg-primary hover:text-white">
               Open AI Assistant
             </Button>
           </div>
