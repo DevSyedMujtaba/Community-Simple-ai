@@ -4,6 +4,7 @@ import logo2 from '../../public/logo2.png';
 import dottedCircle from '../../public/dotted-circle.png';
 import type { JSX } from 'react';
 import { useState } from 'react';
+import img2 from '../../public/img2.jpeg';
 
 // import heroImg from "../assets/hero-hoa-couple.png"; // Commented out due to missing file
 
@@ -113,13 +114,15 @@ const Index = () => {
           </div>
           {/* Right: Image (commented out) */}
           
-          <div className="w-full md:w-1/2 flex justify-center items-center mb-8 md:mb-0">
-            <img
-              src={img1}
-              alt="Happy couple in front of house"
-              className="w-full max-w-md rounded-2xl shadow-lg object-cover"
-              style={{ aspectRatio: '1/1', maxHeight: 400 }}
-            />
+          <div className="w-full md:w-1/2 flex justify-center items-center mb-8 md:mb-0 z-0">
+            <div style={{ backgroundColor: '#fdfefa' }} className="w-full max-w-md rounded-2xl shadow-lg flex justify-center items-center">
+              <img
+                src={img2}
+                alt="Happy couple in front of house"
+                className="w-full rounded-2xl object-contain"
+                style={{ maxHeight: 400 }}
+              />
+            </div>
           </div>
          
                     </div>
@@ -623,9 +626,9 @@ const Index = () => {
       <div className="font-semibold text-base mb-3">Useful Links</div>
       <ul className="space-y-2 text-gray-700 text-sm">
         <li><a href="/contact" className="hover:text-blue-600">Contact</a></li>
-        <li><a href="/homeowner" className="hover:text-blue-600">Homeowner Dashboard</a></li>
-        <li><a href="/board" className="hover:text-blue-600">Board Dashboard</a></li>
-        <li><a href="/admin" className="hover:text-blue-600">Admin Dashboard</a></li>
+        <li><a href="/login" className="hover:text-blue-600">Homeowner Dashboard</a></li>
+        <li><a href="/login" className="hover:text-blue-600">Board Dashboard</a></li>
+        <li><a href="/login" className="hover:text-blue-600">Admin Dashboard</a></li>
         <li><a href="/test-flow" className="hover:text-blue-600">Test Onboarding Flow</a></li>
         <li>
           <button className="mt-2 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80 w-full text-left" disabled>

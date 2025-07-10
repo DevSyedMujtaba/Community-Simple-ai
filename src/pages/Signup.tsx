@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Building2, Home } from "lucide-react";
 import logo2 from '../../public/logo2.png';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Signup Page Component
@@ -39,17 +40,40 @@ const Signup = () => {
       alert('Passwords do not match');
       return;
     }
-    
+    if (!formData.userType) {
+      alert('Please select a user type');
+      return;
+    }
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    // Supabase signup
+    const { data, error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+    });
+    if (error || !data.user) {
       setIsLoading(false);
-      // In real implementation, handle signup logic here
-      console.log('Signup attempt:', formData);
-      // Redirect to email verification with user type
-      window.location.href = `/email-verification?email=${encodeURIComponent(formData.email)}&userType=${formData.userType}`;
-    }, 2000);
+      alert(error?.message || 'Signup failed');
+      return;
+    }
+    // Insert profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([
+        {
+          id: data.user.id,
+          role: formData.userType === 'homeowner' ? 'homeowner' : 'board',
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone || null,
+        },
+      ]);
+    setIsLoading(false);
+    if (profileError) {
+      alert(profileError.message || 'Profile creation failed');
+      return;
+    }
+    // Redirect to email verification with user type
+    window.location.href = `/email-verification?email=${encodeURIComponent(formData.email)}&userType=${formData.userType}`;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
