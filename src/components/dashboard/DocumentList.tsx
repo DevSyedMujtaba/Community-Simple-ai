@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Eye, Calendar, File } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface Document {
   id: string;
@@ -12,7 +14,8 @@ interface Document {
 }
 
 interface DocumentListProps {
-  documents: Document[];
+  documents?: Document[];
+  hoaId: string;
 }
 
 /**
@@ -20,7 +23,39 @@ interface DocumentListProps {
  * Displays uploaded documents with summaries and management options
  * Provides document viewing, downloading, and summary display
  */
-const DocumentList = ({ documents }: DocumentListProps) => {
+const DocumentList = ({ documents: propDocuments = [], hoaId }: DocumentListProps) => {
+  console.log("DocumentList hoaId:", hoaId);
+  const [documents, setDocuments] = useState<Document[]>(propDocuments);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDocs = async () => {
+      setLoading(true);
+      if (!hoaId) { setDocuments([]); setLoading(false); return; }
+      const { data, error } = await supabase
+        .from('hoa_documents')
+        .select('*')
+        .eq('hoa_id', hoaId)
+        .order('uploaded_at', { ascending: false });
+      console.log('Fetched documents:', data, error);
+      if (data) {
+        setDocuments(
+          data.map(doc => ({
+            id: doc.id,
+            name: doc.file_name,
+            uploadDate: doc.uploaded_at,
+            summary: doc.summary || '',
+            size: doc.size_bytes
+          }))
+        );
+      } else {
+        setDocuments([]);
+      }
+      setLoading(false);
+    };
+    fetchDocs();
+  }, [hoaId]);
+
   // Handle document actions
   const handleViewDocument = (document: Document) => {
     console.log('Viewing document:', document.name);
@@ -49,6 +84,10 @@ const DocumentList = ({ documents }: DocumentListProps) => {
       day: 'numeric'
     });
   };
+
+  if (loading) {
+    return <div>Loading documents...</div>;
+  }
 
   if (documents.length === 0) {
     return (

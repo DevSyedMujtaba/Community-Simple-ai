@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Search, Users, Building2, Home, ArrowLeft, CheckCircle } from "lucide-react";
 import logo2 from '../../../public/logo2.png';
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * HOA Connection Page Component
@@ -24,6 +25,43 @@ const HOAConnection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [showCommunityForm, setShowCommunityForm] = useState(false);
+  const [communityForm, setCommunityForm] = useState({
+    name: "",
+    state: "",
+    city: "",
+    address: "",
+    units: "",
+    contact_email: "",
+    contact_phone: "",
+    description: ""
+  });
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState(false);
+
+  const supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY
+  );
+  const [accessToken, setAccessToken] = useState("");
+
+  useEffect(() => {
+    // Get the current session on mount
+    const getToken = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setAccessToken(session?.access_token || "");
+    };
+    getToken();
+
+    // Listen for auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAccessToken(session?.access_token || "");
+    });
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
 
   // Sample HOAs data
   const availableHOAs = [
@@ -104,6 +142,42 @@ const HOAConnection = () => {
 
   const handleContinue = () => {
     navigate(`/onboarding/welcome?userType=${userType}`);
+  };
+
+  const board_member_id = searchParams.get("user_id");
+
+  const handleCommunityInput = (e) => {
+    const { name, value } = e.target;
+    setCommunityForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleCommunitySubmit = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError("");
+    try {
+      console.log("JWT accessToken:", accessToken);
+      const response = await fetch(
+        "https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/create_hoa_community",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { "Authorization": `Bearer ${accessToken}` } : {})
+          },
+          body: JSON.stringify({ ...communityForm, units: Number(communityForm.units), board_member_id })
+        }
+      );
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setFormSuccess(true);
+        setIsConnected(true); // Show the success dialog
+      } else {
+        setFormError(result.error || "Failed to create community.");
+      }
+    } catch (err) {
+      setFormError("Network error.");
+    }
+    setFormLoading(false);
   };
 
   if (isConnected) {
@@ -377,22 +451,54 @@ const HOAConnection = () => {
                         Your HOA profile information from the previous step will be used to create your community. 
                         You can always update these details later.
                       </p>
-                      
-                      <Button
-                        onClick={handleCreateHOA}
-                        disabled={isLoading}
-                        className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base"
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span className="hidden sm:inline">Creating HOA...</span>
-                            <span className="sm:hidden">Creating...</span>
+                      {showCommunityForm ? (
+                        <form onSubmit={handleCommunitySubmit} className="space-y-4 bg-white p-4 rounded-lg border border-gray-200">
+                          <div>
+                            <Label>Community Name</Label>
+                            <Input name="name" value={communityForm.name} onChange={handleCommunityInput} required />
                           </div>
-                        ) : (
-                          'Create My HOA Community'
-                        )}
-                      </Button>
+                          <div>
+                            <Label>State</Label>
+                            <Input name="state" value={communityForm.state} onChange={handleCommunityInput} required />
+                          </div>
+                          <div>
+                            <Label>City</Label>
+                            <Input name="city" value={communityForm.city} onChange={handleCommunityInput} required />
+                          </div>
+                          <div>
+                            <Label>Address</Label>
+                            <Input name="address" value={communityForm.address} onChange={handleCommunityInput} required />
+                          </div>
+                          <div>
+                            <Label>Number of Units</Label>
+                            <Input name="units" type="number" value={communityForm.units} onChange={handleCommunityInput} required />
+                          </div>
+                          <div>
+                            <Label>Contact Email</Label>
+                            <Input name="contact_email" type="email" value={communityForm.contact_email} onChange={handleCommunityInput} required />
+                          </div>
+                          <div>
+                            <Label>Contact Phone</Label>
+                            <Input name="contact_phone" value={communityForm.contact_phone} onChange={handleCommunityInput} required />
+                          </div>
+                          <div>
+                            <Label>Description (optional)</Label>
+                            <Input name="description" value={communityForm.description} onChange={handleCommunityInput} />
+                          </div>
+                          {formError && <div className="text-red-600 text-sm">{formError}</div>}
+                          <Button type="submit" disabled={formLoading} className="w-full bg-blue-600 text-white">
+                            {formLoading ? "Creating..." : "Create Community"}
+                          </Button>
+                        </form>
+                      ) : (
+                        <Button
+                          onClick={() => navigate('/onboarding/welcome?userType=board')}
+                          disabled={isLoading}
+                          className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base"
+                        >
+                          Create My HOA Community
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

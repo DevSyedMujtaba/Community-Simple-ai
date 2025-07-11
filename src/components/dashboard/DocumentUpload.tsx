@@ -1,11 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, FileText, X, CheckCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabaseClient";
 
 interface DocumentUploadProps {
   onDocumentUploaded: (document: any) => void;
+  hoaId: string; // <-- Add this prop
 }
 
 /**
@@ -13,11 +15,20 @@ interface DocumentUploadProps {
  * Handles PDF file uploads with drag-and-drop functionality
  * Simulates AI processing and summary generation
  */
-const DocumentUpload = ({ onDocumentUploaded }: DocumentUploadProps) => {
+const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const { toast } = useToast();
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || "");
+    };
+    fetchUser();
+  }, []);
 
   // Handle drag events for file upload
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -63,37 +74,49 @@ const DocumentUpload = ({ onDocumentUploaded }: DocumentUploadProps) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Simulate AI processing and upload
+  // Upload and process a file
   const processFile = async (file: File) => {
     const fileId = `${file.name}-${Date.now()}`;
     setUploadingFiles(prev => [...prev, fileId]);
-    
     try {
-      // Simulate upload and AI processing delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Generate mock AI summary
-      const mockSummary = generateMockSummary(file.name);
-      
-      const processedDocument = {
+      // 1. Upload to Supabase Storage
+      const filePath = `community-${hoaId}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('hoa-documents')
+        .upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      // 2. Get public URL
+      const { data: urlData } = supabase.storage.from('hoa-documents').getPublicUrl(filePath);
+
+      // 3. Insert metadata into DB
+      const { error: dbError } = await supabase.from('hoa_documents').insert([{
+        hoa_id: hoaId,
+        uploader_id: userId,
+        file_name: file.name,
+        file_url: urlData.publicUrl,
+        size_bytes: file.size,
+        mime_type: file.type,
+        status: 'processing'
+      }]);
+      if (dbError) throw dbError;
+
+      // 4. Notify parent and show toast
+      onDocumentUploaded({
         id: fileId,
         name: file.name,
         uploadDate: new Date().toISOString(),
-        summary: mockSummary,
+        summary: "",
         size: file.size
-      };
-      
-      onDocumentUploaded(processedDocument);
-      
-      toast({
-        title: "Document processed successfully",
-        description: `${file.name} has been analyzed and summarized.`
       });
-      
-    } catch (error) {
+      toast({
+        title: "Document uploaded successfully",
+        description: `${file.name} has been uploaded.`,
+      });
+    } catch (error: any) {
       toast({
         title: "Upload failed",
-        description: `Failed to process ${file.name}. Please try again.`,
+        description: `Failed to upload ${file.name}: ${error.message}`,
         variant: "destructive"
       });
     } finally {

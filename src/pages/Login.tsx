@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import logo2 from '../../public/logo2.png';
+import { supabase } from "@/lib/supabaseClient";
 
 /**
  * Login Page Component
@@ -19,17 +20,61 @@ const Login = () => {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    // 1. Sign in with Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (error) {
       setIsLoading(false);
-      // In real implementation, handle login logic here
-      console.log('Login attempt:', formData);
-    }, 2000);
+      alert("Login failed: " + error.message);
+      return;
+    }
+
+    // 2. Fetch user profile from 'profiles' table
+    const userId = data.user.id;
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role, verified")
+      .eq("id", userId)
+      .single();
+
+    setIsLoading(false);
+
+    if (profileError || !profile) {
+      alert("Failed to fetch user profile.");
+      return;
+    }
+
+    // 3. Navigate based on role and verified status
+    if (!profile.verified) {
+      alert("Your email is not verified.");
+      return;
+    }
+
+    // Redirect to intended route if present, else to role-based dashboard
+    const from = location.state?.from?.pathname;
+    if (from) {
+      navigate(from, { replace: true });
+      return;
+    }
+    if (profile.role === "homeowner") {
+      navigate("/homeowner");
+    } else if (profile.role === "board") {
+      navigate("/board");
+    } else if (profile.role === "admin") {
+      navigate("/admin");
+    } else {
+      alert("Unknown user role.");
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

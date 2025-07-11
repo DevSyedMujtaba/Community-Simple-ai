@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, MapPin, Building2, Home, ArrowLeft } from "lucide-react";
+import { User, Mail, Phone, MapPin, Building2, Home, ArrowLeft, CheckCircle } from "lucide-react";
 import logo2 from '../../../public/logo2.png';
 
 /**
@@ -18,6 +18,7 @@ const ProfileSetup = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const userType = searchParams.get('userType') || 'homeowner';
+  const user_id = searchParams.get('user_id'); // Extract user_id from URL
   
   const [formData, setFormData] = useState({
     // Common fields
@@ -44,6 +45,7 @@ const ProfileSetup = () => {
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -62,17 +64,63 @@ const ProfileSetup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Navigate to next step based on user type
-      if (userType === 'homeowner') {
-        navigate('/onboarding/hoa-connection?userType=homeowner');
-      } else {
-        navigate('/onboarding/hoa-connection?userType=board');
-      }
-    }, 1500);
+
+    let response;
+    if (userType === 'homeowner') {
+      response = await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/submit_homeowner_details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + import.meta.env.VITE_SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          user_id,
+          property_type: formData.propertyType,
+          unit_number: formData.unitNumber,
+          property_address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip_code: formData.zipCode
+        }),
+      });
+    } else {
+      response = await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/submit_board_member_details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + import.meta.env.VITE_SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          user_id,
+          hoa_name: formData.hoaName,
+          position: formData.boardPosition,
+          hoa_address: formData.hoaAddress,
+          city: formData.hoaCity,
+          state: formData.hoaState,
+          zip_code: formData.hoaZipCode,
+          total_units: formData.totalUnits,
+          hoa_contact_email: formData.contactEmail,
+          hoa_contact_phone: formData.contactPhone
+        }),
+      });
+    }
+
+    setIsLoading(false);
+
+    if (response.ok) {
+      setIsSuccess(true);
+      // Optionally, you can keep the setTimeout for auto-redirect, or just use the button below
+      // setTimeout(() => {
+      //   if (userType === 'homeowner') {
+      //     navigate('/onboarding/hoa-connection?userType=homeowner');
+      //   } else {
+      //     navigate('/onboarding/hoa-connection?userType=board');
+      //   }
+      // }, 1500);
+    } else {
+      const error = await response.json();
+      window.alert('Failed to save profile: ' + (error.error || 'Unknown error'));
+    }
   };
 
   // Demo mode - auto-fill form for testing
@@ -133,6 +181,54 @@ const ProfileSetup = () => {
     'Board Member',
     'Property Manager'
   ];
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen bg-[#f5faff] flex flex-col">
+        {/* Top blue compliance bar */}
+        <div className="w-full bg-blue-600 text-white text-xs text-center py-1 px-2 font-medium tracking-wide">
+          <span className="hidden sm:inline">FILE NOW TO COMPLY WITH THE CORPORATE TRANSPARENCY ACT</span>
+          <span className="sm:hidden">COMPLY WITH CORPORATE TRANSPARENCY ACT</span>
+        </div>
+        {/* Header */}
+        <header className="w-full bg-white shadow-sm flex items-center justify-between px-3 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center gap-2">
+            <img src={logo2} alt="Community Simple Logo" className="h-8 sm:h-10 lg:h-12 w-auto" style={{ maxWidth: '120px' }} />
+          </div>
+        </header>
+        {/* Success Content */}
+        <main className="flex-1 flex items-center justify-center px-3 sm:px-4 py-4 sm:py-8">
+          <div className="w-full max-w-md">
+            <Card className="shadow-lg border-0">
+              <CardContent className="p-6 sm:p-8 text-center">
+                <div className="bg-green-100 rounded-full p-3 sm:p-4 w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+                  Profile Saved!
+                </h2>
+                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
+                  Your profile information has been saved successfully. Continue to the next step.
+                </p>
+                <Button
+                  className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base"
+                  onClick={() => {
+                    if (userType === 'homeowner') {
+                      navigate('/onboarding/hoa-connection?userType=homeowner');
+                    } else {
+                      navigate('/onboarding/hoa-connection?userType=board');
+                    }
+                  }}
+                >
+                  Continue
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f5faff] flex flex-col">

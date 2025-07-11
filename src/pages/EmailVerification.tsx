@@ -21,6 +21,7 @@ const EmailVerification = () => {
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
+  const user_id = searchParams.get('user_id') || '';
 
   // Countdown timer for resend button
   useEffect(() => {
@@ -33,20 +34,26 @@ const EmailVerification = () => {
   const handleVerification = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verificationCode.trim()) return;
-
     setIsLoading(true);
-    
-    // Simulate verification API call
-    setTimeout(() => {
-      setIsLoading(false);
+    // Call verify_code edge function
+    const response = await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/verify_code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + import.meta.env.VITE_SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ user_id, code: verificationCode }),
+    });
+    const result = await response.json();
+    setIsLoading(false);
+    if (result.success) {
       setIsVerified(true);
-      // In real implementation, verify the code and redirect
-      console.log('Verifying code:', verificationCode);
-      // Redirect to profile setup after a brief delay
       setTimeout(() => {
-        window.location.href = `/onboarding/profile?userType=${userType}`;
+        window.location.href = `/onboarding/profile?userType=${userType}&user_id=${user_id}`;
       }, 1500);
-    }, 1500);
+    } else {
+      alert(result.error || 'Invalid or expired code');
+    }
   };
 
   // Demo mode - auto-fill verification code for testing
@@ -56,13 +63,13 @@ const EmailVerification = () => {
 
   const handleResendCode = async () => {
     setIsResending(true);
-    
-    // Simulate resend API call
-    setTimeout(() => {
-      setIsResending(false);
-      setCountdown(60); // 60 second cooldown
-      console.log('Resending verification code to:', email);
-    }, 1500);
+    await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/send_verification_code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, user_id }),
+    });
+    setIsResending(false);
+    setCountdown(60); // 60 second cooldown
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +114,7 @@ const EmailVerification = () => {
                   Your email has been successfully verified. You can now complete your profile setup.
                 </p>
                 
-                <Link to="/onboarding/profile">
+                <Link to={`/onboarding/profile?userType=${userType}&user_id=${user_id}`}>
                   <Button className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base">
                     Continue to Profile Setup
                   </Button>

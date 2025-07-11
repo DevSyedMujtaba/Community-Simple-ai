@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Users, Search, Filter, Calendar, MapPin, Mail, Phone } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabaseClient";
+import { useRef } from "react";
 interface HOAMember {
   id: string;
   name: string;
@@ -36,107 +40,162 @@ const HOAManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [expandedHOA, setExpandedHOA] = useState<string | null>(null);
-
-  // Sample HOAs data
-  const hoas: HOA[] = [{
-    id: '1',
-    name: 'Sunrise Valley HOA',
-    address: '123 Valley Drive',
-    city: 'Phoenix',
-    state: 'Arizona',
-    totalUnits: 156,
-    createdDate: '2023-01-15',
-    boardMembers: 2,
-    activeMembers: 78,
-    pendingRequests: 3,
-    contactEmail: 'board@sunrisevalley.com',
-    contactPhone: '(555) 123-4567',
-    members: [{
-      id: '1',
-      name: 'Lisa Park',
-      email: 'lisa.park@email.com',
-      role: 'board',
-      joinDate: '2023-01-10',
-      status: 'active'
-    }, {
-      id: '2',
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@email.com',
-      role: 'homeowner',
-      joinDate: '2023-03-15',
-      status: 'active'
-    }, {
-      id: '3',
-      name: 'Mike Chen',
-      email: 'mike.chen@email.com',
-      role: 'homeowner',
-      joinDate: '2023-05-20',
-      status: 'active'
-    }]
-  }, {
-    id: '2',
-    name: 'Oak Ridge Community',
-    address: '456 Oak Street',
-    city: 'Austin',
-    state: 'Texas',
-    totalUnits: 203,
-    createdDate: '2023-02-20',
-    boardMembers: 1,
-    activeMembers: 124,
-    pendingRequests: 1,
-    contactEmail: 'admin@oakridge.com',
-    contactPhone: '(555) 987-6543',
-    members: [{
-      id: '4',
-      name: 'Robert Kim',
-      email: 'robert.kim@email.com',
-      role: 'board',
-      joinDate: '2023-02-15',
-      status: 'active'
-    }, {
-      id: '5',
-      name: 'David Wilson',
-      email: 'david.wilson@email.com',
-      role: 'homeowner',
-      joinDate: '2023-02-28',
-      status: 'inactive'
-    }]
-  }, {
-    id: '3',
-    name: 'Meadowbrook Community',
-    address: '789 Meadow Lane',
-    city: 'Denver',
-    state: 'Colorado',
-    totalUnits: 89,
-    createdDate: '2024-01-10',
-    boardMembers: 1,
-    activeMembers: 45,
-    pendingRequests: 5,
-    contactEmail: 'contact@meadowbrook.com',
-    contactPhone: '(555) 456-7890',
-    members: [{
-      id: '6',
-      name: 'Emma Thompson',
-      email: 'emma.t@email.com',
-      role: 'homeowner',
-      joinDate: '2024-01-10',
-      status: 'active'
-    }]
-  }];
-
-  // Filter HOAs based on search and filters
-  const filteredHOAs = hoas.filter(hoa => {
-    const matchesSearch = hoa.name.toLowerCase().includes(searchTerm.toLowerCase()) || hoa.city.toLowerCase().includes(searchTerm.toLowerCase()) || hoa.state.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || statusFilter === 'active' && hoa.activeMembers > 0 || statusFilter === 'inactive' && hoa.activeMembers === 0;
-    return matchesSearch && matchesStatus;
+  const [communityForm, setCommunityForm] = useState({
+    name: "",
+    state: "",
+    city: "",
+    address: "",
+    units: "",
+    contact_email: "",
+    contact_phone: "",
+    description: ""
   });
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+  const [formSuccess, setFormSuccess] = useState(false);
+  const [myCommunity, setMyCommunity] = useState(null);
+  const [communityLoading, setCommunityLoading] = useState(true);
+  const [showCommunityForm, setShowCommunityForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState("");
+  const fileInputRef = useRef(null);
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    // Get the current session on mount
+    const getToken = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setAccessToken(session?.access_token || "");
+    };
+    getToken();
+
+    // Listen for auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAccessToken(session?.access_token || "");
+    });
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchCommunity = async () => {
+      setCommunityLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMyCommunity(null);
+        setCommunityLoading(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("hoa_communities")
+        .select("id, name, state, city, address, units, contact_email, contact_phone, description, created_at")
+        .eq("board_member_id", user.id)
+        .single();
+      setMyCommunity(data || null);
+      setCommunityLoading(false);
+    };
+    fetchCommunity();
+  }, []);
+
+  useEffect(() => {
+    if (formSuccess) {
+      setShowCommunityForm(false);
+    }
+  }, [formSuccess]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || "");
+    };
+    fetchUser();
+  }, []);
+
+  const handleCommunityInput = (e) => {
+    const { name, value } = e.target;
+    setCommunityForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCommunitySubmit = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError("");
+    setFormSuccess(false);
+
+    if (!accessToken) {
+      setFormError("You must be logged in as a board member to create a community.");
+      setFormLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/create_hoa_community", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(communityForm)
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setFormSuccess(true);
+        setCommunityForm({
+          name: "",
+          state: "",
+          city: "",
+          address: "",
+          units: "",
+          contact_email: "",
+          contact_phone: "",
+          description: ""
+        });
+      } else {
+        setFormError(result.error || "Failed to create community.");
+      }
+    } catch (err) {
+      setFormError("An unexpected error occurred.");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Remove the static hoas array and related logic
+  // Only show the board member's own community in the list
+  let displayHOAs = [];
+  if (myCommunity) {
+    const matchesSearch = myCommunity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      myCommunity.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      myCommunity.state.toLowerCase().includes(searchTerm.toLowerCase());
+    // Add status filter logic if needed (for now, always true)
+    if (matchesSearch) {
+      displayHOAs = [{
+        id: myCommunity.id,
+        name: myCommunity.name,
+        address: myCommunity.address,
+        city: myCommunity.city,
+        state: myCommunity.state,
+        totalUnits: myCommunity.units,
+        createdDate: myCommunity.created_at,
+        boardMembers: 1,
+        activeMembers: 0,
+        pendingRequests: 0,
+        contactEmail: myCommunity.contact_email,
+        contactPhone: myCommunity.contact_phone,
+        members: [],
+      }];
+    }
+  }
 
   // Calculate platform statistics
   const stats = {
-    totalHOAs: hoas.length,
-    totalUnits: hoas.reduce((sum, hoa) => sum + hoa.totalUnits, 0),
-    totalMembers: hoas.reduce((sum, hoa) => sum + hoa.activeMembers, 0),
-    pendingRequests: hoas.reduce((sum, hoa) => sum + hoa.pendingRequests, 0)
+    totalHOAs: myCommunity ? 1 : 0,
+    totalUnits: myCommunity ? Number(myCommunity.units) : 0,
+    totalMembers: 0, // Placeholder, update if you fetch members
+    pendingRequests: 0 // Placeholder, update if you fetch requests
   };
 
   // Get status color for members
@@ -170,6 +229,70 @@ const HOAManagement = () => {
     setExpandedHOA(expandedHOA === hoaId ? null : hoaId);
   };
   return <div className="space-y-6">
+      {/* Create Community Button and Form */}
+      {!showCommunityForm && (
+        <Button
+          className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base mb-4"
+          onClick={() => setShowCommunityForm(true)}
+        >
+          Create Community
+        </Button>
+      )}
+      {showCommunityForm && (
+        <Card className="rounded-xl border w-full mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900">Create New HOA Community</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCommunitySubmit} className="space-y-4 bg-white p-4 rounded-lg border border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Community Name</Label>
+                  <Input name="name" value={communityForm.name} onChange={handleCommunityInput} required />
+                </div>
+                <div>
+                  <Label>State</Label>
+                  <Input name="state" value={communityForm.state} onChange={handleCommunityInput} required />
+                </div>
+                <div>
+                  <Label>City</Label>
+                  <Input name="city" value={communityForm.city} onChange={handleCommunityInput} required />
+                </div>
+                <div>
+                  <Label>Address</Label>
+                  <Input name="address" value={communityForm.address} onChange={handleCommunityInput} required />
+                </div>
+                <div>
+                  <Label>Number of Units</Label>
+                  <Input name="units" type="number" value={communityForm.units} onChange={handleCommunityInput} required />
+                </div>
+                <div>
+                  <Label>Contact Email</Label>
+                  <Input name="contact_email" type="email" value={communityForm.contact_email} onChange={handleCommunityInput} required />
+                </div>
+                <div>
+                  <Label>Contact Phone</Label>
+                  <Input name="contact_phone" value={communityForm.contact_phone} onChange={handleCommunityInput} required />
+                </div>
+              </div>
+              <div>
+                <Label>Description (optional)</Label>
+                <Input name="description" value={communityForm.description} onChange={handleCommunityInput} />
+              </div>
+              {formError && <div className="text-red-600 text-sm mb-2">{formError}</div>}
+              {formSuccess && <div className="text-green-600 text-sm mb-2">Community created successfully!</div>}
+              <div className="flex gap-2">
+                <Button type="submit" disabled={formLoading} className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base rounded-lg">
+                  {formLoading ? "Creating..." : "Create Community"}
+                </Button>
+                <Button type="button" variant="outline" className="w-full h-11 sm:h-12" onClick={() => setShowCommunityForm(false)} disabled={formLoading}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
       {/* Platform Statistics */}
       <div className="flex flex-col gap-2 w-full">
         <Card className="rounded-xl border w-full">
@@ -217,7 +340,7 @@ const HOAManagement = () => {
 
       {/* HOAs List */}
       <div className="space-y-4">
-        {filteredHOAs.map(hoa => <Card key={hoa.id} className="hover:shadow-md transition-shadow">
+        {displayHOAs.map(hoa => <Card key={hoa.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="space-y-4">
                 {/* HOA Header */}
@@ -318,7 +441,11 @@ const HOAManagement = () => {
           </Card>)}
       </div>
 
-      {filteredHOAs.length === 0 && <Card className="border-dashed border-2 border-gray-300">
+      {/* File upload UI above the documents list */}
+      {/* Remove the file upload UI from HOA Management tab */}
+      {/* (Delete or comment out the <input type="file" ... /> and related upload logic in this file) */}
+
+      {displayHOAs.length === 0 && <Card className="border-dashed border-2 border-gray-300">
           <CardContent className="p-12 text-center">
             <div className="mx-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
               <Building2 className="h-6 w-6 text-gray-400" />

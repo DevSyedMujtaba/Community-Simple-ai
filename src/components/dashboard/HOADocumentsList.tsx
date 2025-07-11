@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Eye, Calendar, File } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface HOADocument {
   id: string;
@@ -16,6 +18,7 @@ interface HOADocument {
 
 interface HOADocumentsListProps {
   hoaName?: string;
+  hoaId?: string; // Add this prop for the current HOA id
 }
 
 /**
@@ -23,46 +26,85 @@ interface HOADocumentsListProps {
  * Displays official HOA documents uploaded by board members
  * Homeowners can view and download but not upload documents
  */
-const HOADocumentsList = ({ hoaName = "Your HOA" }: HOADocumentsListProps) => {
-  // Sample HOA documents - in real app this would come from the HOA's document collection
-  const hoaDocuments: HOADocument[] = [
-    {
-      id: '1',
-      name: 'CC&Rs - Covenants, Conditions & Restrictions 2024',
-      uploadDate: '2024-01-10',
-      summary: 'Official governing document outlining community rules, architectural guidelines, and homeowner responsibilities. Covers pet policies (80lb weight limit), parking regulations, noise ordinances (quiet hours 10 PM - 7 AM), and architectural approval processes.',
-      size: 2456789,
-      category: 'Governing Documents',
-      uploadedBy: 'Board Secretary'
-    },
-    {
-      id: '2', 
-      name: 'Parking and Vehicle Regulations',
-      uploadDate: '2024-01-08',
-      summary: 'Comprehensive parking rules including assigned space policies, visitor parking procedures, and towing guidelines. Details the 2-car limit per unit, 48-hour visitor permits, and designated areas for motorcycles and recreational vehicles.',
-      size: 1234567,
-      category: 'Policies',
-      uploadedBy: 'Property Manager'
-    },
-    {
-      id: '3',
-      name: 'Architectural Review Guidelines',
-      uploadDate: '2024-01-05',
-      summary: 'Standards and procedures for home modifications including paint colors, landscaping, fencing, and structural changes. Includes approved color palette, fence height restrictions (6ft max), and submission requirements for architectural requests.',
-      size: 1876543,
-      category: 'Guidelines',
-      uploadedBy: 'Architectural Committee'
-    },
-    {
-      id: '4',
-      name: 'Community Amenities Rules',
-      uploadDate: '2024-01-03',
-      summary: 'Usage guidelines for community facilities including pool hours (6 AM - 10 PM), fitness center access, guest policies, and event reservation procedures. Covers safety requirements and capacity limits for common areas.',
-      size: 987654,
-      category: 'Amenities',
-      uploadedBy: 'Facilities Manager'
+const HOADocumentsList = ({ hoaName = "Your HOA", hoaId }: HOADocumentsListProps) => {
+  // State for real documents
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState("");
+  const fileInputRef = useRef(null);
+  const [userId, setUserId] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || "");
+    };
+    fetchUser();
+  }, []);
+
+  // Fetch documents for this HOA
+  useEffect(() => {
+    const fetchDocs = async () => {
+      setLoading(true);
+      if (!hoaId) { setDocuments([]); setLoading(false); return; }
+      const { data, error } = await supabase
+        .from('hoa_documents')
+        .select('*')
+        .eq('hoa_id', hoaId)
+        .order('uploaded_at', { ascending: false });
+      setDocuments(data || []);
+      setLoading(false);
+    };
+    fetchDocs();
+  }, [hoaId, uploadSuccess]);
+
+  // Handle file input change (from drag-and-drop or click)
+  const handleFileInputChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleUploadAndProcess = async () => {
+    setUploadError("");
+    setUploadSuccess("");
+    setUploading(true);
+    const file = selectedFile;
+    if (!file || !hoaId || !userId) {
+      setUploadError("Missing file, HOA, or user info.");
+      setUploading(false);
+      return;
     }
-  ];
+    const filePath = `community-${hoaId}/${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage
+      .from('hoa-documents')
+      .upload(filePath, file);
+    if (error) {
+      setUploadError(error.message);
+      setUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from('hoa-documents').getPublicUrl(filePath);
+    const { error: dbError } = await supabase.from('hoa_documents').insert([{
+      hoa_id: hoaId,
+      uploader_id: userId,
+      file_name: file.name,
+      file_url: urlData.publicUrl,
+      size_bytes: file.size,
+      mime_type: file.type,
+      status: 'processing'
+    }]);
+    if (dbError) {
+      setUploadError(dbError.message);
+      setUploading(false);
+      return;
+    }
+    setUploadSuccess("File uploaded successfully!");
+    setUploading(false);
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   // Handle document actions
   const handleViewDocument = (document: HOADocument) => {
@@ -110,7 +152,7 @@ const HOADocumentsList = ({ hoaName = "Your HOA" }: HOADocumentsListProps) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            HOA Documents ({hoaDocuments.length})
+            HOA Documents ({documents.length})
           </h2>
           <p className="text-sm text-gray-600">
             Official documents and policies from {hoaName}
@@ -121,10 +163,58 @@ const HOADocumentsList = ({ hoaName = "Your HOA" }: HOADocumentsListProps) => {
         </Badge>
       </div>
 
+      {/* File upload UI for board members */}
+      <div className="mb-6">
+        {/* In the drag-and-drop/click-to-browse area, wire up the file input */}
+        <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-pointer"
+          onClick={() => fileInputRef.current && fileInputRef.current.click()}
+          style={{ position: 'relative' }}
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            disabled={uploading}
+            className="mt-2"
+          />
+          <div className="flex flex-col items-center">
+            <div className="bg-gray-200 rounded-full p-3 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" /></svg>
+            </div>
+            <span className="font-semibold text-lg text-gray-800">Drop your HOA documents here</span>
+            <span className="text-sm text-gray-600">or click to browse files</span>
+            <span className="text-xs text-gray-400 mt-1">Supports PDF files up to 25MB each</span>
+            {uploadError && <div className="text-red-600 text-sm mt-2">{uploadError}</div>}
+            {uploadSuccess && <div className="text-green-600 text-sm mt-2">{uploadSuccess}</div>}
+          </div>
+        </div>
+        {/* Selected file preview and upload button */}
+        {selectedFile && (
+          <div className="w-full max-w-xl mx-auto bg-white rounded-lg shadow p-4 mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <FileText className="text-red-500" />
+                <span className="font-semibold">{selectedFile.name}</span>
+                <span className="text-xs text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+              </div>
+              <button className="text-gray-400 hover:text-red-500" onClick={() => setSelectedFile(null)}>&times;</button>
+            </div>
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base mt-2"
+              onClick={handleUploadAndProcess}
+              disabled={uploading}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" /></svg>
+              Upload & Process
+            </Button>
+          </div>
+        )}
+      </div>
+
       {/* Document Categories */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {['Governing Documents', 'Policies', 'Guidelines', 'Amenities'].map((category) => {
-          const count = hoaDocuments.filter(doc => doc.category === category).length;
+          const count = documents.filter(doc => doc.category === category).length;
           return (
             <Card key={category}>
               <CardContent className="p-4 text-center">
@@ -138,85 +228,87 @@ const HOADocumentsList = ({ hoaName = "Your HOA" }: HOADocumentsListProps) => {
 
       {/* Documents List */}
       <div className="space-y-4">
-        {hoaDocuments.map((document) => (
-          <Card key={document.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
-                {/* Document Icon */}
-                <div className="flex-shrink-0">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-                
-                {/* Document Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                    <h4 className="text-lg font-medium text-gray-900">
-                      {document.name}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDocument(document)}
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadDocument(document)}
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        Download
-                      </Button>
+        {loading ? (
+          <div>Loading documents...</div>
+        ) : documents.length === 0 ? (
+          <div className="text-gray-500">No documents uploaded yet.</div>
+        ) : (
+          documents.map((document) => (
+            <Card key={document.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
+                  {/* Document Icon */}
+                  <div className="flex-shrink-0">
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <FileText className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
-                  
-                  {/* Document Meta */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {formatDate(document.uploadDate)}
+                  {/* Document Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                      <h4 className="text-lg font-medium text-gray-900">
+                        {document.file_name}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(document.file_url, '_blank')}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(document.file_url, '_blank')}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      </div>
                     </div>
-                    {document.size && (
+                    {/* Document Meta */}
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
                       <div className="flex items-center">
-                        <File className="h-4 w-4 mr-1" />
-                        {formatFileSize(document.size)}
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {document.uploaded_at ? new Date(document.uploaded_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''}
+                      </div>
+                      {document.size_bytes && (
+                        <div className="flex items-center">
+                          <File className="h-4 w-4 mr-1" />
+                          {formatFileSize(document.size_bytes)}
+                        </div>
+                      )}
+                      <span className="text-xs">Uploaded by {document.uploader_id}</span>
+                    </div>
+                    {/* Document Summary (if available) */}
+                    {document.summary && (
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <div className="flex items-center mb-2">
+                          <div className="bg-green-100 p-1 rounded mr-2">
+                            <FileText className="h-3 w-3 text-green-600" />
+                          </div>
+                          <span className="text-sm font-medium text-green-900">
+                            Document Summary
+                          </span>
+                          <Badge variant="outline" className="ml-2 text-xs text-green-600 border-green-600">
+                            Official
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-green-800 leading-relaxed">
+                          {document.summary}
+                        </p>
                       </div>
                     )}
-                    <Badge variant="outline" className={getCategoryColor(document.category)}>
-                      {document.category}
-                    </Badge>
-                    <span className="text-xs">Uploaded by {document.uploadedBy}</span>
-                  </div>
-                  
-                  {/* Document Summary */}
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="bg-green-100 p-1 rounded mr-2">
-                        <FileText className="h-3 w-3 text-green-600" />
-                      </div>
-                      <span className="text-sm font-medium text-green-900">
-                        Document Summary
-                      </span>
-                      <Badge variant="outline" className="ml-2 text-xs text-green-600 border-green-600">
-                        Official
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-green-800 leading-relaxed">
-                      {document.summary}
-                    </p>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Info Footer */}

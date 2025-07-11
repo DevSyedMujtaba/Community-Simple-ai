@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Users, MessageSquare, FileText, Settings, TrendingUp, Home, Bell, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, useSidebar } from "@/components/ui/sidebar";
+import { supabase } from "@/lib/supabaseClient";
 
 interface BoardSidebarProps {
   communityName: string;
@@ -27,6 +28,7 @@ export function BoardSidebar({
   } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed";
+  const navigate = useNavigate();
 
   // Navigation items configuration
   const navigationItems = [{
@@ -72,34 +74,51 @@ export function BoardSidebar({
   };
   const isActive = (tabId: string) => activeTab === tabId;
   
-  return <Sidebar collapsible="icon" className="border-r">
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
+  return (
+    <Sidebar collapsible="icon" className="border-r flex flex-col h-full">
       <SidebarHeader className="border-b h-16 flex-shrink-0 flex items-center justify-center">
         <img src="/logo2.png" alt="Logo" className="h-20 w-32 object-contain" />
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="flex-1">
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map(item => {
-              const IconComponent = item.icon;
-              const active = isActive(item.id);
-              return <SidebarMenuItem key={item.id}>
+                const IconComponent = item.icon;
+                const active = isActive(item.id);
+                return (
+                  <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton onClick={() => handleTabClick(item.id)} isActive={active} tooltip={isCollapsed ? item.label : undefined} className="cursor-pointer">
                       <IconComponent className="h-4 w-4" />
                       {!isCollapsed && <>
-                          <span className="flex-1">{item.label}</span>
-                          {item.badge && <Badge variant="destructive" className="ml-auto text-xs">
-                              {item.badge}
-                            </Badge>}
-                        </>}
+                        <span className="flex-1">{item.label}</span>
+                        {item.badge && <Badge variant="destructive" className="ml-auto text-xs">{item.badge}</Badge>}
+                      </>}
                     </SidebarMenuButton>
-                  </SidebarMenuItem>;
-            })}
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-    </Sidebar>;
+
+      {/* Logout Button at the bottom */}
+      <div className="p-4 border-t flex-shrink-0">
+        <button
+          onClick={handleLogout}
+          className="w-full py-2 px-4 rounded-lg border border-red-500 text-red-600 font-semibold hover:bg-red-50 transition"
+        >
+          Logout
+        </button>
+      </div>
+    </Sidebar>
+  );
 }

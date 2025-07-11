@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, MessageSquare, FileText, Settings, Mail, TrendingUp, AlertTriangle } from "lucide-react";
@@ -14,6 +14,7 @@ import ChatInterface from "@/components/dashboard/ChatInterface";
 import HOAManagement from "@/components/dashboard/HOAManagement";
 import ResidentsManagement from "@/components/dashboard/ResidentsManagement";
 import NoticeGeneration from "@/components/dashboard/NoticeGeneration";
+import { supabase } from "@/lib/supabaseClient";
 
 /**
  * Board Member Dashboard - Enhanced with sidebar navigation
@@ -37,6 +38,43 @@ const BoardDashboard = () => {
       size: 1234567
     }
   ]);
+  const [userName, setUserName] = useState("");
+  const [myCommunity, setMyCommunity] = useState(null);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", user.id)
+          .single();
+        setUserName(
+          profile
+            ? [profile.first_name, profile.last_name].filter(Boolean).join(" ")
+            : ""
+        );
+      }
+    };
+    fetchUserName();
+
+    // Fetch the board member's community
+    const fetchCommunity = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMyCommunity(null);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("hoa_communities")
+        .select("id, name, state, city, address, units, contact_email, contact_phone, description, created_at")
+        .eq("board_member_id", user.id)
+        .single();
+      setMyCommunity(data || null);
+    };
+    fetchCommunity();
+  }, []);
 
   // Sample community statistics
   const communityStats = {
@@ -75,6 +113,15 @@ const BoardDashboard = () => {
                 <span className="ml-2 text-[10px] text-gray-500 font-normal">Beta - In Development - Coming soon</span>
               </button>
             </div>
+            {/* User name at top right */}
+            {userName && (
+              <div className="ml-auto flex items-center gap-2">
+                <span className="font-semibold text-[#254F70] text-sm sm:text-base truncate max-w-[160px]">{userName}</span>
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold uppercase">
+                  {userName[0]}
+                </div>
+              </div>
+            )}
           </header>
 
           {/* Main Content */}
@@ -212,7 +259,8 @@ const BoardDashboard = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <DocumentUpload onDocumentUploaded={handleDocumentUploaded} />
+                      {/* Pass hoaId to DocumentList */}
+                      <DocumentList hoaId={myCommunity?.id} />
                     </CardContent>
                   </Card>
 

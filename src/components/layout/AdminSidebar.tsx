@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { 
   Shield, 
   Users, 
@@ -19,6 +19,7 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { supabase } from "@/lib/supabaseClient";
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -37,6 +38,7 @@ export function AdminSidebar({
   const { state } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed";
+  const navigate = useNavigate();
 
   // Navigation items configuration
   const navigationItems = [
@@ -66,13 +68,18 @@ export function AdminSidebar({
 
   const isActive = (tabId: string) => activeTab === tabId;
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
   return (
-    <Sidebar collapsible="icon" className="border-r bg-white">
+    <Sidebar collapsible="icon" className="border-r flex flex-col h-full">
       <SidebarHeader className="border-b border-gray-200 bg-white h-16 flex items-center justify-center p-0">
         <img src="/logo2.png" alt="Logo" className="h-20 w-32 object-contain" />
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="flex-1">
         <SidebarGroup>
           <SidebarGroupLabel className="text-[#254F70]">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -100,6 +107,15 @@ export function AdminSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      {/* Logout Button at the bottom */}
+      <div className="p-4 border-t flex-shrink-0">
+        <button
+          onClick={handleLogout}
+          className="w-full py-2 px-4 rounded-lg border border-red-500 text-red-600 font-semibold hover:bg-red-50 transition"
+        >
+          Logout
+        </button>
+      </div>
     </Sidebar>
   );
 }

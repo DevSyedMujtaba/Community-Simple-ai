@@ -2,7 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -21,6 +23,39 @@ import Contact from './pages/Contact';
 
 const queryClient = new QueryClient();
 
+function ProtectedRoute({ children, allowedRole }) {
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        setUser(null);
+        return;
+      }
+      setUser(user);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role, verified")
+        .eq("id", user.id)
+        .single();
+      setProfile(profile);
+      setLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  if (loading) return null;
+  if (!user || !profile || !profile.verified || (allowedRole && profile.role !== allowedRole)) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  return children;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -36,9 +71,21 @@ const App = () => (
           <Route path="/onboarding/hoa-connection" element={<HOAConnection />} />
           <Route path="/onboarding/welcome" element={<Welcome />} />
           <Route path="/test-flow" element={<TestFlow />} />
-          <Route path="/homeowner" element={<HomeownerDashboard />} />
-          <Route path="/board" element={<BoardDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/homeowner" element={
+            <ProtectedRoute allowedRole="homeowner">
+              <HomeownerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/board" element={
+            <ProtectedRoute allowedRole="board">
+              <BoardDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/contact" element={<Contact />} />

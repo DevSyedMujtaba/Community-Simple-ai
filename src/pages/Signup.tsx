@@ -67,13 +67,22 @@ const Signup = () => {
           phone: formData.phone || null,
         },
       ]);
+    // Call send_verification_code edge function
+    await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/send_verification_code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + import.meta.env.VITE_SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ email: formData.email, user_id: data.user.id }),
+    });
     setIsLoading(false);
     if (profileError) {
       alert(profileError.message || 'Profile creation failed');
       return;
     }
-    // Redirect to email verification with user type
-    window.location.href = `/email-verification?email=${encodeURIComponent(formData.email)}&userType=${formData.userType}`;
+    // Redirect to email verification with user type and user_id
+    window.location.href = `/email-verification?email=${encodeURIComponent(formData.email)}&userType=${formData.userType}&user_id=${data.user.id}`;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
