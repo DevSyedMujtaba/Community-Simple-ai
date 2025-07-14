@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Home, Menu } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 /**
  * Header component with navigation and branding
@@ -13,6 +14,26 @@ const Header = () => {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", user.id)
+          .single();
+        if (!error && data) {
+          setUserName(`${data.first_name || ''} ${data.last_name || ''}`.trim() || 'User');
+        } else {
+          setUserName('User');
+        }
+      }
+    };
+    fetchProfile();
+  }, []);
 
   return (
     <header className="bg-white shadow-sm border-b relative">
@@ -48,6 +69,10 @@ const Header = () => {
             >
               Get Started
             </Button>
+            {/* User Name Display */}
+            <span className="ml-6 font-medium text-gray-700">
+              {userName === null ? 'Loading...' : userName}
+            </span>
           </nav>
 
           {/* Mobile Menu Button */}

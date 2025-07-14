@@ -56,6 +56,43 @@ function ProtectedRoute({ children, allowedRole }) {
   return children;
 }
 
+function PublicOnlyRoute({ children }) {
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        setUser(null);
+        return;
+      }
+      setUser(user);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role, verified")
+        .eq("id", user.id)
+        .single();
+      setProfile(profile);
+      setLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  if (loading) return null;
+  if (user && profile && profile.verified) {
+    // Redirect to dashboard based on role
+    if (profile.role === 'homeowner') return <Navigate to="/homeowner" replace />;
+    if (profile.role === 'board') return <Navigate to="/board" replace />;
+    if (profile.role === 'admin') return <Navigate to="/admin" replace />;
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -64,8 +101,16 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          } />
+          <Route path="/signup" element={
+            <PublicOnlyRoute>
+              <Signup />
+            </PublicOnlyRoute>
+          } />
           <Route path="/email-verification" element={<EmailVerification />} />
           <Route path="/onboarding/profile" element={<ProfileSetup />} />
           <Route path="/onboarding/hoa-connection" element={<HOAConnection />} />

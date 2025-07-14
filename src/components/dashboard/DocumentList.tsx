@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download, Eye, Calendar, File } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { CardTitle } from "@/components/ui/card";
 
 interface Document {
   id: string;
@@ -113,6 +114,10 @@ const DocumentList = ({ documents: propDocuments = [], hoaId }: DocumentListProp
       {/* Document Count Header */}
       <div className="flex items-center justify-between">
         <div>
+          <div className="flex items-center gap-2 mt-8">
+            <FileText className="h-5 w-5 text-[#254F70]" />
+            <CardTitle className="text-lg sm:text-xl">Uploaded Documents</CardTitle>
+          </div>
           <h3 className="text-lg font-semibold text-gray-900">
             Your Documents ({documents.length})
           </h3>
@@ -124,6 +129,9 @@ const DocumentList = ({ documents: propDocuments = [], hoaId }: DocumentListProp
           All Processed
         </Badge>
       </div>
+
+      {/* Uploaded Documents Title */}
+      
 
       {/* Documents List */}
       <div className="space-y-3">
@@ -189,6 +197,7 @@ const DocumentList = ({ documents: propDocuments = [], hoaId }: DocumentListProp
 
       {/* Actions Footer */}
       <Card className="bg-gray-50">
+        
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>

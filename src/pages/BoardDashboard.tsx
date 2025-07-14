@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, MessageSquare, FileText, Settings, Mail, TrendingUp, AlertTriangle } from "lucide-react";
@@ -21,6 +22,7 @@ import { supabase } from "@/lib/supabaseClient";
  * Features comprehensive HOA management tools for board members
  */
 const BoardDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [documents, setDocuments] = useState([
     {
@@ -40,8 +42,18 @@ const BoardDashboard = () => {
   ]);
   const [userName, setUserName] = useState("");
   const [myCommunity, setMyCommunity] = useState(null);
+  const [docListRefresh, setDocListRefresh] = useState(0);
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.user) {
+        navigate('/login', { replace: true });
+      }
+    };
+    checkAuth();
+
     const fetchUserName = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -66,6 +78,7 @@ const BoardDashboard = () => {
         setMyCommunity(null);
         return;
       }
+      setUserId(user.id); // <-- set userId here
       const { data, error } = await supabase
         .from("hoa_communities")
         .select("id, name, state, city, address, units, contact_email, contact_phone, description, created_at")
@@ -74,7 +87,7 @@ const BoardDashboard = () => {
       setMyCommunity(data || null);
     };
     fetchCommunity();
-  }, []);
+  }, [navigate]);
 
   // Sample community statistics
   const communityStats = {
@@ -259,20 +272,9 @@ const BoardDashboard = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      {/* Pass hoaId to DocumentList */}
+                      {/* Render DocumentUpload above the document list */}
+                      <DocumentUpload hoaId={myCommunity?.id} onDocumentUploaded={() => setDocListRefresh(r => r + 1)} />
                       <DocumentList hoaId={myCommunity?.id} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-3 sm:pb-4">
-                      <CardTitle className="text-lg sm:text-xl">Uploaded Documents</CardTitle>
-                      <CardDescription className="text-sm sm:text-base">
-                        AI-analyzed documents with summaries and Q&A support
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <DocumentList documents={documents} />
                     </CardContent>
                   </Card>
 
@@ -319,7 +321,7 @@ const BoardDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <NoticeGeneration />
+                    <NoticeGeneration hoaId={myCommunity?.id} userId={userId} />
                   </CardContent>
                 </Card>
               )}

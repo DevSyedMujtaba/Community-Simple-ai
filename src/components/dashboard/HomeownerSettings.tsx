@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import {
   Home,
   Settings as SettingsIcon
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { useToast } from "@/components/ui/use-toast";
 
 interface UserProfile {
   name: string;
@@ -41,13 +43,13 @@ interface NotificationSettings {
 const HomeownerSettings = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@email.com',
-    phone: '(555) 123-4567',
-    unitNumber: '101A',
-    hoaName: 'Sunrise Valley HOA',
-    memberSince: '2023-03-15',
-    status: 'active'
+    name: '',
+    email: '',
+    phone: '',
+    unitNumber: '',
+    hoaName: '',
+    memberSince: '',
+    status: 'pending',
   });
 
   const [notifications, setNotifications] = useState<NotificationSettings>({
@@ -58,13 +60,97 @@ const HomeownerSettings = () => {
     communityAnnouncements: true
   });
 
-  const [editForm, setEditForm] = useState(userProfile);
+  const [editForm, setEditForm] = useState<UserProfile>(userProfile);
+  const { toast } = useToast();
 
-  const handleSaveProfile = () => {
-    setUserProfile(editForm);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      console.log('Supabase session user:', user); // Debug: log the current user
+      if (!user) return;
+      // Fetch profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, phone')
+        .eq('id', user.id)
+        .single();
+      console.log('Fetched profile:', profile, 'Error:', profileError); // Debug: log the fetched profile and any error
+      // Fetch join request (active membership)
+      const { data: join, error: joinError } = await supabase
+        .from('hoa_join_requests')
+        .select('hoa_id, status, created_at, hoa_communities(name)')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'pending'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      console.log('Fetched join request:', join, 'Error:', joinError); // Debug: log the join request and any error
+      // Fetch unit_number from homeowner_details
+      const { data: details, error: detailsError } = await supabase
+        .from('homeowner_details')
+        .select('unit_number')
+        .eq('user_id', user.id)
+        .single();
+      console.log('Fetched homeowner_details:', details, 'Error:', detailsError); // Debug: log the fetched homeowner_details and any error
+      setUserProfile({
+        name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '',
+        email: user.email || '',
+        phone: profile?.phone || '',
+        unitNumber: details?.unit_number || '',
+        hoaName: join?.hoa_communities?.name || '',
+        memberSince: join?.created_at || '',
+        status: join?.status || 'pending',
+      });
+    };
+    fetchProfile();
+  }, []);
+
+  // Add this effect to sync editForm with userProfile when userProfile changes
+  useEffect(() => {
+    setEditForm(userProfile);
+  }, [userProfile]);
+
+  const handleSaveProfile = async () => {
     setIsEditing(false);
-    console.log('Saving profile:', editForm);
-    // In real implementation, this would call API to update profile
+    // Split full name into first and last name
+    const [first_name, ...rest] = editForm.name.trim().split(' ');
+    const last_name = rest.join(' ');
+    // Get current user
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) return;
+    // Update the profile in Supabase
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        first_name,
+        last_name,
+        phone: editForm.phone,
+      })
+      .eq('id', user.id);
+    // Update the unit_number in homeowner_details
+    const { error: detailsError } = await supabase
+      .from('homeowner_details')
+      .update({
+        unit_number: editForm.unitNumber,
+      })
+      .eq('user_id', user.id);
+    if (profileError || detailsError) {
+      toast({
+        title: 'Profile Update Failed',
+        description: 'There was an error updating your profile. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('Failed to update profile:', profileError, detailsError);
+    } else {
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile information has been updated successfully.',
+        variant: 'default',
+      });
+      setUserProfile(editForm);
+    }
   };
 
   const handleCancelEdit = () => {

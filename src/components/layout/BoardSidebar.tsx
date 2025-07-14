@@ -62,12 +62,14 @@ export function BoardSidebar({
     label: 'Notices',
     icon: AlertTriangle,
     description: 'Create and manage notices'
-  }, {
-    id: 'compliance',
-    label: 'Compliance',
-    icon: Bell,
-    description: 'Track violations and notices'
-  }];
+  }
+  // , {
+  //   id: 'compliance',
+  //   label: 'Compliance',
+  //   icon: Bell,
+  //   description: 'Track violations and notices'
+  // }
+  ];
 
   const handleTabClick = (tabId: string) => {
     onTabChange(tabId);

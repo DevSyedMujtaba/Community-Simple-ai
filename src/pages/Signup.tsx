@@ -55,12 +55,25 @@ const Signup = () => {
       alert(error?.message || 'Signup failed');
       return;
     }
-    // Insert profile
+    // Wait for session to be available
+    let userId = data.user.id;
+    try {
+      // Wait for session to be available (sometimes needed)
+      let sessionUserId = null;
+      for (let i = 0; i < 10; i++) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        sessionUserId = sessionData?.session?.user?.id;
+        if (sessionUserId) break;
+        await new Promise(res => setTimeout(res, 200));
+      }
+      if (sessionUserId) userId = sessionUserId;
+    } catch (e) {}
+    // Now insert profile with the correct user id
     const { error: profileError } = await supabase
       .from('profiles')
       .insert([
         {
-          id: data.user.id,
+          id: userId,
           role: formData.userType === 'homeowner' ? 'homeowner' : 'board',
           first_name: formData.firstName,
           last_name: formData.lastName,
@@ -74,7 +87,7 @@ const Signup = () => {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + import.meta.env.VITE_SUPABASE_ANON_KEY
       },
-      body: JSON.stringify({ email: formData.email, user_id: data.user.id }),
+      body: JSON.stringify({ email: formData.email, user_id: userId }),
     });
     setIsLoading(false);
     if (profileError) {
@@ -82,7 +95,7 @@ const Signup = () => {
       return;
     }
     // Redirect to email verification with user type and user_id
-    window.location.href = `/email-verification?email=${encodeURIComponent(formData.email)}&userType=${formData.userType}&user_id=${data.user.id}`;
+    window.location.href = `/email-verification?email=${encodeURIComponent(formData.email)}&userType=${formData.userType}&user_id=${userId}`;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

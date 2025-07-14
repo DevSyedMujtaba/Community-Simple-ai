@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, MessageSquare, Database, Building2 } from "lucide-react";
@@ -6,12 +7,24 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import UserManagement from "@/components/dashboard/UserManagement";
 import HOAManagement from "@/components/dashboard/HOAManagement";
+import { supabase } from "@/lib/supabaseClient";
 
 /**
  * Admin Dashboard - Enhanced with sidebar navigation
  * Internal use only interface for platform administrators
  */
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.user) {
+        navigate('/login', { replace: true });
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
   const [activeTab, setActiveTab] = useState('overview');
 
   // Sample platform statistics

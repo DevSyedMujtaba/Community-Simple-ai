@@ -76,6 +76,32 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
 
   // Upload and process a file
   const processFile = async (file: File) => {
+    // Robust checks for hoaId, userId, and file
+    if (!file) {
+      toast({
+        title: "No file selected",
+        description: "Please select a file to upload.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!hoaId) {
+      toast({
+        title: "Missing HOA",
+        description: "No HOA selected. Please select an HOA before uploading.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!userId) {
+      toast({
+        title: "Missing User",
+        description: "User not authenticated. Please log in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    console.log("Uploading file with hoaId:", hoaId, "userId:", userId, "file:", file);
     const fileId = `${file.name}-${Date.now()}`;
     setUploadingFiles(prev => [...prev, fileId]);
     try {
