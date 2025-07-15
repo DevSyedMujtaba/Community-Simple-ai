@@ -14,6 +14,8 @@ import HomeownerMessages from "@/components/dashboard/HomeownerMessages";
 import HOADocumentsList from "@/components/dashboard/HOADocumentsList";
 import HomeownerNotices from "@/components/dashboard/HomeownerNotices";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 /**
  * Homeowner Dashboard - Enhanced with sidebar navigation
@@ -47,7 +49,13 @@ const HomeownerDashboard = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [pendingRequest, setPendingRequest] = useState<any | null>(null);
+  const [invitations, setInvitations] = useState<any[]>([]);
   const { toast } = useToast();
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [joinDialogMessage, setJoinDialogMessage] = useState("");
+
+  // Add state for approved membership
+  const [approvedMembership, setApprovedMembership] = useState<any | null>(null);
 
   // Fetch user profile
   useEffect(() => {
@@ -96,34 +104,88 @@ const HomeownerDashboard = () => {
       });
   }, [selectedState, selectedCity, searchTerm]);
 
-  // Fetch pending join request for this user
+  // Update the effect that fetches join requests to also check for approved membership
   useEffect(() => {
-    const fetchPendingRequest = async () => {
+    const fetchMembershipStatus = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData.session?.user;
       if (!user) {
         setPendingRequest(null);
+        setApprovedMembership(null);
         return;
       }
-      const { data, error } = await supabase
+      // Fetch pending request
+      const { data: pendingData, error: pendingError } = await supabase
         .from('hoa_join_requests')
         .select('id, hoa_id, status, created_at, hoa_communities(name, city, state)')
         .eq('user_id', user.id)
         .in('status', ['pending'])
         .order('created_at', { ascending: false })
         .limit(1);
-      if (!error && data && data.length > 0) {
-        setPendingRequest(data[0]);
+      if (!pendingError && pendingData && pendingData.length > 0) {
+        setPendingRequest(pendingData[0]);
       } else {
         setPendingRequest(null);
       }
+      // Fetch approved membership
+      const { data: approvedData, error: approvedError } = await supabase
+        .from('hoa_join_requests')
+        .select('id, hoa_id, status, created_at, hoa_communities(name, city, state)')
+        .eq('user_id', user.id)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (!approvedError && approvedData && approvedData.length > 0) {
+        setApprovedMembership(approvedData[0]);
+      } else {
+        setApprovedMembership(null);
+      }
     };
-    fetchPendingRequest();
+    fetchMembershipStatus();
   }, [submitSuccess]);
 
-  // Handle join request
+  // Fetch invitations for the user
+  useEffect(() => {
+    const fetchInvitations = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      if (!user) {
+        setInvitations([]);
+        return;
+      }
+      // Fetch by user_id and by email separately, include community name join
+      const [byId, byEmail] = await Promise.all([
+        supabase
+          .from('hoa_invitations')
+          .select('id, hoa_id, status, created_at, email, unit_number, message, board_member_id, hoa_communities(name)')
+          .eq('user_id', user.id)
+          .eq('status', 'invited')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('hoa_invitations')
+          .select('id, hoa_id, status, created_at, email, unit_number, message, board_member_id, hoa_communities(name)')
+          .eq('email', user.email)
+          .eq('status', 'invited')
+          .order('created_at', { ascending: false }),
+      ]);
+      const invitations = [
+        ...(byId.data || []),
+        ...(byEmail.data || []),
+      ];
+      // Deduplicate by id
+      const uniqueInvitations = Array.from(new Map(invitations.map(i => [i.id, i])).values());
+      setInvitations(uniqueInvitations);
+    };
+    fetchInvitations();
+  }, []);
+
+  // Update handleJoinRequest to check for approved membership
   const handleJoinRequest = async (communityId: string) => {
-    // Instead of sending the request immediately, show the form
+    if (approvedMembership || pendingRequest) {
+      setJoinDialogMessage("You can only join one community. You have already joined or sent a join request.");
+      setShowJoinDialog(true);
+      return;
+    }
     const comm = hoaCommunities.find(c => c.id === communityId);
     setSelectedCommunity(comm);
   };
@@ -345,18 +407,68 @@ const HomeownerDashboard = () => {
                               </div>
                               <div className="text-sm text-gray-600 mt-1">{comm.description}</div>
                             </div>
-                            <button
-                              className="mt-3 sm:mt-0 sm:ml-4 px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded font-semibold text-sm flex items-center gap-2 shadow"
-                              onClick={() => handleJoinRequest(comm.id)}
-                              disabled={!!pendingRequest}
-                            >
-                              <Mail className="w-4 h-4" /> Request to Join
-                            </button>
-                          </div>
+                            <div className="flex flex-col sm:flex-row gap-2">
+      <button
+        className="mt-3 sm:mt-0 sm:ml-4 px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded font-semibold text-sm flex items-center gap-2 shadow"
+        onClick={() => handleJoinRequest(comm.id)}
+      >
+        <Mail className="w-4 h-4" /> Request to Join
+      </button>
+    </div>
+  </div>
                         ))}
                       </div>
                     )}
-                    </CardContent>
+                    {/* Show join form below the list */}
+                    {selectedCommunity && (
+                      <form onSubmit={handleSubmitJoinRequest} className="mt-6 bg-gray-50 p-4 rounded-lg border w-full">
+                        <div className="font-bold text-lg mb-2">Join {selectedCommunity.name}</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Unit/Property Number</label>
+                            <input
+                              type="text"
+                              required
+                              value={unitNumber}
+                              onChange={e => setUnitNumber(e.target.value)}
+                              placeholder="e.g., 101A, 123 Main St"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <input
+                              type="tel"
+                              required
+                              value={phoneNumber}
+                              onChange={e => setPhoneNumber(e.target.value)}
+                              placeholder="(555) 123-4567"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                            />
+                          </div>
+                        </div>
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Message to Board (Optional)</label>
+                          <textarea
+                            value={message}
+                            onChange={e => setMessage(e.target.value)}
+                            placeholder="Introduce yourself and mention any relevant information..."
+                            rows={3}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="w-full mt-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded px-4 py-2 font-semibold text-sm"
+                          disabled={submitting}
+                        >
+                          {submitting ? 'Submitting...' : 'Submit Join Request'}
+                        </button>
+                        {submitError && <div className="text-red-600 text-sm mt-2">{submitError}</div>}
+                        {submitSuccess && <div className="text-green-600 text-sm mt-2">Request sent successfully!</div>}
+                      </form>
+                    )}
+                  </CardContent>
                   </Card>
               </>
               )}
@@ -476,9 +588,53 @@ const HomeownerDashboard = () => {
                   </Card>
                 </div>
               )}
+
+              {activeTab === 'invitations' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Invitations</CardTitle>
+                    <CardDescription>Invitations from board members to join their communities.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {invitations.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                        <Mail className="w-12 h-12 mb-2" />
+                        <div>No invitations at this time.</div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {invitations.map(invite => (
+                          <div key={invite.id} className="border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between bg-gray-50">
+                            <div>
+                              <div className="font-bold text-black text-lg mb-1">Invitation to join HOA</div>
+                              <div className="text-sm text-gray-700 mb-1">Community: {invite.hoa_communities?.name || 'Unknown'}</div>
+                              <div className="text-sm text-gray-700 mb-1">Unit: {invite.unit_number}</div>
+                              {/* <div className="text-sm text-gray-700 mb-1">Email: {invite.email}</div> */}
+                              {invite.message && <div className="text-sm text-gray-600 mt-2">Message: {invite.message}</div>}
+                              <div className="text-xs text-gray-500 mt-1">Sent: {new Date(invite.created_at).toLocaleString()}</div>
+                            </div>
+                            <Badge className="bg-blue-100 text-blue-800 ml-0 sm:ml-4 mt-4 sm:mt-0" variant="secondary">Invited</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
           </main>
         </SidebarInset>
       </div>
+      <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Notice</DialogTitle>
+            <DialogDescription>{joinDialogMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setShowJoinDialog(false)}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };

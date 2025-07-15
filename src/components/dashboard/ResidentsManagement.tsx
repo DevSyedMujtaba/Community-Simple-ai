@@ -15,6 +15,8 @@ import {
   Clock,
   UserPlus
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface Resident {
   id: string;
@@ -35,13 +37,20 @@ interface JoinRequest {
   requestedUnit: string;
   requestDate: string;
   message?: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
+interface ResidentsManagementProps {
+  joinRequests: JoinRequest[];
+  residents: Resident[];
+  hoaId: string;
 }
 
 /**
  * Residents Management Component
  * Handles inviting homeowners, approving requests, and managing residents
  */
-const ResidentsManagement = () => {
+const ResidentsManagement = ({ joinRequests, residents, hoaId }: ResidentsManagementProps) => {
   const [activeSection, setActiveSection] = useState<'residents' | 'requests' | 'invite'>('residents');
   const [searchTerm, setSearchTerm] = useState('');
   const [inviteForm, setInviteForm] = useState({
@@ -49,61 +58,9 @@ const ResidentsManagement = () => {
     unit: '',
     message: ''
   });
-
-  // Sample data - in real app this would come from backend
-  const residents: Resident[] = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@email.com',
-      phone: '(555) 123-4567',
-      unit: '101A',
-      status: 'active',
-      joinDate: '2023-03-15',
-      lastActive: '2024-01-14'
-    },
-    {
-      id: '2',
-      name: 'Mike Chen',
-      email: 'mike.chen@email.com',
-      phone: '(555) 234-5678',
-      unit: '102B',
-      status: 'active',
-      joinDate: '2023-05-20',
-      lastActive: '2024-01-13'
-    },
-    {
-      id: '3',
-      name: 'Emma Thompson',
-      email: 'emma.t@email.com',
-      phone: '(555) 567-8901',
-      unit: '105B',
-      status: 'invited',
-      joinDate: '2024-01-10',
-      lastActive: 'Never'
-    }
-  ];
-
-  const joinRequests: JoinRequest[] = [
-    {
-      id: '1',
-      name: 'David Wilson',
-      email: 'david.wilson@email.com',
-      phone: '(555) 456-7890',
-      requestedUnit: '104A',
-      requestDate: '2024-01-12',
-      message: 'Hi, I just purchased unit 104A and would like to join the HOA community.'
-    },
-    {
-      id: '2',
-      name: 'Lisa Garcia',
-      email: 'lisa.garcia@email.com',
-      phone: '(555) 678-9012',
-      requestedUnit: '106C',
-      requestDate: '2024-01-11',
-      message: 'New resident in 106C, looking forward to being part of the community!'
-    }
-  ];
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const { toast } = useToast();
 
   const filteredResidents = residents.filter(resident =>
     resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -120,21 +77,75 @@ const ResidentsManagement = () => {
     }
   };
 
-  const handleSendInvite = (e: React.FormEvent) => {
+  const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Sending invite:', inviteForm);
-    // In real implementation, this would call API to send invite
-    setInviteForm({ email: '', unit: '', message: '' });
+    const email = inviteForm.email.trim().toLowerCase();
+    const unit = inviteForm.unit.trim();
+    const message = inviteForm.message.trim();
+    if (!email || !unit) {
+      toast({ title: "Email and Unit Number are required.", variant: "destructive" });
+      return;
+    }
+    // 3. Call Edge Function to send invitation with access token
+    try {
+      setInviteLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      // Get the current board member's user id
+      const { data: userData } = await supabase.auth.getUser();
+      const board_member_id = userData?.user?.id;
+      if (!board_member_id) {
+        toast({ title: "Could not determine board member ID.", variant: "destructive" });
+        setInviteLoading(false);
+        return;
+      }
+      const response = await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/invite_user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          email,
+          hoa_id: hoaId,
+          unit_number: unit,
+          message,
+          board_member_id,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || data.error) {
+        toast({ title: "Error sending invitation.", description: data.error || 'Unknown error', variant: "destructive" });
+        setInviteLoading(false);
+        return;
+      }
+      toast({ title: "Invitation sent!", description: `Invitation sent to ${email}.`, variant: "default" });
+      setInviteForm({ email: '', unit: '', message: '' });
+      setInviteLoading(false);
+    } catch (err) {
+      toast({ title: "Error sending invitation.", description: String(err), variant: "destructive" });
+      setInviteLoading(false);
+    }
   };
 
-  const handleApproveRequest = (requestId: string) => {
-    console.log('Approving request:', requestId);
-    // In real implementation, this would call API to approve request
+  const handleApproveRequest = async (requestId: string) => {
+    setLoadingId(requestId);
+    const { error } = await supabase
+      .from('hoa_join_requests')
+      .update({ status: 'approved' })
+      .eq('id', requestId);
+    setLoadingId(null);
+    window.location.reload(); // quick refresh to show updated status
   };
 
-  const handleRejectRequest = (requestId: string) => {
-    console.log('Rejecting request:', requestId);
-    // In real implementation, this would call API to reject request
+  const handleRejectRequest = async (requestId: string) => {
+    setLoadingId(requestId);
+    const { error } = await supabase
+      .from('hoa_join_requests')
+      .update({ status: 'rejected' })
+      .eq('id', requestId);
+    setLoadingId(null);
+    window.location.reload(); // quick refresh to show updated status
   };
 
   return (
@@ -251,77 +262,60 @@ const ResidentsManagement = () => {
       {activeSection === 'requests' && (
         <div className="space-y-4">
           {joinRequests.length === 0 ? (
-            <Card className="border-dashed border-2 border-gray-300">
-              <CardContent className="p-8 text-center">
-                <Clock className="h-8 w-8 mx-auto text-gray-400 mb-3" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No pending requests</h3>
-                <p className="text-gray-600">All join requests have been processed.</p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-gray-200 rounded-lg">
+              <Clock className="h-8 w-8 text-gray-400 mb-2" />
+              <div className="font-semibold text-gray-600">No pending requests</div>
+              <div className="text-gray-400 text-sm">All join requests have been processed.</div>
+            </div>
           ) : (
-            joinRequests.map((request) => (
-              <Card key={request.id} className="border-orange-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          {request.name}
-                        </h4>
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                          Pending Review
+            <div className="space-y-4">
+              {joinRequests.map((request) => (
+                <Card key={request.id} className="border-orange-200">
+                  <CardContent className="py-4 px-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-base text-gray-900">{request.name}</span>
+                        <Badge
+                          variant="outline"
+                          className={
+                            request.status === "pending"
+                              ? "bg-orange-100 text-orange-800 border-orange-200 text-xs"
+                              : request.status === "approved"
+                              ? "bg-green-100 text-green-800 border-green-200 text-xs"
+                              : "bg-red-100 text-red-800 border-red-200 text-xs"
+                          }
+                        >
+                          {request.status === "pending"
+                            ? "Pending Review"
+                            : request.status === "approved"
+                            ? "Approved"
+                            : "Rejected"}
                         </Badge>
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2" />
-                          {request.email}
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="h-4 w-4 mr-2" />
-                          {request.phone}
-                        </div>
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          Unit {request.requestedUnit}
-                        </div>
+                      <div className="flex flex-wrap items-center gap-10 text-sm text-gray-700 mb-2">
+                        <span className="flex items-center gap-2 mr-6"><Mail className="h-4 w-4" />{request.email}</span>
+                        <span className="flex items-center gap-2 mr-6"><Phone className="h-4 w-4" />{request.phone}</span>
+                        <span className="flex items-center gap-2"><MapPin className="h-4 w-4" />Unit {request.requestedUnit}</span>
                       </div>
-                      
                       {request.message && (
-                        <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                          <p className="text-sm text-gray-700">{request.message}</p>
+                        <div className="bg-gray-50 rounded p-2 text-gray-700 text-sm mb-1">
+                          {request.message}
                         </div>
                       )}
-                      
-                      <div className="text-xs text-gray-500">
-                        Requested on {new Date(request.requestDate).toLocaleDateString()}
-                      </div>
+                      <div className="text-xs text-gray-400 mt-1">Requested on {request.requestDate}</div>
                     </div>
-                    
-                    <div className="flex space-x-2 ml-4">
-                      <Button
-                        onClick={() => handleApproveRequest(request.id)}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        size="sm"
-                      >
-                        <Check className="h-4 w-4 mr-1" />
-                        Approve
+                    <div className="flex flex-row gap-2 mt-2 sm:mt-0">
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApproveRequest(request.id)} disabled={loadingId === request.id}>
+                        <Check className="h-4 w-4 mr-1" />Approve
                       </Button>
-                      <Button
-                        onClick={() => handleRejectRequest(request.id)}
-                        variant="outline"
-                        className="text-red-600 border-red-600 hover:bg-red-50"
-                        size="sm"
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Reject
+                      <Button size="sm" variant="outline" className="border-red-400 text-red-600 hover:bg-red-50" onClick={() => handleRejectRequest(request.id)} disabled={loadingId === request.id}>
+                        <X className="h-4 w-4 mr-1" />Reject
                       </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -380,9 +374,8 @@ const ResidentsManagement = () => {
                 />
               </div>
               
-              <Button type="submit" className="bg-[#254F70] hover:bg-primary/90">
-                <Mail className="h-4 w-4 mr-2" />
-                Send Invitation
+              <Button type="submit" className="bg-[#254F70] hover:bg-primary/90" disabled={inviteLoading}>
+                {inviteLoading ? 'Sending...' : 'Send Invitation'}
               </Button>
             </form>
           </CardContent>

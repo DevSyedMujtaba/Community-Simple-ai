@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Send, ArrowLeft, User } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface Message {
   id: string;
@@ -38,6 +39,8 @@ interface ChatInterfaceProps {
   onStartNewConversation: (participantId: string) => void;
   onSelectConversation: (conversationId: string) => void;
   selectedConversationId?: string;
+  hoaId: string;
+  otherParticipantId?: string;
 }
 
 /**
@@ -49,25 +52,29 @@ const ChatInterface = ({
   currentUserId,
   currentUserType,
   conversations,
-  messages,
+  messages: initialMessages,
   onSendMessage,
   onStartNewConversation,
   onSelectConversation,
-  selectedConversationId
+  selectedConversationId,
+  hoaId,
+  otherParticipantId
 }: ChatInterfaceProps) => {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewChat, setShowNewChat] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [availableUsers, setAvailableUsers] = useState([]);
 
   // Mock users for search - in real app this would come from API
-  const availableUsers = [
-    { id: '1', name: 'John Smith', type: 'homeowner' as const, unitNumber: '205A' },
-    { id: '2', name: 'Sarah Johnson', type: 'board' as const, role: 'President' },
-    { id: '3', name: 'Mike Wilson', type: 'board' as const, role: 'Secretary' },
-    { id: '4', name: 'Lisa Davis', type: 'homeowner' as const, unitNumber: '112B' },
-  ];
+  // const availableUsers = [
+  //   { id: '1', name: 'John Smith', type: 'homeowner' as const, unitNumber: '205A' },
+  //   { id: '2', name: 'Sarah Johnson', type: 'board' as const, role: 'President' },
+  //   { id: '3', name: 'Mike Wilson', type: 'board' as const, role: 'Secretary' },
+  //   { id: '4', name: 'Lisa Davis', type: 'homeowner' as const, unitNumber: '112B' },
+  // ];
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -82,13 +89,24 @@ const ChatInterface = ({
   );
 
   // Filter available users for new chat
-  const filteredUsers = availableUsers.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    user.id !== currentUserId &&
-    !conversations.some(conv => 
-      conv.participants.some(p => p.id === user.id)
-    )
-  );
+  useEffect(() => {
+    if (!hoaId || !currentUserId) return;
+    const fetchUsers = async () => {
+      const { data, error } = await supabase
+        .from('hoa_join_requests')
+        .select('user_id, profiles (id, first_name, last_name, role, phone, unit_number)')
+        .eq('hoa_id', hoaId)
+        .eq('status', 'active');
+      if (data) {
+        setAvailableUsers(
+          data
+            .map((m) => m.profiles)
+            .filter((u) => u && u.id !== currentUserId)
+        );
+      }
+    };
+    fetchUsers();
+  }, [hoaId, currentUserId]);
 
   // Get current conversation
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
@@ -124,6 +142,48 @@ const ChatInterface = ({
     onSelectConversation(conversationId);
     setShowMobileChat(true);
   };
+
+  // Realtime subscription for new messages
+  useEffect(() => {
+    if (!hoaId || !currentUserId || !otherParticipantId) return;
+    const channel = supabase
+      .channel('messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `hoa_id=eq.${hoaId}`,
+        },
+        (payload) => {
+          const msg = payload.new;
+          // Only add if it's between these two users
+          if (
+            (msg.sender_id === currentUserId && msg.receiver_id === otherParticipantId) ||
+            (msg.sender_id === otherParticipantId && msg.receiver_id === currentUserId)
+          ) {
+            setMessages((prev) => [...prev, {
+              id: msg.id,
+              content: msg.content,
+              senderId: msg.sender_id,
+              senderName: '', // Optionally fetch/display name
+              senderType: '', // Optionally fetch/display type
+              timestamp: new Date(msg.created_at),
+              isRead: true // Or handle read status as needed
+            }]);
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [hoaId, currentUserId, otherParticipantId]);
+
+  const filteredUsers = availableUsers.filter(user =>
+    (`${user.first_name} ${user.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="min-h-[400px] h-full flex flex-col md:flex-row border rounded-lg overflow-hidden bg-white max-h-[80vh] w-full min-w-0">
@@ -168,20 +228,20 @@ const ChatInterface = ({
                   key={user.id}
                   onClick={() => {
                     onStartNewConversation(user.id);
-                    setShowNewChat(false);
+                    setShowNewChat(false); // Hide the list after selecting a user
                     setSearchQuery('');
                   }}
                   className="flex items-center p-3 hover:bg-white rounded-lg cursor-pointer transition-colors min-h-[44px]"
                 >
                   <Avatar className="h-10 w-10 mr-3">
                     <AvatarFallback className="bg-[#254F70] text-white">
-                      {getUserInitials(user.name)}
+                      {getUserInitials(`${user.first_name} ${user.last_name}`)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">{user.name}</div>
+                    <div className="font-medium text-gray-900 truncate">{user.first_name} {user.last_name}</div>
                     <div className="text-sm text-gray-500">
-                      {user.type === 'homeowner' ? `Unit ${user.unitNumber}` : user.role}
+                      {user.role === 'homeowner' ? (user.unit_number ? `Unit ${user.unit_number}` : '') : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                     </div>
                   </div>
                 </div>

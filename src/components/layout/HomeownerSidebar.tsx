@@ -7,7 +7,8 @@ import {
   Home,
   Users,
   Settings,
-  Bell
+  Bell,
+  Mail
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -56,6 +57,12 @@ export function HomeownerSidebar({
       label: 'Join HOA', 
       icon: Users, 
       description: 'Find and join your HOA community'
+    },
+    {
+      id: 'invitations',
+      label: 'Invitations',
+      icon: Mail,
+      description: 'View and manage your HOA invitations'
     },
     { 
       id: 'messages', 

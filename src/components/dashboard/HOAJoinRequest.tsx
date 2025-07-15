@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import {
   Home,
   AlertCircle
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface HOAOption {
   id: string;
@@ -46,6 +47,35 @@ const HOAJoinRequest = () => {
     unitNumber: '',
     phoneNumber: ''
   });
+  // Add state to track which HOA's form is open
+  const [activeJoinHoaId, setActiveJoinHoaId] = useState<string | null>(null);
+  // Add state for loading and feedback
+  const [formLoading, setFormLoading] = useState(false);
+  const [formMessage, setFormMessage] = useState<string | null>(null);
+  const [myJoinRequests, setMyJoinRequests] = useState<JoinRequest[]>([]);
+
+  // Map fetched data to JoinRequest type
+  useEffect(() => {
+    const fetchJoinRequests = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.user) return;
+      const { data, error } = await supabase
+        .from('hoa_join_requests')
+        .select('id, hoa_id, status, created_at')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+      if (data) {
+        // Map to JoinRequest type for UI
+        setMyJoinRequests(data.map(r => ({
+          id: r.id,
+          hoaName: r.hoa_id, // You may want to join with HOA table for real name
+          status: r.status,
+          requestDate: r.created_at,
+        })));
+      }
+    };
+    fetchJoinRequests();
+  }, []);
 
   // Sample data - in real app this would come from backend
   const states = ['California', 'Texas', 'Florida', 'New York', 'Illinois'];
@@ -83,14 +113,9 @@ const HOAJoinRequest = () => {
     }
   ];
 
-  const myJoinRequests: JoinRequest[] = [
-    {
-      id: '1',
-      hoaName: 'Sunrise Valley HOA',
-      status: 'pending',
-      requestDate: '2024-01-10'
-    }
-  ];
+  // Check if the user has a pending join request
+  const userHasPendingRequest = myJoinRequests.some(r => r.status === 'pending');
+  console.log('userHasPendingRequest:', userHasPendingRequest);
 
   // Filter HOAs based on location and search
   const filteredHOAs = availableHOAs.filter(hoa => {
@@ -125,6 +150,39 @@ const HOAJoinRequest = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // New function to handle form submit
+  const handleSubmitJoinRequest = async (hoaId: string) => {
+    setFormLoading(true);
+    setFormMessage(null);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !session.user) {
+      setFormMessage("You must be logged in to request to join.");
+      setFormLoading(false);
+      return;
+    }
+    const { error } = await supabase.from('hoa_join_requests').insert([{
+      hoa_id: hoaId,
+      user_id: session.user.id,
+      unit_number: joinRequestForm.unitNumber,
+      phone_number: joinRequestForm.phoneNumber,
+      message: joinRequestForm.message,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    }]);
+    if (error) {
+      setFormMessage("Failed to send join request: " + error.message);
+    } else {
+      setFormMessage("Join request sent! You will be notified once reviewed.");
+      setActiveJoinHoaId(null);
+      setJoinRequestForm({ message: '', unitNumber: '', phoneNumber: '' });
+    }
+    setFormLoading(false);
+  };
+
+  if (!userHasPendingRequest && activeJoinHoaId) {
+    console.log('Rendering form for HOA:', activeJoinHoaId);
+  }
 
   return (
     <div className="space-y-6">
@@ -266,13 +324,87 @@ const HOAJoinRequest = () => {
                           </div>
                           
                           <Button
-                            onClick={() => handleJoinRequest(hoa.id)}
-                            className="ml-4"
+                            onClick={() => {
+                              console.log('Request to Join clicked for HOA:', hoa.id);
+                              setActiveJoinHoaId(hoa.id);
+                              setTimeout(() => {
+                                console.log('activeJoinHoaId after set:', activeJoinHoaId);
+                              }, 0);
+                            }}
+                            className="ml-4 bg-red-600 hover:bg-red-700 text-white"
+                            disabled={userHasPendingRequest}
                           >
                             <Mail className="h-4 w-4 mr-2" />
                             Request to Join
                           </Button>
+                          <Button
+                            onClick={() => {
+                              console.log('View Details clicked for HOA:', hoa.id);
+                            }}
+                            className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-900"
+                          >
+                            View Details
+                          </Button>
+                          {userHasPendingRequest && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              You already have a pending join request.
+                            </div>
+                          )}
                         </div>
+                        {/* Conditionally render the join request form for this HOA */}
+                        {!userHasPendingRequest && activeJoinHoaId === hoa.id && (
+                          <div className="mt-6 bg-gray-50 p-4 rounded-lg border">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Unit/Property Number
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g., 101A, 123 Main St"
+                                  value={joinRequestForm.unitNumber}
+                                  onChange={(e) => setJoinRequestForm({ ...joinRequestForm, unitNumber: e.target.value })}
+                                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Phone Number
+                                </label>
+                                <input
+                                  type="tel"
+                                  placeholder="(555) 123-4567"
+                                  value={joinRequestForm.phoneNumber}
+                                  onChange={(e) => setJoinRequestForm({ ...joinRequestForm, phoneNumber: e.target.value })}
+                                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                />
+                              </div>
+                            </div>
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Message to Board (Optional)
+                              </label>
+                              <textarea
+                                placeholder="Introduce yourself and mention any relevant information..."
+                                value={joinRequestForm.message}
+                                onChange={(e) => setJoinRequestForm({ ...joinRequestForm, message: e.target.value })}
+                                rows={3}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                              />
+                            </div>
+                            <p className="text-xs text-gray-500 mb-2">
+                              Your request will be sent to the board members for approval. You'll receive an email notification once reviewed.
+                            </p>
+                            {formMessage && <div className="mb-2 text-sm text-center text-blue-700">{formMessage}</div>}
+                            <Button
+                              onClick={() => handleSubmitJoinRequest(hoa.id)}
+                              disabled={formLoading}
+                              className="w-full mt-2 bg-primary text-white"
+                            >
+                              {formLoading ? 'Submitting...' : 'Submit Join Request'}
+                            </Button>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -280,59 +412,6 @@ const HOAJoinRequest = () => {
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Join Request Form (shown when user clicks Request to Join) */}
-      <Card className="bg-gray-50">
-        <CardHeader>
-          <CardTitle>Join Request Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Unit/Property Number
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., 101A, 123 Main St"
-                value={joinRequestForm.unitNumber}
-                onChange={(e) => setJoinRequestForm({ ...joinRequestForm, unitNumber: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                placeholder="(555) 123-4567"
-                value={joinRequestForm.phoneNumber}
-                onChange={(e) => setJoinRequestForm({ ...joinRequestForm, phoneNumber: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-              />
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Message to Board (Optional)
-            </label>
-            <textarea
-              placeholder="Introduce yourself and mention any relevant information..."
-              value={joinRequestForm.message}
-              onChange={(e) => setJoinRequestForm({ ...joinRequestForm, message: e.target.value })}
-              rows={3}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-            />
-          </div>
-          
-          <p className="text-xs text-gray-500">
-            Your request will be sent to the board members for approval. You'll receive an email notification once reviewed.
-          </p>
         </CardContent>
       </Card>
     </div>

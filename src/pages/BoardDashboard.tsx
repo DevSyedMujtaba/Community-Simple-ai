@@ -44,49 +44,109 @@ const BoardDashboard = () => {
   const [myCommunity, setMyCommunity] = useState(null);
   const [docListRefresh, setDocListRefresh] = useState(0);
   const [userId, setUserId] = useState("");
+  const [joinRequests, setJoinRequests] = useState([]);
+  const [residents, setResidents] = useState([]);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchAll = async () => {
+      // 1. Auth check and get community
       const { data: { session } } = await supabase.auth.getSession();
       if (!session || !session.user) {
         navigate('/login', { replace: true });
-      }
-    };
-    checkAuth();
-
-    const fetchUserName = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("first_name, last_name")
-          .eq("id", user.id)
-          .single();
-        setUserName(
-          profile
-            ? [profile.first_name, profile.last_name].filter(Boolean).join(" ")
-            : ""
-        );
-      }
-    };
-    fetchUserName();
-
-    // Fetch the board member's community
-    const fetchCommunity = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setMyCommunity(null);
         return;
       }
-      setUserId(user.id); // <-- set userId here
-      const { data, error } = await supabase
+      const { data: community } = await supabase
         .from("hoa_communities")
-        .select("id, name, state, city, address, units, contact_email, contact_phone, description, created_at")
-        .eq("board_member_id", user.id)
+        .select("id")
+        .eq("board_member_id", session.user.id)
         .single();
-      setMyCommunity(data || null);
+      if (!community) return;
+      setMyCommunity(community);
+
+      // Fetch board member profile for name
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name,last_name")
+        .eq("id", session.user.id)
+        .single();
+      console.log('Fetched profile:', profile); // Debug log
+      if (profile) {
+        const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+        setUserName(fullName || "Board Member");
+      } else {
+        setUserName("Board Member");
+      }
+
+      // 2. Fetch all join requests for this HOA
+      const { data: allReqs, error: allReqsError } = await supabase
+        .from("hoa_join_requests")
+        .select("id, user_id, unit_number, phone_number, message, status, created_at")
+        .eq("hoa_id", community.id);
+      if (allReqsError) {
+        setJoinRequests([]);
+        setResidents([]);
+        return;
+      }
+      const joinReqs = allReqs.filter(r => r.status === 'pending');
+      const residentReqs = allReqs.filter(r => r.status === 'approved');
+
+      // 3. Collect all unique user_ids
+      const allUserIds = Array.from(new Set(allReqs.map(r => String(r.user_id))));
+
+      // 4. Fetch user info from Edge Function for all user_ids
+      let users = [];
+      try {
+        const res = await fetch(`https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/get-hoa-users?user_ids=${allUserIds.join(',')}`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          users = Array.isArray(data.users) ? data.users : [];
+        } else {
+          let errorData = {};
+          try { errorData = await res.json(); } catch {}
+          console.error("Edge Function error:", errorData);
+          users = [];
+        }
+      } catch (e) {
+        console.error("Network or parsing error calling Edge Function:", e);
+        users = [];
+      }
+      // Merge join requests
+      const mergedJoinReqs = Array.isArray(joinReqs) ? joinReqs.map(req => {
+        const user = users.find(u => String(u.id) === String(req.user_id)) || {};
+        return {
+          id: req.id,
+          name: user.name || "Unknown",
+          email: user.email || "Unknown",
+          phone: req.phone_number,
+          requestedUnit: req.unit_number,
+          requestDate: new Date(req.created_at).toLocaleDateString(),
+          message: req.message,
+          status: req.status
+        };
+      }) : [];
+      setJoinRequests(mergedJoinReqs);
+      // Merge residents
+      const mergedResidents = Array.isArray(residentReqs) ? residentReqs.map(req => {
+        const user = users.find(u => String(u.id) === String(req.user_id)) || {};
+        return {
+          id: req.id,
+          name: user.name || "Unknown",
+          email: user.email || "Unknown",
+          phone: req.phone_number,
+          unit: req.unit_number,
+          status: 'active',
+          joinDate: req.created_at,
+          lastActive: ''
+        };
+      }) : [];
+      setResidents(mergedResidents);
     };
-    fetchCommunity();
+    fetchAll();
   }, [navigate]);
 
   // Sample community statistics
@@ -110,7 +170,7 @@ const BoardDashboard = () => {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           communityName="Sunrise Valley HOA"
-          pendingRequests={communityStats.pendingRequests}
+          pendingRequests={joinRequests.length}
         />
         
         <SidebarInset className="flex-1">
@@ -254,7 +314,7 @@ const BoardDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <ResidentsManagement />
+                    <ResidentsManagement joinRequests={joinRequests} residents={residents} hoaId={myCommunity?.id} />
                   </CardContent>
                 </Card>
               )}
@@ -351,3 +411,4 @@ const BoardDashboard = () => {
 };
 
 export default BoardDashboard;
+

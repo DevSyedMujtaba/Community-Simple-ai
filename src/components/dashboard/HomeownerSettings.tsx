@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
+import ChangePasswordDialog from "./ChangePasswordDialog";
+import ChangeEmailDialog from "./ChangeEmailDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 
 interface UserProfile {
   name: string;
@@ -24,9 +28,10 @@ interface UserProfile {
   unitNumber: string;
   hoaName: string;
   memberSince: string;
-  status: 'active' | 'pending' | 'inactive';
+  status: 'active' | 'pending' | 'inactive' | 'approved';
 }
 
+// Update NotificationSettings type to match DB columns
 interface NotificationSettings {
   emailNotifications: boolean;
   smsNotifications: boolean;
@@ -62,6 +67,11 @@ const HomeownerSettings = () => {
 
   const [editForm, setEditForm] = useState<UserProfile>(userProfile);
   const { toast } = useToast();
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -81,11 +91,11 @@ const HomeownerSettings = () => {
         .from('hoa_join_requests')
         .select('hoa_id, status, created_at, hoa_communities(name)')
         .eq('user_id', user.id)
-        .in('status', ['active', 'pending'])
+        .in('status', ['approved', 'pending'])
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
-      console.log('Fetched join request:', join, 'Error:', joinError); // Debug: log the join request and any error
+      console.log('Fetched join request:', join); // Debug: log the join request and any error
       // Fetch unit_number from homeowner_details
       const { data: details, error: detailsError } = await supabase
         .from('homeowner_details')
@@ -98,7 +108,7 @@ const HomeownerSettings = () => {
         email: user.email || '',
         phone: profile?.phone || '',
         unitNumber: details?.unit_number || '',
-        hoaName: join?.hoa_communities?.name || '',
+        hoaName: getCommunityName(join?.hoa_communities),
         memberSince: join?.created_at || '',
         status: join?.status || 'pending',
       });
@@ -110,6 +120,30 @@ const HomeownerSettings = () => {
   useEffect(() => {
     setEditForm(userProfile);
   }, [userProfile]);
+
+  // Fetch notification preferences on mount
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('homeowner_details')
+        .select('email_notifications, sms_notifications, compliance_alerts, document_updates, community_announcements')
+        .eq('user_id', user.id)
+        .single();
+      if (data) {
+        setNotifications({
+          emailNotifications: data.email_notifications,
+          smsNotifications: data.sms_notifications,
+          complianceAlerts: data.compliance_alerts,
+          documentUpdates: data.document_updates,
+          communityAnnouncements: data.community_announcements,
+        });
+      }
+    };
+    fetchPreferences();
+  }, []);
 
   const handleSaveProfile = async () => {
     setIsEditing(false);
@@ -158,11 +192,67 @@ const HomeownerSettings = () => {
     setIsEditing(false);
   };
 
-  const handleNotificationChange = (key: keyof NotificationSettings) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  // Update notification preference handler
+  const handleNotificationChange = async (key: keyof NotificationSettings) => {
+    const newValue = !notifications[key];
+    setNotifications(prev => ({ ...prev, [key]: newValue }));
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) return;
+    const dbKey = {
+      emailNotifications: 'email_notifications',
+      smsNotifications: 'sms_notifications',
+      complianceAlerts: 'compliance_alerts',
+      documentUpdates: 'document_updates',
+      communityAnnouncements: 'community_announcements',
+    }[key];
+    const { error } = await supabase
+      .from('homeowner_details')
+      .update({ [dbKey]: newValue })
+      .eq('user_id', user.id);
+    if (error) {
+      toast({
+        title: 'Update Failed',
+        description: 'Could not update notification preference. Please try again.',
+        variant: 'destructive',
+      });
+      // Revert state on error
+      setNotifications(prev => ({ ...prev, [key]: !newValue }));
+    } else {
+      toast({
+        title: 'Preference Updated',
+        description: 'Your notification preference has been updated.',
+        variant: 'default',
+      });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) {
+      setDeleting(false);
+      toast({ title: 'Error', description: 'User not found.', variant: 'destructive' });
+      return;
+    }
+    try {
+      const res = await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to delete account');
+      await supabase.auth.signOut();
+      toast({ title: 'Account Deleted', description: 'Your account has been deleted.', variant: 'default' });
+      navigate('/');
+    } catch (err: any) {
+      toast({ title: 'Delete Failed', description: err.message || 'Could not delete account.', variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -173,6 +263,18 @@ const HomeownerSettings = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Helper function to get community name
+  function getCommunityName(hoa_communities: any): string {
+    if (!hoa_communities) return '';
+    if (Array.isArray(hoa_communities)) {
+      return hoa_communities[0]?.name || '';
+    }
+    if (typeof hoa_communities === 'object' && 'name' in hoa_communities) {
+      return hoa_communities.name || '';
+    }
+    return '';
+  }
 
   return (
     <div className="space-y-6">
@@ -278,7 +380,9 @@ const HomeownerSettings = () => {
                   <div className="flex items-center gap-2 min-w-0">
                     <MapPin className="h-5 w-5 text-gray-400 flex-shrink-0" />
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-900 truncate break-words min-w-0">{userProfile.hoaName}</p>
+                      <p className="font-medium text-gray-900 truncate break-words min-w-0">
+                        {userProfile.status === 'approved' ? userProfile.hoaName : ''}
+                      </p>
                       <p className="text-xs sm:text-sm text-gray-600">HOA Community</p>
                     </div>
                   </div>
@@ -320,7 +424,11 @@ const HomeownerSettings = () => {
                 variant={notifications.emailNotifications ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('emailNotifications')}
-                className="w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90"
+                className={
+                  notifications.emailNotifications
+                    ? "w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90 text-white"
+                    : "w-full xs:w-auto text-xs px-3 py-2 bg-white border border-gray-300 text-gray-500"
+                }
               >
                 {notifications.emailNotifications ? 'Enabled' : 'Disabled'}
               </Button>
@@ -334,7 +442,11 @@ const HomeownerSettings = () => {
                 variant={notifications.smsNotifications ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('smsNotifications')}
-                className="w-full xs:w-auto text-xs px-3 py-2"
+                className={
+                  notifications.smsNotifications
+                    ? "w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90 text-white"
+                    : "w-full xs:w-auto text-xs px-3 py-2 bg-white border border-gray-300 text-gray-500"
+                }
               >
                 {notifications.smsNotifications ? 'Enabled' : 'Disabled'}
               </Button>
@@ -348,7 +460,11 @@ const HomeownerSettings = () => {
                 variant={notifications.complianceAlerts ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('complianceAlerts')}
-                className="w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90"
+                className={
+                  notifications.complianceAlerts
+                    ? "w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90 text-white"
+                    : "w-full xs:w-auto text-xs px-3 py-2 bg-white border border-gray-300 text-gray-500"
+                }
               >
                 {notifications.complianceAlerts ? 'Enabled' : 'Disabled'}
               </Button>
@@ -362,7 +478,11 @@ const HomeownerSettings = () => {
                 variant={notifications.documentUpdates ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('documentUpdates')}
-                className="w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90"
+                className={
+                  notifications.documentUpdates
+                    ? "w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90 text-white"
+                    : "w-full xs:w-auto text-xs px-3 py-2 bg-white border border-gray-300 text-gray-500"
+                }
               >
                 {notifications.documentUpdates ? 'Enabled' : 'Disabled'}
               </Button>
@@ -376,7 +496,11 @@ const HomeownerSettings = () => {
                 variant={notifications.communityAnnouncements ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleNotificationChange('communityAnnouncements')}
-                className="w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90"
+                className={
+                  notifications.communityAnnouncements
+                    ? "w-full xs:w-auto text-xs px-3 py-2 bg-[#254F70] hover:bg-primary/90 text-white"
+                    : "w-full xs:w-auto text-xs px-3 py-2 bg-white border border-gray-300 text-gray-500"
+                }
               >
                 {notifications.communityAnnouncements ? 'Enabled' : 'Disabled'}
               </Button>
@@ -395,21 +519,37 @@ const HomeownerSettings = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 sm:space-y-3">
-            <Button variant="outline" className="w-full justify-start text-xs px-3 py-2">
+            <Button variant="outline" className="w-full justify-start text-xs px-3 py-2" onClick={() => setShowChangePassword(true)}>
               <Shield className="h-4 w-4 mr-2" />
               Change Password
             </Button>
-            <Button variant="outline" className="w-full justify-start text-xs px-3 py-2">
+            <Button variant="outline" className="w-full justify-start text-xs px-3 py-2" onClick={() => setShowChangeEmail(true)}>
               <Mail className="h-4 w-4 mr-2" />
               Update Email Address
             </Button>
-            <Button variant="outline" className="w-full justify-start text-xs px-3 py-2 text-red-600 border-red-600 hover:bg-red-50">
+            <Button variant="outline" className="w-full justify-start text-xs px-3 py-2 text-red-600 border-red-600 hover:bg-red-50" onClick={() => setShowDeleteDialog(true)}>
               <User className="h-4 w-4 mr-2" />
               Delete Account
             </Button>
           </div>
         </CardContent>
       </Card>
+      <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
+      <ChangeEmailDialog open={showChangeEmail} onOpenChange={setShowChangeEmail} />
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md p-8 rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold mb-2 text-red-600">Delete Account</DialogTitle>
+          </DialogHeader>
+          <p className="text-center mb-6 text-base text-gray-700">Are you sure you want to delete your account? This action cannot be undone.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={deleting} className="w-1/2">Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleting} className="w-1/2">
+              {deleting ? 'Deleting...' : 'Delete Account'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
