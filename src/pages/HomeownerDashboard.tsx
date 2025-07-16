@@ -273,6 +273,60 @@ const HomeownerDashboard = () => {
     }
   ];
 
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [userId, setUserId] = useState("");
+
+  // Fetch unread count for the homeowner
+  const fetchUnread = async (homeownerId: string) => {
+    const { count, error } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('receiver_id', homeownerId)
+      .eq('isread', false);
+    if (!error && typeof count === 'number') {
+      setUnreadMessages(count);
+    }
+  };
+
+  useEffect(() => {
+    // Get user ID and fetch unread count on mount
+    const getUserAndFetch = async () => {
+      let homeownerId = userId;
+      if (!homeownerId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        homeownerId = session?.user?.id;
+        setUserId(homeownerId);
+      }
+      if (homeownerId) {
+        fetchUnread(homeownerId);
+      }
+    };
+    getUserAndFetch();
+  }, [userId]);
+
+  // Real-time subscription for unread badge updates
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel('messages-realtime-badge-homeowner')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${userId}`,
+        },
+        () => {
+          fetchUnread(userId);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen w-full flex bg-gray-50">
@@ -280,7 +334,7 @@ const HomeownerDashboard = () => {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           hoaName={userStatus.isJoinedToHOA ? userStatus.hoaName : "Select HOA"}
-          unreadMessages={userStatus.unreadMessages}
+          unreadMessages={unreadMessages}
           unreadNotices={userStatus.unreadNotices}
         />
         

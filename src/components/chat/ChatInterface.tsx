@@ -15,7 +15,7 @@ interface Message {
   senderName: string;
   senderType: 'homeowner' | 'board' | 'admin';
   timestamp: Date;
-  isRead: boolean;
+  isread: boolean;
 }
 
 interface Conversation {
@@ -41,6 +41,7 @@ interface ChatInterfaceProps {
   selectedConversationId?: string;
   hoaId: string;
   otherParticipantId?: string;
+  availableUsers?: any[]; // <-- Add this line
 }
 
 /**
@@ -58,15 +59,19 @@ const ChatInterface = ({
   onSelectConversation,
   selectedConversationId,
   hoaId,
-  otherParticipantId
+  otherParticipantId,
+  availableUsers = [], // <-- Add this line
 }: ChatInterfaceProps) => {
+  // Debug log to check conversations prop and unreadCount
+  console.log('ChatInterface conversations prop:', conversations);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewChat, setShowNewChat] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [availableUsers, setAvailableUsers] = useState([]);
+  // Remove the internal availableUsers state and fetch
+  // const [availableUsers, setAvailableUsers] = useState([]);
 
   // Mock users for search - in real app this would come from API
   // const availableUsers = [
@@ -89,24 +94,24 @@ const ChatInterface = ({
   );
 
   // Filter available users for new chat
-  useEffect(() => {
-    if (!hoaId || !currentUserId) return;
-    const fetchUsers = async () => {
-      const { data, error } = await supabase
-        .from('hoa_join_requests')
-        .select('user_id, profiles (id, first_name, last_name, role, phone, unit_number)')
-        .eq('hoa_id', hoaId)
-        .eq('status', 'active');
-      if (data) {
-        setAvailableUsers(
-          data
-            .map((m) => m.profiles)
-            .filter((u) => u && u.id !== currentUserId)
-        );
-      }
-    };
-    fetchUsers();
-  }, [hoaId, currentUserId]);
+  // useEffect(() => {
+  //   if (!hoaId || !currentUserId) return;
+  //   const fetchUsers = async () => {
+  //     const { data, error } = await supabase
+  //       .from('hoa_join_requests')
+  //       .select('user_id, profiles (id, first_name, last_name, role, phone, unit_number)')
+  //       .eq('hoa_id', hoaId)
+  //       .eq('status', 'active');
+  //     if (data) {
+  //       setAvailableUsers(
+  //         data
+  //           .map((m) => m.profiles)
+  //           .filter((u) => u && u.id !== currentUserId)
+  //       );
+  //     }
+  //   };
+  //   fetchUsers();
+  // }, [hoaId, currentUserId]);
 
   // Get current conversation
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
@@ -170,7 +175,7 @@ const ChatInterface = ({
               senderName: '', // Optionally fetch/display name
               senderType: '', // Optionally fetch/display type
               timestamp: new Date(msg.created_at),
-              isRead: true // Or handle read status as needed
+              isread: true // Or handle read status as needed
             }]);
           }
         }
@@ -181,8 +186,14 @@ const ChatInterface = ({
     };
   }, [hoaId, currentUserId, otherParticipantId]);
 
+  // Sync local messages state with prop when it changes
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  // Use the availableUsers prop for filteredUsers
   const filteredUsers = availableUsers.filter(user =>
-    (`${user.first_name} ${user.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()))
+    (`${user.name}`.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -235,13 +246,18 @@ const ChatInterface = ({
                 >
                   <Avatar className="h-10 w-10 mr-3">
                     <AvatarFallback className="bg-[#254F70] text-white">
-                      {getUserInitials(`${user.first_name} ${user.last_name}`)}
+                      {getUserInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">{user.first_name} {user.last_name}</div>
+                    <div className="font-medium text-gray-900 truncate flex items-center">
+                      {user.name}
+                      {user.type === 'board' && (
+                        <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">Board</span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-500">
-                      {user.role === 'homeowner' ? (user.unit_number ? `Unit ${user.unit_number}` : '') : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      {user.unit ? `Unit ${user.unit}` : user.type === 'board' ? 'Board Member' : 'Homeowner'}
                     </div>
                   </div>
                 </div>
@@ -273,8 +289,11 @@ const ChatInterface = ({
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between min-w-0 gap-2">
-                        <div className={`font-medium truncate ${isActive ? 'text-white' : 'text-gray-900'} min-w-0`} style={{maxWidth: '50vw'}}>
+                        <div className={`font-medium truncate flex items-center ${isActive ? 'text-white' : 'text-gray-900'} min-w-0`} style={{maxWidth: '50vw'}}>
                           {otherParticipant?.name || 'Unknown User'}
+                          {otherParticipant?.type === 'board' && (
+                            <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">Board</span>
+                          )}
                         </div>
                         {conversation.lastMessage && (
                           <div className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500'} ml-2 flex-shrink-0`}>
@@ -288,7 +307,7 @@ const ChatInterface = ({
                             {conversation.lastMessage.content}
                           </div>
                         )}
-                        {conversation.unreadCount > 0 && !isActive && (
+                        {conversation.unreadCount > 0 && conversation.id !== selectedConversationId && (
                           <Badge variant="destructive" className="ml-2 text-xs flex-shrink-0 w-6 h-6 flex items-center justify-center">
                             {conversation.unreadCount}
                           </Badge>
@@ -350,9 +369,9 @@ const ChatInterface = ({
                       className={`flex ${isOwn ? 'justify-end' : 'justify-start'} min-w-0`}
                     >
                       <div
-                        className={`max-w-[80vw] sm:max-w-xs lg:max-w-md px-3 xs:px-4 py-2 rounded-lg break-words ${
+                        className={`max-w-[80vw] sm:max-w-xs lg:max-w-md px-3 xs:px-4 py-2 rounded-lg break-words shadow-md ${
                           isOwn
-                            ? 'bg-primary text-white'
+                            ? 'bg-blue-500 text-white'
                             : 'bg-gray-100 text-gray-900'
                         }`}
                       >

@@ -43,9 +43,27 @@ const BoardDashboard = () => {
   const [userName, setUserName] = useState("");
   const [myCommunity, setMyCommunity] = useState(null);
   const [docListRefresh, setDocListRefresh] = useState(0);
+  const [communityName, setCommunityName] = useState("Sunrise Valley HOA");
   const [userId, setUserId] = useState("");
   const [joinRequests, setJoinRequests] = useState([]);
   const [residents, setResidents] = useState([]);
+  const [messagesUnread, setMessagesUnread] = useState(0);
+  const [activeMembers, setActiveMembers] = useState(0);
+  const [messagesReceived, setMessagesReceived] = useState(0);
+  const [latestMessage, setLatestMessage] = useState(null);
+  const [unseenMessages, setUnseenMessages] = useState([]);
+
+  // Fetch unread count for the board member
+  const fetchUnread = async (boardId: string) => {
+    const { count, error } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('receiver_id', boardId)
+      .eq('isread', false);
+    if (!error && typeof count === 'number') {
+      setMessagesUnread(count);
+    }
+  };
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -149,6 +167,183 @@ const BoardDashboard = () => {
     fetchAll();
   }, [navigate]);
 
+  useEffect(() => {
+    // Get user ID and fetch unread count on mount
+    const getUserAndFetch = async () => {
+      let boardId = userId;
+      if (!boardId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        boardId = session?.user?.id;
+        setUserId(boardId);
+      }
+      if (boardId) {
+        fetchUnread(boardId);
+      }
+    };
+    getUserAndFetch();
+  }, [userId]);
+
+  useEffect(() => {
+    // Fetch the community name for the current board member
+    const fetchCommunityName = async () => {
+      let boardId = userId;
+      if (!boardId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        boardId = session?.user?.id;
+        setUserId(boardId);
+      }
+      if (!boardId) return;
+      // Get the HOA community for this board member
+      const { data, error } = await supabase
+        .from('hoa_communities')
+        .select('name')
+        .eq('board_member_id', boardId)
+        .single();
+      if (!error && data && data.name) {
+        setCommunityName(data.name);
+      }
+    };
+    fetchCommunityName();
+  }, [userId]);
+
+  useEffect(() => {
+    // Fetch the count of approved members for the current community
+    const fetchActiveMembers = async () => {
+      let boardId = userId;
+      if (!boardId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        boardId = session?.user?.id;
+        setUserId(boardId);
+      }
+      if (!boardId) return;
+      // Get the HOA community for this board member
+      const { data: community, error: communityError } = await supabase
+        .from('hoa_communities')
+        .select('id')
+        .eq('board_member_id', boardId)
+        .single();
+      if (communityError || !community) return;
+      // Count approved members in this community
+      const { count, error } = await supabase
+        .from('hoa_join_requests')
+        .select('id', { count: 'exact', head: true })
+        .eq('hoa_id', community.id)
+        .eq('status', 'approved');
+      if (!error && typeof count === 'number') {
+        setActiveMembers(count);
+      }
+    };
+    fetchActiveMembers();
+  }, [userId]);
+
+  useEffect(() => {
+    // Fetch the count of all messages received by the board member
+    const fetchMessagesReceived = async () => {
+      let boardId = userId;
+      if (!boardId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        boardId = session?.user?.id;
+        setUserId(boardId);
+      }
+      if (!boardId) return;
+      const { count, error } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('receiver_id', boardId);
+      if (!error && typeof count === 'number') {
+        setMessagesReceived(count);
+      }
+    };
+    fetchMessagesReceived();
+  }, [userId]);
+
+  useEffect(() => {
+    // Fetch the latest unseen message received by the board member
+    const fetchLatestMessage = async () => {
+      let boardId = userId;
+      if (!boardId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        boardId = session?.user?.id;
+        setUserId(boardId);
+      }
+      if (!boardId) return;
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id, content, created_at, sender_id, hoa_id, isread')
+        .eq('receiver_id', boardId)
+        .eq('isread', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (!error && data && data.isread === false) {
+        // Optionally fetch sender info (e.g., name, unit)
+        const { data: senderProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', data.sender_id)
+          .single();
+        setLatestMessage({
+          ...data,
+          senderName: senderProfile ? `${senderProfile.first_name} ${senderProfile.last_name}` : 'Homeowner',
+        });
+      } else {
+        setLatestMessage(null);
+      }
+    };
+    fetchLatestMessage();
+  }, [userId, messagesReceived]);
+
+  // Real-time subscription for unseen message notifications
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel('messages-realtime-latest')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${userId}`,
+        },
+        () => {
+          let boardId = userId;
+          if (boardId) {
+            // Always refetch all unseen messages
+            supabase
+              .from('messages')
+              .select('id, content, created_at, sender_id, hoa_id, isread')
+              .eq('receiver_id', boardId)
+              .eq('isread', false)
+              .order('created_at', { ascending: false })
+              .then(async ({ data, error }) => {
+                if (!error && Array.isArray(data)) {
+                  const messagesWithSender = await Promise.all(data.map(async (msg) => {
+                    const { data: senderProfile } = await supabase
+                      .from('profiles')
+                      .select('first_name, last_name')
+                      .eq('id', msg.sender_id)
+                      .single();
+                    return {
+                      ...msg,
+                      senderName: senderProfile ? `${senderProfile.first_name} ${senderProfile.last_name}` : 'Homeowner',
+                    };
+                  }));
+                  setUnseenMessages(messagesWithSender);
+                } else {
+                  setUnseenMessages([]);
+                }
+              });
+            fetchUnread(boardId);
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
   // Sample community statistics
   const communityStats = {
     totalHomes: 156,
@@ -171,6 +366,7 @@ const BoardDashboard = () => {
           onTabChange={setActiveTab}
           communityName="Sunrise Valley HOA"
           pendingRequests={joinRequests.length}
+          messagesUnread={messagesUnread}
         />
         
         <SidebarInset className="flex-1">
@@ -179,7 +375,7 @@ const BoardDashboard = () => {
             <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
               <span className="font-semibold truncate">Board Dashboard</span>
               <Badge variant="outline" className="text-green-600 border-green-600 text-xs sm:text-sm flex-shrink-0">
-                Sunrise Valley HOA
+                {communityName}
               </Badge>
               <button className="ml-4 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80" disabled>
                 HOA - Property Lawyer Market Place
@@ -217,7 +413,7 @@ const BoardDashboard = () => {
                     <Card>
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{communityStats.activeMember}</div>
+                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{activeMembers}</div>
                           <div className="h-6 w-6 sm:h-8 sm:w-8 bg-green-100 rounded-full flex items-center justify-center ml-auto flex-shrink-0">
                             <div className="h-2 w-2 sm:h-3 sm:w-3 bg-green-600 rounded-full"></div>
                           </div>
@@ -241,7 +437,7 @@ const BoardDashboard = () => {
                     <Card>
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{communityStats.messagesThisWeek}</div>
+                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{messagesReceived}</div>
                           <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 ml-auto flex-shrink-0" />
                         </div>
                         <p className="text-xs sm:text-sm text-gray-600 mt-1">Messages This Week</p>
@@ -269,16 +465,19 @@ const BoardDashboard = () => {
                           <span className="text-[11px] sm:text-xs text-gray-500 flex-shrink-0 ml-0 xs:ml-2">2 hours ago</span>
                         </div>
                         {/* Activity: Message from homeowner */}
-                        <div className="flex flex-col xs:flex-row items-start xs:items-center p-2 sm:p-4 bg-green-50 rounded-lg gap-2 xs:gap-4 min-w-0">
+                        {unseenMessages.map((msg) => (
+                        <div key={msg.id} className="flex flex-col xs:flex-row items-start xs:items-center p-2 sm:p-4 bg-green-50 rounded-lg gap-2 xs:gap-4 min-w-0">
                           <div className="bg-green-100 p-2 rounded-lg flex-shrink-0 mb-1 xs:mb-0">
                             <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-900 text-xs sm:text-base break-words truncate">Message from homeowner</p>
-                            <p className="text-xs sm:text-sm text-gray-600 truncate">Question about pet policy - Unit 112B</p>
+                            <p className="text-xs sm:text-sm text-gray-600 truncate">{msg.content}</p>
                           </div>
-                          <span className="text-[11px] sm:text-xs text-gray-500 flex-shrink-0 ml-0 xs:ml-2">5 hours ago</span>
+                          <span className="text-[11px] sm:text-xs text-gray-500 flex-shrink-0 ml-0 xs:ml-2">{new Date(msg.created_at).toLocaleString([], { hour: '2-digit', minute: '2-digit', hour12: true, month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         </div>
+                        ))}
+                       
                       </div>
                     </CardContent>
                   </Card>
@@ -364,7 +563,7 @@ const BoardDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <BoardMessages />
+                    <BoardMessages onUnreadCountChange={setMessagesUnread} />
                   </CardContent>
                 </Card>
               )}

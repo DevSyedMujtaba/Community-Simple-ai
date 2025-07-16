@@ -10,6 +10,7 @@ interface BoardSidebarProps {
   pendingRequests?: number;
   activeTab: string;
   onTabChange: (tabId: string) => void;
+  messagesUnread?: number;
 }
 
 /**
@@ -21,7 +22,8 @@ export function BoardSidebar({
   communityName,
   pendingRequests = 0,
   activeTab,
-  onTabChange
+  onTabChange,
+  messagesUnread = 0
 }: BoardSidebarProps) {
   const {
     state
@@ -56,7 +58,8 @@ export function BoardSidebar({
     id: 'messages',
     label: 'Messages',
     icon: MessageSquare,
-    description: 'Communication with residents'
+    description: 'Communication with residents',
+    badge: messagesUnread > 0 ? messagesUnread : undefined
   }, {
     id: 'notices',
     label: 'Notices',
