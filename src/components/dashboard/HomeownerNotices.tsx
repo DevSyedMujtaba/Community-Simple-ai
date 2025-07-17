@@ -14,6 +14,11 @@ import {
   Filter,
   Search
 } from "lucide-react";
+import React, { useEffect } from "react";
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from "@/lib/supabaseClient";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 interface Notice {
   id: string;
@@ -26,6 +31,13 @@ interface Notice {
   priority: 'low' | 'medium' | 'high' | 'urgent';
   sender: string;
   requiresResponse?: boolean;
+  notice_type?: string;
+  response?: string; // Added response field
+}
+
+interface HomeownerNoticesProps {
+  notices: Notice[];
+  onUnreadCountChange?: (count: number) => void;
 }
 
 /**
@@ -33,58 +45,32 @@ interface Notice {
  * Displays notices sent to homeowners with filtering and status tracking
  * Mobile-responsive design with proper accessibility
  */
-const HomeownerNotices = () => {
+const HomeownerNotices = ({ notices = [], onUnreadCountChange }: HomeownerNoticesProps) => {
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'unread' | 'urgent'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [localNotices, setLocalNotices] = useState(notices);
+  const { toast } = useToast();
+  const [respondingNoticeId, setRespondingNoticeId] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState('');
+  const [submittingResponse, setSubmittingResponse] = useState(false);
+  // Assume userId is available from session
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Sample notices data - in real app this would come from API
-  const [notices] = useState<Notice[]>([
-    {
-      id: '1',
-      title: 'Parking Violation Notice',
-      type: 'violation',
-      content: 'Your vehicle (License: ABC123) has been parked in a visitor space for more than the allowed 24-hour period. Please move your vehicle to avoid towing.',
-      createdDate: '2024-01-15',
-      dueDate: '2024-01-18',
-      status: 'unread',
-      priority: 'high',
-      sender: 'HOA Board',
-      requiresResponse: true
-    },
-    {
-      id: '2',
-      title: 'Pool Maintenance Schedule',
-      type: 'maintenance',
-      content: 'The community pool will be closed for routine maintenance from January 20-22. We apologize for any inconvenience.',
-      createdDate: '2024-01-13',
-      status: 'read',
-      priority: 'medium',
-      sender: 'Property Management'
-    },
-    {
-      id: '3',
-      title: 'HOA Board Meeting Reminder',
-      type: 'community',
-      content: 'Monthly HOA board meeting scheduled for January 25th at 7:00 PM in the community center. All residents are welcome to attend.',
-      createdDate: '2024-01-12',
-      status: 'acknowledged',
-      priority: 'low',
-      sender: 'HOA Secretary'
-    },
-    {
-      id: '4',
-      title: 'Emergency Water Shutoff',
-      type: 'urgent',
-      content: 'Emergency water shutoff scheduled for tomorrow 8 AM - 12 PM due to pipe repair. Please prepare accordingly.',
-      createdDate: '2024-01-14',
-      status: 'read',
-      priority: 'urgent',
-      sender: 'Maintenance Team'
-    }
-  ]);
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUserId(session?.user?.id || null);
+    };
+    getUser();
+  }, []);
+
+  // Sync localNotices with prop changes
+  React.useEffect(() => {
+    setLocalNotices(notices);
+  }, [notices]);
 
   // Filter notices based on selected filter and search term
-  const filteredNotices = notices.filter(notice => {
+  const filteredNotices = localNotices.filter(notice => {
     const matchesFilter = selectedFilter === 'all' || 
       (selectedFilter === 'unread' && notice.status === 'unread') ||
       (selectedFilter === 'urgent' && notice.priority === 'urgent');
@@ -141,24 +127,86 @@ const HomeownerNotices = () => {
     }
   };
 
+  // Update unreadCount to use localNotices
+  const unreadCount = localNotices.filter(n => n.status === 'unread').length;
+
+  // Notify parent of unread count changes
+  useEffect(() => {
+    if (onUnreadCountChange) onUnreadCountChange(unreadCount);
+  }, [unreadCount, onUnreadCountChange]);
+
+  // Update urgentCount to count notices with type or notice_type 'urgent'
+  const urgentCount = localNotices.filter(n => (n.type === 'urgent' || n.notice_type === 'urgent')).length;
+
   // Handle notice actions
-  const handleMarkAsRead = (noticeId: string) => {
-    console.log('Marking notice as read:', noticeId);
-    // In real implementation, this would update via API
+  const handleMarkAsRead = async (noticeId: string) => {
+    const { error } = await supabase
+      .from('notices')
+      .update({ status: 'read' })
+      .eq('id', noticeId);
+    if (error) {
+      toast({ title: 'Failed to mark as read', description: 'Could not update notice status.', variant: 'destructive' });
+      return;
+    }
+    setLocalNotices(prev => {
+      const updated = prev.map(n => n.id === noticeId ? { ...n, status: 'read' } : n);
+      if (onUnreadCountChange) onUnreadCountChange(updated.filter(n => n.status === 'unread').length);
+      return updated;
+    });
   };
 
-  const handleAcknowledge = (noticeId: string) => {
-    console.log('Acknowledging notice:', noticeId);
-    // In real implementation, this would update via API
+  const handleAcknowledge = async (noticeId: string) => {
+    // Update in DB first
+    const { error } = await supabase
+      .from('notices')
+      .update({ status: 'acknowledged' })
+      .eq('id', noticeId);
+    if (error) {
+      toast({
+        title: 'Failed to acknowledge',
+        description: 'Could not update notice status in the database.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    setLocalNotices(prev => {
+      const updated = prev.map(n => n.id === noticeId ? { ...n, status: 'acknowledged' } : n);
+      if (onUnreadCountChange) onUnreadCountChange(updated.filter(n => n.status === 'unread').length);
+      return updated;
+    });
   };
 
   const handleRespond = (noticeId: string) => {
-    console.log('Responding to notice:', noticeId);
-    // In real implementation, this would open a response dialog
+    setRespondingNoticeId(noticeId);
+    setResponseText('');
   };
 
-  const unreadCount = notices.filter(n => n.status === 'unread').length;
-  const urgentCount = notices.filter(n => n.priority === 'urgent').length;
+  const handleSubmitResponse = async () => {
+    if (!respondingNoticeId) return;
+    setSubmittingResponse(true);
+    // Update the notice with the response and status
+    const { error } = await supabase
+      .from('notices')
+      .update({
+        response: responseText,
+        status: 'responded'
+      })
+      .eq('id', respondingNoticeId);
+    if (error) {
+      toast({ title: 'Failed to send response', description: 'Could not save your response.', variant: 'destructive' });
+      setSubmittingResponse(false);
+      return;
+    }
+    setLocalNotices(prev => {
+      const updated = prev.map(n => n.id === respondingNoticeId ? { ...n, status: 'responded', response: responseText } : n);
+      if (onUnreadCountChange) onUnreadCountChange(updated.filter(n => n.status === 'unread').length);
+      return updated;
+    });
+    toast({ title: 'Response sent', description: 'Your response has been sent.', variant: 'success' });
+    setSubmittingResponse(false);
+    setRespondingNoticeId(null);
+    setResponseText('');
+  };
 
   return (
     <div className="space-y-6">
@@ -285,9 +333,9 @@ const HomeownerNotices = () => {
                               <Badge variant="outline" className="text-xs">
                                 {typeConfig.label}
                               </Badge>
-                              {notice.priority === 'urgent' && (
+                              {(notice.type === 'urgent' || notice.notice_type === 'urgent') && (
                                 <Badge variant="destructive" className="text-xs">
-                                  <PriorityIcon className="h-3 w-3 mr-1" />
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
                                   Urgent
                                 </Badge>
                               )}
@@ -311,12 +359,19 @@ const HomeownerNotices = () => {
                           <p className="text-xs sm:text-sm text-gray-700 mb-4 break-words">
                             {notice.content}
                           </p>
+                          {notice.response && (
+                            <div className="mt-2 text-xs text-gray-600">
+                              <strong>Your response:</strong> {notice.response}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
                     {/* Action buttons */}
                     <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
-                      {notice.status === 'unread' && (
+                      {notice.status !== 'responded' && (
+                        notice.dueDate ? (
+                          <>
                         <Button
                           variant="outline"
                           size="sm"
@@ -326,8 +381,17 @@ const HomeownerNotices = () => {
                           <Eye className="h-3 w-3 mr-1" />
                           Mark Read
                         </Button>
-                      )}
-                      {notice.status === 'read' && !notice.requiresResponse && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleRespond(notice.id)}
+                              className="bg-[#254F70] hover:bg-primary/90 text-xs min-w-[80px]"
+                            >
+                              <FileText className="h-3 w-3 mr-1" />
+                              Respond
+                            </Button>
+                          </>
+                        ) : (
+                          notice.status !== 'acknowledged' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -337,16 +401,8 @@ const HomeownerNotices = () => {
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Acknowledge
                         </Button>
-                      )}
-                      {notice.requiresResponse && notice.status !== 'responded' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleRespond(notice.id)}
-                          className="bg-[#254F70] hover:bg-primary/90 text-xs min-w-[80px]"
-                        >
-                          <FileText className="h-3 w-3 mr-1" />
-                          Respond
-                        </Button>
+                          )
+                        )
                       )}
                     </div>
                   </div>
@@ -356,6 +412,26 @@ const HomeownerNotices = () => {
           })
         )}
       </div>
+      <Dialog open={!!respondingNoticeId} onOpenChange={open => { if (!open) setRespondingNoticeId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Respond to Notice</DialogTitle>
+          </DialogHeader>
+          <Input
+            as="textarea"
+            value={responseText}
+            onChange={e => setResponseText(e.target.value)}
+            placeholder="Enter your response..."
+            className="w-full min-h-[100px]"
+            disabled={submittingResponse}
+          />
+          <DialogFooter>
+            <Button onClick={handleSubmitResponse} disabled={submittingResponse || !responseText.trim()}>
+              {submittingResponse ? 'Sending...' : 'Send Response'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

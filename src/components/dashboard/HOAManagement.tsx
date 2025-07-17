@@ -30,6 +30,21 @@ interface HOA {
   contactPhone: string;
   members: HOAMember[];
 }
+interface JoinRequest {
+  id: string;
+  status: string;
+  created_at: string;
+  user_id: string;
+  board_member_id: string | null;
+}
+interface HOAUser {
+  id: string;
+  email: string;
+  name: string;
+}
+interface HOAUsersResponse {
+  users: HOAUser[];
+}
 
 /**
  * HOA Management Component for Admin Dashboard
@@ -62,6 +77,9 @@ const HOAManagement = () => {
   const [uploadSuccess, setUploadSuccess] = useState("");
   const fileInputRef = useRef(null);
   const [userId, setUserId] = useState("");
+  const [activeMembers, setActiveMembers] = useState(0);
+  const [pendingMembers, setPendingMembers] = useState(0);
+  const [members, setMembers] = useState<HOAMember[]>([]);
 
   useEffect(() => {
     // Get the current session on mount
@@ -113,6 +131,78 @@ const HOAManagement = () => {
     };
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    const fetchMemberCounts = async () => {
+      if (!myCommunity?.id) {
+        setActiveMembers(0);
+        setPendingMembers(0);
+        return;
+      }
+      const { data: joinRequests, error } = await supabase
+        .from('hoa_join_requests')
+        .select('status')
+        .eq('hoa_id', myCommunity.id);
+      if (error || !joinRequests) {
+        setActiveMembers(0);
+        setPendingMembers(0);
+        return;
+      }
+      setActiveMembers(joinRequests.filter(jr => jr.status === 'approved').length);
+      setPendingMembers(joinRequests.filter(jr => jr.status === 'pending').length);
+    };
+    fetchMemberCounts();
+  }, [myCommunity]);
+
+  // Fetch members for this HOA
+  useEffect(() => {
+    const fetchMembers = async () => {
+      if (!myCommunity?.id) {
+        setMembers([]);
+        return;
+      }
+      const { data: joinRequests, error } = await supabase
+        .from('hoa_join_requests')
+        .select('id, status, created_at, user_id, board_member_id')
+        .eq('hoa_id', myCommunity.id);
+      console.log('joinRequests:', joinRequests, 'error:', error, 'hoa_id:', myCommunity.id);
+      if (error || !joinRequests) {
+        setMembers([]);
+        return;
+      }
+      // Get all user_ids
+      const userIds = (joinRequests as JoinRequest[]).map((jr) => jr.user_id);
+      // Fetch emails and names from edge function
+      let usersData: HOAUsersResponse = { users: [] };
+      try {
+        const res = await fetch(
+          `https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/get-hoa-users?user_ids=${userIds.join(',')}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          }
+        );
+        usersData = await res.json();
+      } catch (e) {
+        console.error('Error fetching emails from edge function:', e);
+      }
+      // Map joinRequests to members with email and name
+      const mappedMembers: HOAMember[] = (joinRequests as JoinRequest[]).map((m) => {
+        const user: HOAUser | undefined = usersData.users.find((u) => String(u.id) === String(m.user_id));
+        return {
+          id: m.user_id,
+          name: user?.name || '',
+          email: user?.email || '',
+          role: (m.board_member_id === m.user_id ? 'board' : 'homeowner') as 'board' | 'homeowner',
+          joinDate: m.created_at,
+          status: m.status === 'approved' ? 'active' : (m.status as 'active' | 'pending' | 'inactive'),
+        };
+      });
+      setMembers(mappedMembers);
+    };
+    fetchMembers();
+  }, [myCommunity, accessToken]);
 
   const handleCommunityInput = (e) => {
     const { name, value } = e.target;
@@ -181,11 +271,11 @@ const HOAManagement = () => {
         totalUnits: myCommunity.units,
         createdDate: myCommunity.created_at,
         boardMembers: 1,
-        activeMembers: 0,
-        pendingRequests: 0,
+        activeMembers: activeMembers,
+        pendingRequests: pendingMembers,
         contactEmail: myCommunity.contact_email,
         contactPhone: myCommunity.contact_phone,
-        members: [],
+        members: members,
       }];
     }
   }
@@ -194,8 +284,8 @@ const HOAManagement = () => {
   const stats = {
     totalHOAs: myCommunity ? 1 : 0,
     totalUnits: myCommunity ? Number(myCommunity.units) : 0,
-    totalMembers: 0, // Placeholder, update if you fetch members
-    pendingRequests: 0 // Placeholder, update if you fetch requests
+    totalMembers: activeMembers, // Use real active member count
+    pendingRequests: pendingMembers // Use real pending member count
   };
 
   // Get status color for members
@@ -330,7 +420,7 @@ const HOAManagement = () => {
 
         <div className="flex items-center space-x-2">
           <Filter className="h-4 w-4 text-gray-600" />
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary">
+          <select value={statusFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary">
             <option value="all">All HOAs</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>

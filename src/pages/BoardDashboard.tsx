@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,7 +126,7 @@ const BoardDashboard = () => {
           users = Array.isArray(data.users) ? data.users : [];
         } else {
           let errorData = {};
-          try { errorData = await res.json(); } catch {}
+          try { errorData = await res.json(); } catch { /* empty */ }
           console.error("Edge Function error:", errorData);
           users = [];
         }
@@ -307,7 +308,7 @@ const BoardDashboard = () => {
           filter: `receiver_id=eq.${userId}`,
         },
         () => {
-          let boardId = userId;
+          const boardId = userId;
           if (boardId) {
             // Always refetch all unseen messages
             supabase

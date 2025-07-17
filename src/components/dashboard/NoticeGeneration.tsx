@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface Notice {
   id: string;
@@ -24,11 +26,14 @@ interface Notice {
   unit?: string;
   createdDate?: string;
   created_at?: string;
-  status: 'draft' | 'sent';
+  status: 'draft' | 'sent' | 'responded' | 'acknowledged';
   content: string;
   recipient_type?: string;
   recipient_unit?: string;
   recipient_user_id?: string;
+  response?: string; // Added for homeowner response
+  due_date?: string;
+  recipient_name?: string;
 }
 
 interface NoticeGenerationProps {
@@ -50,12 +55,14 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
     type: 'community' as string,
     recipient: 'all' as string,
     unit: '',
-    content: ''
+    content: '',
+    dueDate: ''
   });
   const { toast } = useToast();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
+  const [viewingNotice, setViewingNotice] = useState<Notice | null>(null);
 
   useEffect(() => {
     console.log('useEffect triggered, hoaId:', hoaId);
@@ -75,9 +82,24 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
       console.log('Supabase fetch result:', { data, error }); // Debug log for Supabase fetch
       if (data) {
         // Map notice_type to type for compatibility with UI
+        // 1. Collect all unique recipient_user_id values
+        const userIds = Array.from(new Set(data.map(n => n.recipient_user_id).filter(Boolean)));
+        const userProfiles = {};
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', userIds);
+          if (profilesData) {
+            profilesData.forEach(profile => {
+              userProfiles[profile.id] = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+            });
+          }
+        }
         const mapped = data.map(n => ({
           ...n,
-          type: n.notice_type // add this line
+          type: n.notice_type,
+          recipient_name: n.recipient_user_id ? (userProfiles[n.recipient_user_id] || n.recipient_user_id) : '',
         }));
         console.debug('Fetched notices (mapped):', mapped);
         setNotices(mapped);
@@ -96,6 +118,17 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
     { value: 'community', label: 'Community Update', color: 'text-blue-600', icon: Users },
     { value: 'urgent', label: 'Urgent Notice', color: 'text-purple-600', icon: AlertTriangle }
   ];
+
+  // Add a function to get status badge color
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'sent': return 'bg-blue-100 text-blue-800';
+      case 'responded': return 'bg-purple-100 text-purple-800';
+      case 'acknowledged': return 'bg-green-100 text-green-800';
+      case 'draft': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -117,7 +150,8 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
       type: notice.type,
       recipient: notice.recipient_type === 'community' ? 'all' : (notice.recipient_type === 'unit' ? 'unit' : 'specific'),
       unit: notice.recipient_unit || '',
-      content: notice.content
+      content: notice.content,
+      dueDate: notice.due_date || '' // Add dueDate to prefill
     });
     setEditingNotice(notice);
     setActiveTab('create');
@@ -148,9 +182,50 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
     } else if (noticeForm.recipient === 'unit') {
       recipient_type = 'unit';
       recipient_unit = noticeForm.unit;
+      // Lookup user by unit number in homeowner_details
+      const { data: detail, error } = await supabase
+        .from('homeowner_details')
+        .select('user_id')
+        .eq('unit_number', noticeForm.unit)
+        .single();
+      if (error || !detail) {
+        toast({
+          title: 'Unit Not Found',
+          description: 'No resident with this unit number exists. Please check the unit number and try again.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      recipient_user_id = detail.user_id;
     } else if (noticeForm.recipient === 'specific') {
       recipient_type = 'homeowner';
-      recipient_user_id = noticeForm.unit; // Should be UUID in real app
+      // Lookup user by first_name and last_name (noticeForm.unit is assumed to be the resident name)
+      const nameParts = noticeForm.unit.trim().split(/\s+/);
+      if (nameParts.length < 2) {
+        toast({
+          title: 'Invalid Name Format',
+          description: 'Please enter the resident\'s full name (first and last).',
+          variant: 'destructive'
+        });
+        return;
+      }
+      const [first_name, ...lastParts] = nameParts;
+      const last_name = lastParts.join(' ');
+      const { data: user, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('first_name', first_name)
+        .ilike('last_name', last_name)
+        .single();
+      if (error || !user) {
+        toast({
+          title: 'Resident Not Found',
+          description: 'No resident with this first and last name exists. Please check the name and try again.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      recipient_user_id = user.id;
     }
     const payload = {
       hoa_id: hoaId,
@@ -161,7 +236,8 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
       recipient_user_id,
       recipient_unit,
       created_by: userId,
-      status
+      status,
+      ...(noticeForm.dueDate ? { due_date: noticeForm.dueDate } : {})
     };
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -244,7 +320,8 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
           type: 'community',
           recipient: 'all',
           unit: '',
-          content: ''
+          content: '',
+          dueDate: ''
         });
         setEditingNotice(null);
         setActiveTab('notices');
@@ -334,8 +411,8 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
           <div>Loading notices...</div>
         ) : (
           <div className="space-y-3">
-            {/* Active notices first */}
-            {notices.filter(n => n.status === 'sent').map((notice) => {
+            {/* Show all notices, not just sent */}
+            {notices.map((notice) => {
               const IconComponent = getTypeIcon(notice.type);
               const typeLabel = (noticeTypes.find(t => t.value === notice.type)?.label || notice.type);
               const dateStr = notice.created_at
@@ -353,10 +430,8 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
                           <div className="flex flex-col gap-2 mb-1 min-w-0">
                             <h4 className="text-base xs:text-lg font-semibold text-gray-900 break-words min-w-0">{notice.title}</h4>
                             <div className="flex flex-wrap gap-2">
-                              <Badge className={getStatusColor(notice.status) + ' text-xs'} variant="secondary">
-                                {notice.status}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">{typeLabel}</Badge>
+                              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(notice.status)}`}>{notice.status}</span>
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold border border-gray-300">{typeLabel}</span>
                             </div>
                           </div>
                           <div className="grid grid-cols-1 gap-2 text-xs xs:text-sm text-gray-600 mb-2 min-w-0">
@@ -368,7 +443,7 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
                             )}
                             {notice.recipient_type === 'homeowner' && notice.recipient_user_id && (
                               <div className="flex items-center min-w-0">
-                                <span className="font-medium break-words min-w-0">User ID: {notice.recipient_user_id}</span>
+                                <span className="font-medium break-words min-w-0">Resident: {notice.recipient_name}</span>
                               </div>
                             )}
                             <div className="flex items-center min-w-0">
@@ -382,10 +457,12 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 w-full mt-2">
-                        <Button variant="outline" size="sm" className="w-full">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
+                        {notice.status === 'responded' && (
+                          <Button variant="outline" size="sm" onClick={() => setViewingNotice(notice)} className="text-xs min-w-[80px]">
+                            <Eye className="h-3 w-3 mr-1" />
+                            View Response
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -464,7 +541,7 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) => handleCreateNotice(e, editingNotice ? editingNotice.status : 'draft')} className="space-y-6">
+          <form onSubmit={e => handleCreateNotice(e,editingNotice ? editingNotice.status === 'sent'? 'sent' : 'draft': 'draft')} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -533,6 +610,18 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
                 )}
               </div>
               
+              {(noticeForm.recipient === 'specific' || noticeForm.recipient === 'unit') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                  <input
+                    type="date"
+                    value={noticeForm.dueDate}
+                    onChange={e => setNoticeForm(f => ({ ...f, dueDate: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Notice Content *
@@ -568,6 +657,19 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
           </CardContent>
         </Card>
       )}
+      <Dialog open={!!viewingNotice} onOpenChange={open => { if (!open) setViewingNotice(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Homeowner Response</DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-gray-700 whitespace-pre-line min-h-[60px]">
+            {viewingNotice?.response || 'No response.'}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setViewingNotice(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

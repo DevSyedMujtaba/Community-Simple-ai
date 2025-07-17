@@ -76,7 +76,7 @@ export function HomeownerSidebar({
       label: 'Notices', 
       icon: Bell, 
       description: 'View notices from your HOA board',
-      badge: unreadNotices > 0 ? unreadNotices : undefined
+      badge: unreadNotices && unreadNotices > 0 ? unreadNotices : undefined
     },
     { 
       id: 'chat', 

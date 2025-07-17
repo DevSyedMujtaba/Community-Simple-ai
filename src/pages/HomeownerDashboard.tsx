@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
@@ -81,7 +82,7 @@ const HomeownerDashboard = () => {
   useEffect(() => {
     setCommunitiesLoading(true);
     setCommunitiesError(null);
-    let query = supabase.from('hoa_communities');
+    const query = supabase.from('hoa_communities');
     let supaQuery = query.select('id, name, city, state, description, units, board_member_id');
     if (selectedState) {
       supaQuery = supaQuery.eq('state', selectedState);
@@ -275,6 +276,9 @@ const HomeownerDashboard = () => {
 
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [userId, setUserId] = useState("");
+  const [notices, setNotices] = useState([]);
+  const [noticesLoading, setNoticesLoading] = useState(false);
+  const [unreadNotices, setUnreadNotices] = useState(0);
 
   // Fetch unread count for the homeowner
   const fetchUnread = async (homeownerId: string) => {
@@ -327,6 +331,151 @@ const HomeownerDashboard = () => {
     };
   }, [userId]);
 
+  // Fetch notices and set unread count
+  useEffect(() => {
+    const fetchNotices = async () => {
+      setNoticesLoading(true);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      if (!user) {
+        setNotices([]);
+        setUnreadNotices(0);
+        setNoticesLoading(false);
+        return;
+      }
+      // Fetch user's unit number from homeowner_details
+      const { data: details } = await supabase
+        .from('homeowner_details')
+        .select('unit_number')
+        .eq('user_id', user.id)
+        .single();
+      const userUnit = details?.unit_number || '';
+      // Fetch notices for this user
+      const { data, error } = await supabase
+        .from('notices')
+        .select('*')
+        .or(`recipient_type.eq.community,recipient_user_id.eq.${user.id},recipient_unit.eq.${userUnit}`)
+        .in('status', ['sent', 'acknowledged', 'responded', 'read'])
+        .order('created_at', { ascending: false });
+      if (!error && data) {
+        // Map notice_type to type for UI compatibility
+        // 1. Collect all unique created_by user IDs
+        const boardIds = Array.from(new Set(data.map(n => n.created_by).filter(Boolean)));
+        const boardProfiles = {};
+        if (boardIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', boardIds);
+          if (profilesData) {
+            profilesData.forEach(profile => {
+              boardProfiles[profile.id] = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'HOA Board';
+            });
+          }
+        }
+        // 2. Map notices with sender, type, createdDate, status, requiresResponse
+        const mapped = data.map(n => ({
+          ...n,
+          type: n.notice_type || 'notice',
+          createdDate: n.created_at, // for UI compatibility
+          dueDate: n.due_date || '', // map due_date from DB to dueDate for UI
+          sender: boardProfiles[n.created_by] || 'HOA Board',
+          status: ['unread', 'read', 'acknowledged', 'responded'].includes(n.status) ? n.status : 'unread',
+          requiresResponse: typeof n.requiresResponse === 'boolean' ? n.requiresResponse : false
+        }));
+        setNotices(mapped);
+        setUnreadNotices(mapped.filter(n => n.status === 'unread').length);
+      } else {
+        setUnreadNotices(0);
+      }
+      setNoticesLoading(false);
+    };
+    fetchNotices();
+  }, []);
+
+  // Real-time subscription for unread badge updates
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel('notices-realtime-badge-homeowner')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notices',
+          // No filter: listen for all changes
+        },
+        () => {
+          // Re-fetch notices and update unread count
+          (async () => {
+            setNoticesLoading(true);
+            const { data: sessionData } = await supabase.auth.getSession();
+            const user = sessionData.session?.user;
+            if (!user) {
+              setNotices([]);
+              setUnreadNotices(0);
+              setNoticesLoading(false);
+              return;
+            }
+            const { data: details } = await supabase
+              .from('homeowner_details')
+              .select('unit_number')
+              .eq('user_id', user.id)
+              .single();
+            const userUnit = details?.unit_number || '';
+            const { data, error } = await supabase
+              .from('notices')
+              .select('*')
+              .or(`recipient_type.eq.community,recipient_user_id.eq.${user.id},recipient_unit.eq.${userUnit}`)
+              .in('status', ['sent', 'acknowledged', 'responded', 'read'])
+              .order('created_at', { ascending: false });
+            if (!error && data) {
+              const boardIds = Array.from(new Set(data.map(n => n.created_by).filter(Boolean)));
+              const boardProfiles = {};
+              if (boardIds.length > 0) {
+                const { data: profilesData } = await supabase
+                  .from('profiles')
+                  .select('id, first_name, last_name')
+                  .in('id', boardIds);
+                if (profilesData) {
+                  profilesData.forEach(profile => {
+                    boardProfiles[profile.id] = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'HOA Board';
+                  });
+                }
+              }
+              const mapped = data.map(n => ({
+                ...n,
+                type: n.notice_type || 'notice',
+                createdDate: n.created_at, // for UI compatibility
+                dueDate: n.due_date || '', // map due_date from DB to dueDate for UI
+                sender: boardProfiles[n.created_by] || 'HOA Board',
+                status: ['unread', 'read', 'acknowledged', 'responded'].includes(n.status) ? n.status : 'unread',
+                requiresResponse: typeof n.requiresResponse === 'boolean' ? n.requiresResponse : false
+              }));
+              setNotices(mapped);
+              setUnreadNotices(mapped.filter(n => n.status === 'unread').length);
+            } else {
+              setUnreadNotices(0);
+            }
+            setNoticesLoading(false);
+          })();
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
+  // When marking as read/acknowledged/responded, update unreadNotices immediately
+  // Example for handleAcknowledge (similar for Mark Read):
+  // setLocalNotices(prev => {
+  //   const updated = prev.map(n => n.id === noticeId ? { ...n, status: 'acknowledged' } : n);
+  //   setUnreadNotices(updated.filter(n => n.status === 'unread').length);
+  //   return updated;
+  // });
+
   return (
     <SidebarProvider>
       <div className="min-h-screen w-full flex bg-gray-50">
@@ -335,7 +484,7 @@ const HomeownerDashboard = () => {
           onTabChange={setActiveTab}
           hoaName={userStatus.isJoinedToHOA ? userStatus.hoaName : "Select HOA"}
           unreadMessages={unreadMessages}
-          unreadNotices={userStatus.unreadNotices}
+          unreadNotices={unreadNotices}
         />
         
         <SidebarInset className="flex-1">
@@ -544,7 +693,7 @@ const HomeownerDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <HomeownerNotices />
+                    <HomeownerNotices notices={notices} onUnreadCountChange={setUnreadNotices} />
                   </CardContent>
                 </Card>
               )}

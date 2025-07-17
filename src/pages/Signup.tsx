@@ -9,6 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Building2, Home } from "lucide-react";
 import logo2 from '../../public/logo2.png';
 import { supabase } from '../lib/supabaseClient';
+import { useToast } from "@/components/ui/use-toast";
+import { log } from "console";
+
 
 /**
  * Signup Page Component
@@ -29,6 +32,17 @@ const Signup = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  const { toast } = useToast();
+  const handleGoogleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Coming Soon",
+      description: "Google sign-in is in development.",
+      variant: "default",
+      duration: 2000,
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +81,7 @@ const Signup = () => {
         await new Promise(res => setTimeout(res, 200));
       }
       if (sessionUserId) userId = sessionUserId;
-    } catch (e) {}
+    } catch (e) {console.log(e);}
     // Now insert profile with the correct user id
     const { error: profileError } = await supabase
       .from('profiles')
@@ -398,6 +412,7 @@ const Signup = () => {
                 <Button 
                   variant="outline" 
                   className="w-full h-11 sm:h-12 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium text-sm sm:text-base"
+                  onClick={handleGoogleClick}
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
