@@ -743,7 +743,7 @@ const HomeownerDashboard = () => {
                       </CardTitle>
                       <CardDescription className="text-sm sm:text-base">
                         View and download official HOA documents, policies, and community guidelines 
-                        uploaded by your board members.
+                        uploaded by your board member.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">

@@ -156,7 +156,7 @@ const Index = () => {
       />
 
     {/* Image (on top of all shapes) */}
-    <div className="relative z-10 w-full h-full">
+    <div className="relative w-full h-full">
       <img
         src={img1}
         alt="Happy couple in front of house"
@@ -337,7 +337,7 @@ const Index = () => {
       />
 
     {/* Image (on top of all shapes) */}
-    <div className="relative z-10 w-full h-full">
+    <div className="relative w-full h-full">
       <img
         src={img1}
         alt="Happy couple in front of house"
@@ -378,7 +378,7 @@ const Index = () => {
       />
 
     {/* Image (on top of all shapes) */}
-    <div className="relative z-10 w-full h-full">
+    <div className="relative w-full h-full">
       <img
         src={img1}
         alt="Happy couple in front of house"

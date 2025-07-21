@@ -164,8 +164,8 @@ const HOADocumentsList = ({ hoaName = "Your HOA", hoaId }: HOADocumentsListProps
       </div>
 
       {/* File upload UI for board members */}
-      <div className="mb-6">
-        {/* In the drag-and-drop/click-to-browse area, wire up the file input */}
+      {/* <div className="mb-6">
+       
         <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-pointer"
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
           style={{ position: 'relative' }}
@@ -188,7 +188,7 @@ const HOADocumentsList = ({ hoaName = "Your HOA", hoaId }: HOADocumentsListProps
             {uploadSuccess && <div className="text-green-600 text-sm mt-2">{uploadSuccess}</div>}
           </div>
         </div>
-        {/* Selected file preview and upload button */}
+        
         {selectedFile && (
           <div className="w-full max-w-xl mx-auto bg-white rounded-lg shadow p-4 mt-4">
             <div className="flex items-center justify-between mb-2">
@@ -209,7 +209,7 @@ const HOADocumentsList = ({ hoaName = "Your HOA", hoaId }: HOADocumentsListProps
             </Button>
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Document Categories */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
