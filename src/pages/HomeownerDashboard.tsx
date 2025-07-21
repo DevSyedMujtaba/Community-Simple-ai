@@ -54,9 +54,27 @@ const HomeownerDashboard = () => {
   const { toast } = useToast();
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [joinDialogMessage, setJoinDialogMessage] = useState("");
+  const [documentCount, setDocumentCount] = useState(0);
 
   // Add state for approved membership
   const [approvedMembership, setApprovedMembership] = useState<any | null>(null);
+
+  // Fetch document count when membership is approved
+  useEffect(() => {
+    if (approvedMembership?.hoa_id) {
+      const fetchDocCount = async () => {
+        const { count, error } = await supabase
+          .from('hoa_documents')
+          .select('id', { count: 'exact', head: true })
+          .eq('hoa_id', approvedMembership.hoa_id);
+        
+        if (!error && count !== null) {
+          setDocumentCount(count);
+        }
+      };
+      fetchDocCount();
+    }
+  }, [approvedMembership]);
 
   // Fetch user profile
   useEffect(() => {
@@ -94,13 +112,31 @@ const HomeownerDashboard = () => {
       supaQuery = supaQuery.ilike('name', `%${searchTerm}%`);
     }
     supaQuery
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (error) {
           setCommunitiesError('Failed to load communities.');
           setHoaCommunities([]);
+          setCommunitiesLoading(false);
+          return;
+        } 
+        
+        if (data && data.length > 0) {
+          const communityIds = data.map(c => c.id);
+          const { data: requests, error: requestsError } = await supabase
+            .from('hoa_join_requests')
+            .select('hoa_id, status')
+            .in('hoa_id', communityIds)
+            .eq('status', 'approved');
+
+          const communitiesWithCounts = data.map(community => {
+            const memberCount = requestsError ? 0 : requests.filter(r => r.hoa_id === community.id).length;
+            return { ...community, memberCount };
+          });
+          setHoaCommunities(communitiesWithCounts);
         } else {
-          setHoaCommunities(data || []);
+          setHoaCommunities([]);
         }
+
         setCommunitiesLoading(false);
       });
   }, [selectedState, selectedCity, searchTerm]);
@@ -601,7 +637,7 @@ const HomeownerDashboard = () => {
                                 {comm.name}
                                 <span className="ml-2 px-2 py-0.5 rounded-full border border-primary text-primary text-xs flex items-center gap-1">
                                   <User className="w-3 h-3" />
-                                  {comm.units || 0} members
+                                  {comm.memberCount || 0} members
                                 </span>
                               </div>
                               <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
@@ -712,7 +748,24 @@ const HomeownerDashboard = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <ChatInterface documents={hoaDocuments} />
+                      {documentCount > 0 && (
+                        <Card className="border-green-200 bg-green-50 mb-4">
+                          <CardContent className="p-4">
+                            <div className="flex items-center space-x-3">
+                              <MessageSquare className="h-5 w-5 text-green-600" />
+                              <div>
+                                <p className="font-medium text-green-900">
+                                  {documentCount} document{documentCount > 1 ? 's' : ''} loaded
+                                </p>
+                                <p className="text-sm text-green-700">
+                                  AI is ready to answer questions about your HOA documents.
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                      <ChatInterface documents={hoaDocuments} hoaId={approvedMembership?.hoa_id} />
                     </CardContent>
                   </Card>
 
@@ -747,13 +800,17 @@ const HomeownerDashboard = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <HOADocumentsList hoaName={userStatus.hoaName} />
+                      <HOADocumentsList 
+                        hoaName={approvedMembership?.hoa_communities?.name} 
+                        onNavigateToChat={() => setActiveTab('chat')}
+                        hoaId={approvedMembership?.hoa_id}
+                      />
                     </CardContent>
                   </Card>
                 </div>
               )}
 
-              {activeTab === 'alerts' && (
+              {/* {activeTab === 'alerts' && (
                 <div className="space-y-4 sm:space-y-6">
                   <Card>
                     <CardHeader className="pb-3 sm:pb-4">
@@ -771,7 +828,7 @@ const HomeownerDashboard = () => {
                     </CardContent>
                   </Card>
                 </div>
-              )}
+              )} */}
 
               {activeTab === 'settings' && (
                 <div className="space-y-4 sm:space-y-6">

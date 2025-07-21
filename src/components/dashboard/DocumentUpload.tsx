@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Upload, FileText, X, CheckCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
+import { extractTextFromPDF } from "@/lib/pdfExtract";
 
 interface DocumentUploadProps {
   onDocumentUploaded: (document: any) => void;
@@ -76,7 +77,6 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
 
   // Upload and process a file
   const processFile = async (file: File) => {
-    // Robust checks for hoaId, userId, and file
     if (!file) {
       toast({
         title: "No file selected",
@@ -101,7 +101,18 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
       });
       return;
     }
-    console.log("Uploading file with hoaId:", hoaId, "userId:", userId, "file:", file);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to upload documents.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const accessToken = session.access_token;
+
     const fileId = `${file.name}-${Date.now()}`;
     setUploadingFiles(prev => [...prev, fileId]);
     try {
@@ -115,29 +126,38 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
       // 2. Get public URL
       const { data: urlData } = supabase.storage.from('hoa-documents').getPublicUrl(filePath);
 
-      // 3. Insert metadata into DB
-      const { error: dbError } = await supabase.from('hoa_documents').insert([{
-        hoa_id: hoaId,
-        uploader_id: userId,
-        file_name: file.name,
-        file_url: urlData.publicUrl,
-        size_bytes: file.size,
-        mime_type: file.type,
-        status: 'processing'
-      }]);
-      if (dbError) throw dbError;
+      // 3. Insert metadata into DB and get the inserted row (to get the document id)
+      const { data: inserted, error: dbError } = await supabase.from('hoa_documents').insert([
+        {
+          hoa_id: hoaId,
+          uploader_id: userId,
+          file_name: file.name,
+          file_url: urlData.publicUrl,
+          size_bytes: file.size,
+          mime_type: file.type,
+          status: 'processing'
+        }
+      ]).select().single();
+      if (dbError || !inserted) throw dbError || new Error("Failed to insert document record");
 
-      // 4. Notify parent and show toast
-      onDocumentUploaded({
-        id: fileId,
-        name: file.name,
-        uploadDate: new Date().toISOString(),
-        summary: "",
-        size: file.size
+      // 4. Extract text from PDF in browser
+      const text = await extractTextFromPDF(file);
+
+      // 5. Call Supabase Edge Function for summarization with Authorization header
+      await fetch("https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/summarize-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ document_id: inserted.id, text }),
       });
+
+      // 6. Notify parent and show toast
+      onDocumentUploaded(inserted);
       toast({
         title: "Document uploaded successfully",
-        description: `${file.name} has been uploaded.`,
+        description: `${file.name} has been uploaded and is being summarized.`,
       });
     } catch (error: any) {
       toast({
@@ -148,17 +168,6 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
     } finally {
       setUploadingFiles(prev => prev.filter(id => id !== fileId));
     }
-  };
-
-  // Generate mock AI summary based on document name
-  const generateMockSummary = (fileName: string) => {
-    const summaries = [
-      "Key compliance areas: Pet restrictions (2 pets max, breed restrictions apply), Parking (2 spaces per unit, guest parking limited), Noise ordinances (quiet hours 10 PM - 7 AM), Architectural changes require approval.",
-      "HOA fee structure: Monthly dues $245, Special assessments for major repairs, Late fees $25 after 15 days, Payment methods accepted include online portal and check.",
-      "Community rules: Pool hours 6 AM - 10 PM, Fitness center access with key fob, Guest policies (max 14 days per year), Common area reservations required for events.",
-      "Violation procedures: Written notice for first offense, $50 fine for second offense, Hearing process for disputes, Appeal procedures available through board."
-    ];
-    return summaries[Math.floor(Math.random() * summaries.length)];
   };
 
   // Upload all selected files

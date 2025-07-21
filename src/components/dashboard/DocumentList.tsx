@@ -1,10 +1,7 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Eye, Calendar, File } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { CardTitle } from "@/components/ui/card";
+import { FileText, Download, Eye, Calendar, File, Loader2 } from "lucide-react";
 
 interface Document {
   id: string;
@@ -12,11 +9,14 @@ interface Document {
   uploadDate: string;
   summary: string;
   size?: number;
+  file_url?: string;
 }
 
 interface DocumentListProps {
-  documents?: Document[];
-  hoaId: string;
+  documents: Document[];
+  loading: boolean;
+  onToggleChat: () => void;
+  isChatOpen: boolean;
 }
 
 /**
@@ -24,53 +24,24 @@ interface DocumentListProps {
  * Displays uploaded documents with summaries and management options
  * Provides document viewing, downloading, and summary display
  */
-const DocumentList = ({ documents: propDocuments = [], hoaId }: DocumentListProps) => {
-  console.log("DocumentList hoaId:", hoaId);
-  const [documents, setDocuments] = useState<Document[]>(propDocuments);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchDocs = async () => {
-      setLoading(true);
-      if (!hoaId) { setDocuments([]); setLoading(false); return; }
-      const { data, error } = await supabase
-        .from('hoa_documents')
-        .select('*')
-        .eq('hoa_id', hoaId)
-        .order('uploaded_at', { ascending: false });
-      console.log('Fetched documents:', data, error);
-      if (data) {
-        setDocuments(
-          data.map(doc => ({
-            id: doc.id,
-            name: doc.file_name,
-            uploadDate: doc.uploaded_at,
-            summary: doc.summary || '',
-            size: doc.size_bytes
-          }))
-        );
-      } else {
-        setDocuments([]);
-      }
-      setLoading(false);
-    };
-    fetchDocs();
-  }, [hoaId]);
+const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: DocumentListProps) => {
 
   // Handle document actions
   const handleViewDocument = (document: Document) => {
-    console.log('Viewing document:', document.name);
-    // In a real implementation, this would open the document viewer
+    if (document.file_url) {
+      window.open(document.file_url, '_blank', 'noopener,noreferrer');
+    }
   };
 
-  const handleDownloadDocument = (document: Document) => {
-    console.log('Downloading document:', document.name);
-    // In a real implementation, this would trigger the download
+  const handleDownloadDocument = (doc: Document) => {
+    if (doc.file_url) {
+      window.open(doc.file_url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   // Format file size
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (!bytes) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -185,9 +156,16 @@ const DocumentList = ({ documents: propDocuments = [], hoaId }: DocumentListProp
                     <Badge variant="secondary" className="text-xs">PDF Document</Badge>
                   </div>
                   {/* AI Summary */}
-                  <div className="text-xs sm:text-sm text-gray-700 break-words min-w-0">
-                      {document.summary}
-                  </div>
+                  {document.summary ? (
+                    <div className="text-xs sm:text-sm text-gray-700 break-words min-w-0">
+                        {document.summary}
+                    </div>
+                  ) : (
+                    <div className="text-xs sm:text-sm text-gray-500 italic flex items-center">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      AI summary is being generated...
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -208,8 +186,12 @@ const DocumentList = ({ documents: propDocuments = [], hoaId }: DocumentListProp
                 Use the AI Assistant tab to chat about your documents
               </p>
             </div>
-            <Button variant="outline" className="text-[#254F70] border-[#254F70] hover:bg-primary hover:text-white">
-              Open AI Assistant
+            <Button 
+              variant="outline" 
+              className="text-[#254F70] border-[#254F70] hover:bg-primary hover:text-white"
+              onClick={onToggleChat}
+            >
+              {isChatOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
             </Button>
           </div>
         </CardContent>

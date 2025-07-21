@@ -393,12 +393,6 @@ const HOAManagement = () => {
         </Card>
         <Card className="rounded-xl border w-full">
           <CardContent className="p-2 xs:p-3 sm:p-4 text-center w-full">
-            <div className="text-base xs:text-lg md:text-xl font-bold text-blue-600 break-words">{stats.totalUnits.toLocaleString()}</div>
-            <div className="text-xs xs:text-sm md:text-sm text-gray-600 break-words">Total Units</div>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl border w-full">
-          <CardContent className="p-2 xs:p-3 sm:p-4 text-center w-full">
             <div className="text-base xs:text-lg md:text-xl font-bold text-green-600 break-words">{stats.totalMembers.toLocaleString()}</div>
             <div className="text-xs xs:text-sm md:text-sm text-gray-600 break-words">Active Members</div>
           </CardContent>

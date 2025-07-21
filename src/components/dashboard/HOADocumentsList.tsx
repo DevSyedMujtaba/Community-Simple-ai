@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download, Eye, Calendar, File } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface HOADocument {
   id: string;
@@ -17,18 +18,19 @@ interface HOADocument {
 }
 
 interface HOADocumentsListProps {
-  hoaName?: string;
-  hoaId?: string; // Add this prop for the current HOA id
+  hoaName: string;
+  onNavigateToChat: () => void;
+  hoaId?: string;
 }
 
 /**
- * HOA Documents List Component
- * Displays official HOA documents uploaded by board members
- * Homeowners can view and download but not upload documents
+ * HOA Documents List Component for Homeowners
+ * Provides read-only access to official community documents
+ * and links to the AI Assistant for document queries.
  */
-const HOADocumentsList = ({ hoaName = "Your HOA", hoaId }: HOADocumentsListProps) => {
+const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsListProps) => {
   // State for real documents
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -52,7 +54,7 @@ const HOADocumentsList = ({ hoaName = "Your HOA", hoaId }: HOADocumentsListProps
       if (!hoaId) { setDocuments([]); setLoading(false); return; }
       const { data, error } = await supabase
         .from('hoa_documents')
-        .select('*')
+        .select('*, profiles:profiles!uploader_id(f irst_name, last_name)')
         .eq('hoa_id', hoaId)
         .order('uploaded_at', { ascending: false });
       setDocuments(data || []);
@@ -282,7 +284,9 @@ const HOADocumentsList = ({ hoaName = "Your HOA", hoaId }: HOADocumentsListProps
                           {formatFileSize(document.size_bytes)}
                         </div>
                       )}
-                      <span className="text-xs">Uploaded by {document.uploader_id}</span>
+                      <span className="text-xs">
+                        Uploaded by {document.profiles ? `${document.profiles.first_name || ''} ${document.profiles.last_name || ''}`.trim() : 'Board Member'}
+                      </span>
                     </div>
                     {/* Document Summary (if available) */}
                     {document.summary && (
@@ -311,22 +315,20 @@ const HOADocumentsList = ({ hoaName = "Your HOA", hoaId }: HOADocumentsListProps
         )}
       </div>
 
-      {/* Info Footer */}
+      {/* AI Assistant Call to Action */}
       <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-blue-900">
-                Need help understanding these documents?
-              </p>
-              <p className="text-xs text-blue-700">
-                Use the AI Assistant to ask questions about any HOA document
-              </p>
-            </div>
-            <Button variant="outline" className="text-[#254F70] border-[#254F70] hover:bg-blue-600 hover:text-white w-full sm:w-auto">
-              Open AI Assistant
-            </Button>
+        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h4 className="font-semibold text-blue-900">Need help understanding these documents?</h4>
+            <p className="text-sm text-blue-800">Use the AI Assistant to ask questions about any HOA document.</p>
           </div>
+          <Button 
+            variant="outline" 
+            className="bg-white text-blue-700 border-blue-300 hover:bg-blue-100 w-full sm:w-auto flex-shrink-0"
+            onClick={onNavigateToChat}
+          >
+            Open AI Assistant
+          </Button>
         </CardContent>
       </Card>
     </div>

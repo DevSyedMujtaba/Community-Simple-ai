@@ -18,6 +18,14 @@ import ResidentsManagement from "@/components/dashboard/ResidentsManagement";
 import NoticeGeneration from "@/components/dashboard/NoticeGeneration";
 import { supabase } from "@/lib/supabaseClient";
 
+interface Document {
+  id: string;
+  name: string;
+  uploadDate: string;
+  summary: string;
+  size?: number;
+}
+
 /**
  * Board Member Dashboard - Enhanced with sidebar navigation
  * Features comprehensive HOA management tools for board members
@@ -25,25 +33,11 @@ import { supabase } from "@/lib/supabaseClient";
 const BoardDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [documents, setDocuments] = useState([
-    {
-      id: '1',
-      name: 'CC&R Document 2024',
-      uploadDate: '2024-01-10',
-      summary: 'Updated Covenants, Conditions, and Restrictions document covering pet policies, architectural guidelines, and community standards. Key changes include updated pet weight limits (80lbs), new fence height restrictions (6ft maximum), and revised noise ordinance hours (quiet time 10 PM - 7 AM).',
-      size: 2456789
-    },
-    {
-      id: '2', 
-      name: 'Parking Regulations',
-      uploadDate: '2024-01-08',
-      summary: 'Comprehensive parking rules including visitor parking policies, assigned space regulations, and towing procedures. Covers 2-car limit per unit, visitor permits valid for 48 hours, and designated areas for motorcycles and bicycles.',
-      size: 1234567
-    }
-  ]);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(true);
   const [userName, setUserName] = useState("");
   const [myCommunity, setMyCommunity] = useState(null);
-  const [docListRefresh, setDocListRefresh] = useState(0);
+  const [docRefreshTrigger, setDocRefreshTrigger] = useState(0);
   const [communityName, setCommunityName] = useState("Sunrise Valley HOA");
   const [userId, setUserId] = useState("");
   const [joinRequests, setJoinRequests] = useState([]);
@@ -53,6 +47,65 @@ const BoardDashboard = () => {
   const [messagesReceived, setMessagesReceived] = useState(0);
   const [latestMessage, setLatestMessage] = useState(null);
   const [unseenMessages, setUnseenMessages] = useState([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Helper function to transform a raw DB record into the state shape
+  const transformDocument = (doc: any) => ({
+    id: doc.id,
+    name: doc.file_name,
+    uploadDate: doc.uploaded_at,
+    summary: doc.summary || '',
+    size: doc.size_bytes,
+    file_url: doc.file_url
+  });
+
+  // Effect for fetching documents, triggered by community change or manual refresh
+  useEffect(() => {
+    if (!myCommunity?.id) return;
+
+    const fetchDocs = async () => {
+      setLoadingDocs(true);
+      const { data, error } = await supabase
+        .from('hoa_documents')
+        .select('*')
+        .eq('hoa_id', myCommunity.id)
+        .order('uploaded_at', { ascending: false });
+
+      if (data) {
+        setDocuments(data.map(transformDocument));
+      }
+      setLoadingDocs(false);
+    };
+    fetchDocs();
+  }, [myCommunity, docRefreshTrigger]);
+
+
+  // Effect for setting up the real-time subscription
+  useEffect(() => {
+    if (!myCommunity?.id) return;
+
+    const channel = supabase
+      .channel(`documents-realtime-${myCommunity.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen for INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'hoa_documents',
+          filter: `hoa_id=eq.${myCommunity.id}`,
+        },
+        (payload) => {
+          console.log("Realtime event received, triggering refresh:", payload.eventType);
+          // Instead of patching state, just increment the counter to trigger a re-fetch.
+          setDocRefreshTrigger(count => count + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [myCommunity]);
 
   // Fetch unread count for the board member
   const fetchUnread = async (boardId: string) => {
@@ -356,7 +409,16 @@ const BoardDashboard = () => {
 
   // Handle document upload
   const handleDocumentUploaded = (newDocument: any) => {
-    setDocuments(prev => [...prev, newDocument]);
+    // Use the same transformation to add the document optimistically
+    const transformedDoc = transformDocument(newDocument);
+    setDocuments(prev => {
+      const newDocs = [transformedDoc, ...prev.filter(doc => doc.id !== transformedDoc.id)];
+      return newDocs.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
+    });
+  };
+
+  const handleToggleChat = () => {
+    setIsChatOpen(prev => !prev);
   };
 
   return (
@@ -404,7 +466,7 @@ const BoardDashboard = () => {
                     <Card>
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{communityStats.totalHomes}</div>
+                          <div className="text-xl sm:text-2xl font-bold text-gray-900">{activeMembers}</div>
                           <Users className="h-6 w-6 sm:h-8 sm:w-8 text-[#254F70] ml-auto flex-shrink-0" />
                         </div>
                         <p className="text-xs sm:text-sm text-gray-600 mt-1">Total Homes</p>
@@ -533,22 +595,29 @@ const BoardDashboard = () => {
                     </CardHeader>
                     <CardContent className="pt-0">
                       {/* Render DocumentUpload above the document list */}
-                      <DocumentUpload hoaId={myCommunity?.id} onDocumentUploaded={() => setDocListRefresh(r => r + 1)} />
-                      <DocumentList hoaId={myCommunity?.id} />
+                      <DocumentUpload hoaId={myCommunity?.id} onDocumentUploaded={handleDocumentUploaded} />
+                      <DocumentList 
+                        documents={documents} 
+                        loading={loadingDocs} 
+                        onToggleChat={handleToggleChat}
+                        isChatOpen={isChatOpen}
+                      />
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardHeader className="pb-3 sm:pb-4">
-                      <CardTitle className="text-lg sm:text-xl">AI Assistant</CardTitle>
-                      <CardDescription className="text-sm sm:text-base">
-                        Ask questions about your uploaded documents
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <ChatInterface documents={documents} />
-                    </CardContent>
-                  </Card>
+                  {isChatOpen && (
+                    <Card>
+                      <CardHeader className="pb-3 sm:pb-4">
+                        <CardTitle className="text-lg sm:text-xl">AI Assistant</CardTitle>
+                        <CardDescription className="text-sm sm:text-base">
+                          Ask questions about your uploaded documents
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <ChatInterface documents={documents} hoaId={myCommunity?.id} />
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               )}
 
