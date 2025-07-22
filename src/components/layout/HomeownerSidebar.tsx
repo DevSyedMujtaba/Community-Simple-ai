@@ -90,12 +90,12 @@ export function HomeownerSidebar({
       icon: FileText, 
       description: 'View official HOA documents and policies'
     },
-    // { 
-    //   id: 'alerts', 
-    //   label: 'Compliance', 
-    //   icon: AlertCircle, 
-    //   description: 'View compliance alerts and rules'
-    // },
+    { 
+      id: 'compliance', 
+      label: 'Compliance', 
+      icon: AlertCircle, 
+      description: 'View compliance alerts and rules'
+    },
     { 
       id: 'settings', 
       label: 'Settings', 

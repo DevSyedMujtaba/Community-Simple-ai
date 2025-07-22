@@ -27,13 +27,184 @@ const AdminDashboard = () => {
 
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Sample platform statistics
-  const platformStats = {
-    totalUsers: 1247,
-    totalHOAs: 89,
-    messagesThisMonth: 15632,
-    tokenUsage: 2847392
-  };
+  // Add token usage to state
+  const [platformStats, setPlatformStats] = useState({
+    totalUsers: 0,
+    totalHOAs: 0,
+    messagesThisMonth: 0,
+    tokenUsage: 0,
+  });
+  // Update trends state to include raw values
+  const [trends, setTrends] = useState({
+    users: 0,
+    hoas: 0,
+    messages: 0,
+    usersThisMonth: 0,
+    usersLastMonth: 0,
+    hoasThisMonth: 0,
+    hoasLastMonth: 0,
+    messagesThisMonth: 0,
+    messagesLastMonth: 0,
+    tokenUsageThisMonth: 0,
+    tokenUsageLastMonth: 0,
+  });
+  const [topHOAs, setTopHOAs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Get current user's access token
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.access_token;
+
+        // Fetch user trends from edge function (created_at from auth.users)
+        const res = await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/get-auth-users', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+        const userStats = await res.json();
+
+        // Fetch total users from profiles table
+        const { count: totalUsers } = await supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true });
+
+        // Date helpers
+        const now = new Date();
+        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+        // HOAs and messages logic unchanged
+        // Total HOAs (all time)
+        const { count: totalHOAs } = await supabase
+          .from('hoa_communities')
+          .select('id', { count: 'exact', head: true });
+        // HOAs created this month
+        const { count: hoasThisMonth } = await supabase
+          .from('hoa_communities')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', startOfThisMonth.toISOString());
+        // HOAs created last month
+        const { count: hoasLastMonth } = await supabase
+          .from('hoa_communities')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', startOfLastMonth.toISOString())
+          .lte('created_at', endOfLastMonth.toISOString());
+
+        // Messages This Month
+        const { count: messagesThisMonth } = await supabase
+          .from('messages')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', startOfThisMonth.toISOString());
+        // Messages Last Month
+        const { count: messagesLastMonth } = await supabase
+          .from('messages')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', startOfLastMonth.toISOString())
+          .lte('created_at', endOfLastMonth.toISOString());
+
+        // --- Fetch OpenAI token usage ---
+        // This month
+        const { data: thisMonthData } = await supabase
+          .from('token_usage')
+          .select('tokens_used')
+          .gte('created_at', startOfThisMonth.toISOString());
+        const tokensThisMonth = thisMonthData?.reduce((sum, row) => sum + row.tokens_used, 0) ?? 0;
+        // Last month
+        const { data: lastMonthData } = await supabase
+          .from('token_usage')
+          .select('tokens_used')
+          .gte('created_at', startOfLastMonth.toISOString())
+          .lte('created_at', endOfLastMonth.toISOString());
+        const tokensLastMonth = lastMonthData?.reduce((sum, row) => sum + row.tokens_used, 0) ?? 0;
+
+        // Token Usage (for display)
+        const tokenUsage = tokensThisMonth;
+
+        // Top Performing HOAs (example: by most units)
+        const { data: hoaData } = await supabase
+          .from('hoa_communities')
+          .select('id, name, units')
+          .order('units', { ascending: false })
+          .limit(5);
+
+        // For each HOA, fetch the count of active members
+        const hoaWithActiveCounts = await Promise.all(
+          (hoaData || []).map(async (hoa, i) => {
+            const { count: activeMembers } = await supabase
+              .from('hoa_join_requests')
+              .select('id', { count: 'exact', head: true })
+              .eq('hoa_id', hoa.id)
+              .eq('status', 'approved');
+            // Calculate activePercent if units is available
+            let activePercent = 0;
+            if (hoa.units && hoa.units > 0) {
+              activePercent = Math.round(((activeMembers ?? 0) / hoa.units) * 100);
+            } else {
+              activePercent = [89, 76, 65, 60, 55][i] || 50; // fallback
+            }
+            return {
+              ...hoa,
+              activeMembers: activeMembers ?? 0,
+              activePercent,
+              status: i === 0 ? 'High Activity' : 'Growing',
+            };
+          })
+        );
+
+        // Calculate trends
+        const percent = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / Math.max(prev, 1)) * 100);
+        setTrends({
+          users: percent(userStats.usersThisMonth ?? 0, userStats.usersLastMonth ?? 0),
+          hoas: percent(hoasThisMonth ?? 0, hoasLastMonth ?? 0),
+          messages: percent(messagesThisMonth ?? 0, messagesLastMonth ?? 0),
+          usersThisMonth: userStats.usersThisMonth ?? 0,
+          usersLastMonth: userStats.usersLastMonth ?? 0,
+          hoasThisMonth: hoasThisMonth ?? 0,
+          hoasLastMonth: hoasLastMonth ?? 0,
+          messagesThisMonth: messagesThisMonth ?? 0,
+          messagesLastMonth: messagesLastMonth ?? 0,
+          tokenUsageThisMonth: tokensThisMonth,
+          tokenUsageLastMonth: tokensLastMonth,
+        });
+
+        setPlatformStats({
+          totalUsers: totalUsers ?? 0,
+          totalHOAs: totalHOAs ?? 0,
+          messagesThisMonth: messagesThisMonth ?? 0,
+          tokenUsage: tokenUsage ?? 0,
+        });
+        setTopHOAs(hoaWithActiveCounts);
+      } catch (err) {
+        setError('Failed to load stats');
+      }
+      setLoading(false);
+    };
+    fetchStats();
+  }, []);
+
+  // Helper for user-friendly trend display
+  function getTrendString(curr, prev) {
+    if (prev === 0 && curr === 0) return 'No change';
+    if (prev === 0 && curr > 0) return '+100% from last month';
+    const percent = Math.round(((curr - prev) / Math.max(prev, 1)) * 100);
+    return `${percent >= 0 ? '+' : ''}${percent}% from last month`;
+  }
+
+  // Add a helper to format token usage
+  function formatTokenUsage(value) {
+    if (value < 1000) return value.toString();
+    if (value < 1000000) return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
 
   return (
     <SidebarProvider>
@@ -68,46 +239,68 @@ const AdminDashboard = () => {
                     <Card className="border-purple-200">
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{platformStats.totalUsers.toLocaleString()}</div>
+                          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                            {loading ? '...' : platformStats.totalUsers.toLocaleString()}
+                          </div>
                           <Users className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-purple-600 ml-auto flex-shrink-0" />
                         </div>
                         <p className="text-xs sm:text-sm text-gray-600 mt-1">Total Users</p>
-                        <p className="text-xs text-green-600 mt-1">+12% from last month</p>
+                        <p className="text-xs text-green-600 mt-1">
+                          {loading ? '...' : (() => {
+                            const curr = trends.usersThisMonth;
+                            const prev = trends.usersLastMonth;
+                            if (prev === 0 && curr === 0) return 'No change';
+                            const percent = Math.round(((curr - prev) / Math.max(prev, 1)) * 100);
+                            return `${percent >= 0 ? '+' : ''}${percent}% from last month`;
+                          })()}
+                        </p>
                       </CardContent>
                     </Card>
                     
                     <Card className="border-blue-200">
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{platformStats.totalHOAs}</div>
+                          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                            {loading ? '...' : platformStats.totalHOAs}
+                          </div>
                           <div className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 bg-blue-100 rounded-full flex items-center justify-center ml-auto flex-shrink-0">
                             <div className="h-2 w-2 sm:h-2 sm:w-2 lg:h-3 lg:w-3 bg-blue-600 rounded-full"></div>
                           </div>
                         </div>
                         <p className="text-xs sm:text-sm text-gray-600 mt-1">Active HOAs</p>
-                        <p className="text-xs text-green-600 mt-1">+3 new this month</p>
+                        <p className="text-xs text-green-600 mt-1">
+                          {loading ? '...' : getTrendString(trends.hoasThisMonth, trends.hoasLastMonth)}
+                        </p>
                       </CardContent>
                     </Card>
 
                     <Card className="border-green-200">
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{platformStats.messagesThisMonth.toLocaleString()}</div>
+                          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                            {loading ? '...' : platformStats.messagesThisMonth.toLocaleString()}
+                          </div>
                           <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-green-600 ml-auto flex-shrink-0" />
                         </div>
                         <p className="text-xs sm:text-sm text-gray-600 mt-1">Messages This Month</p>
-                        <p className="text-xs text-green-600 mt-1">+8% vs last month</p>
+                        <p className="text-xs text-green-600 mt-1">
+                          {loading ? '...' : getTrendString(trends.messagesThisMonth, trends.messagesLastMonth)}
+                        </p>
                       </CardContent>
                     </Card>
 
                     <Card className="border-orange-200">
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-center">
-                          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{(platformStats.tokenUsage / 1000000).toFixed(1)}M</div>
+                          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                            {loading ? '...' : formatTokenUsage(platformStats.tokenUsage)}
+                          </div>
                           <Database className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-orange-600 ml-auto flex-shrink-0" />
                         </div>
                         <p className="text-xs sm:text-sm text-gray-600 mt-1">Token Usage</p>
-                        <p className="text-xs text-blue-600 mt-1">Within budget limits</p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          {loading ? '...' : getTrendString(trends.tokenUsageThisMonth, trends.tokenUsageLastMonth)}
+                        </p>
                       </CardContent>
                     </Card>
                   </div>
@@ -120,28 +313,25 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="space-y-3 sm:space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                        {loading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          topHOAs.map((hoa, idx) => (
+                            <div key={hoa.name} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
                           <div className="min-w-0">
-                            <p className="font-medium text-gray-900 text-sm sm:text-base truncate">Sunrise Valley HOA</p>
-                            <p className="text-xs sm:text-sm text-gray-600">156 units • 89% active</p>
+                                <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{hoa.name}</p>
+                                <p className="text-xs sm:text-sm text-gray-600">{hoa.activeMembers} members • {hoa.activePercent}% active</p>
                           </div>
-                          <Badge variant="outline" className="text-green-600 border-green-600 w-fit text-xs sm:text-sm">
-                            High Activity
+                              <Badge variant="outline" className={hoa.status === 'High Activity' ? "text-green-600 border-green-600 w-fit text-xs sm:text-sm" : "text-[#254F70] border-[#254F70] w-fit text-xs sm:text-sm"}>
+                                {hoa.status}
                           </Badge>
                         </div>
-                        
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                          <div className="min-w-0">
-                            <p className="font-medium text-gray-900 text-sm sm:text-base truncate">Oak Ridge Community</p>
-                            <p className="text-xs sm:text-sm text-gray-600">203 units • 76% active</p>
-                          </div>
-                          <Badge variant="outline" className="text-[#254F70] border-[#254F70] w-fit text-xs sm:text-sm">
-                            Growing
-                          </Badge>
-                        </div>
+                          ))
+                        )}
                       </div>
                     </CardContent>
                   </Card>
+                  {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
                 </div>
               )}
 

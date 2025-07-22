@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +23,7 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const { toast } = useToast();
   const [userId, setUserId] = useState("");
+  const [fileCategories, setFileCategories] = useState<{ [fileName: string]: string }>({});
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -73,6 +75,11 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
   // Remove selected file
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setFileCategories(prev => {
+      const newCategories = { ...prev };
+      if (selectedFiles[index]) delete newCategories[selectedFiles[index].name];
+      return newCategories;
+    });
   };
 
   // Upload and process a file
@@ -81,6 +88,15 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
       toast({
         title: "No file selected",
         description: "Please select a file to upload.",
+        variant: "destructive"
+      });
+      return;
+    }
+    const category = fileCategories[file.name];
+    if (!category) {
+      toast({
+        title: "Category required",
+        description: "Please select a category for each file.",
         variant: "destructive"
       });
       return;
@@ -135,7 +151,8 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
           file_url: urlData.publicUrl,
           size_bytes: file.size,
           mime_type: file.type,
-          status: 'processing'
+          status: 'processing',
+          category
         }
       ]).select().single();
       if (dbError || !inserted) throw dbError || new Error("Failed to insert document record");
@@ -152,6 +169,36 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
         },
         body: JSON.stringify({ document_id: inserted.id, text }),
       });
+
+      // 5b. Call compliance extraction Edge Function (with auth header)
+      try {
+        const complianceRes = await fetch("https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/extract_compliance_alerts", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`
+          },
+          body: (() => {
+            const fd = new FormData();
+            fd.append("hoa_id", hoaId);
+            fd.append("text", text);
+            return fd;
+          })(),
+        });
+        const complianceResult = await complianceRes.json();
+        if (!complianceRes.ok || !complianceResult.success) {
+          toast({
+            title: "Compliance Extraction Failed",
+            description: complianceResult.error || "Could not extract compliance alerts from the document.",
+            variant: "destructive"
+          });
+        }
+      } catch (err) {
+        toast({
+          title: "Compliance Extraction Error",
+          description: err?.message || "Could not extract compliance alerts from the document.",
+          variant: "destructive"
+        });
+      }
 
       // 6. Notify parent and show toast
       onDocumentUploaded(inserted);
@@ -173,14 +220,24 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
   // Upload all selected files
   const uploadFiles = async () => {
     if (selectedFiles.length === 0) return;
-    
+    // Check all categories selected
+    for (const file of selectedFiles) {
+      if (!fileCategories[file.name]) {
+        toast({
+          title: "Category required",
+          description: `Please select a category for ${file.name} before uploading.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
     // Process each file
     for (const file of selectedFiles) {
       await processFile(file);
     }
-    
-    // Clear selected files after upload
+    // Clear selected files and categories after upload
     setSelectedFiles([]);
+    setFileCategories({});
   };
 
   return (
@@ -231,6 +288,18 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
                       <p className="font-medium text-gray-900 truncate min-w-0">{file.name}</p>
                       <p className="text-xs xs:text-sm text-gray-600 truncate min-w-0">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
+                    <select
+                      value={fileCategories[file.name] || ""}
+                      onChange={e => setFileCategories(prev => ({ ...prev, [file.name]: e.target.value }))}
+                      className="ml-4 border rounded px-2 py-1 text-sm"
+                      required
+                    >
+                      <option value="" disabled>Select Category</option>
+                      <option value="Governing Documents">Governing Documents</option>
+                      <option value="Policies">Policies</option>
+                      <option value="Guidelines">Guidelines</option>
+                      <option value="Amenities">Amenities</option>
+                    </select>
                   </div>
                   <Button
                     variant="ghost"

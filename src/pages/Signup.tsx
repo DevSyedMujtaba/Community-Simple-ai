@@ -58,6 +58,10 @@ const Signup = () => {
       alert('Please select a user type');
       return;
     }
+    if (!formData.phone) {
+      alert('Please enter your phone number');
+      return;
+    }
     setIsLoading(true);
     // Supabase signup
     const { data, error } = await supabase.auth.signUp({
@@ -92,6 +96,7 @@ const Signup = () => {
           first_name: formData.firstName,
           last_name: formData.lastName,
           phone: formData.phone || null,
+          verified: true // Set verified true by default
         },
       ]);
     // Call send_verification_code edge function
@@ -108,8 +113,8 @@ const Signup = () => {
       alert(profileError.message || 'Profile creation failed');
       return;
     }
-    // Redirect to email verification with user type and user_id
-    window.location.href = `/email-verification?email=${encodeURIComponent(formData.email)}&userType=${formData.userType}&user_id=${userId}`;
+    // Redirect to onboarding based on user type
+    window.location.href = `/onboarding/profile?userType=${formData.userType}&user_id=${userId}`;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -281,7 +286,7 @@ const Signup = () => {
                 {/* Phone Field */}
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                    Phone Number (Optional)
+                    Phone Number
                   </Label>
                   <Input
                     id="phone"
@@ -290,6 +295,7 @@ const Signup = () => {
                     placeholder="Enter your phone number"
                     value={formData.phone}
                     onChange={handleInputChange}
+                    required
                     className="h-11 sm:h-12 text-sm sm:text-base"
                   />
                 </div>

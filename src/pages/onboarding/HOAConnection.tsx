@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Search, Users, Building2, Home, ArrowLeft, CheckCircle } from "lucide-react";
 import logo2 from '../../../public/logo2.png';
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 
 /**
  * HOA Connection Page Component
@@ -19,13 +19,17 @@ const HOAConnection = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const userType = searchParams.get('userType') || 'homeowner';
-  
+  const userId = searchParams.get('user_id');
+
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [showCommunityForm, setShowCommunityForm] = useState(false);
+  const [communities, setCommunities] = useState([]);
+  const [memberCounts, setMemberCounts] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
   const [communityForm, setCommunityForm] = useState({
     name: "",
     state: "",
@@ -40,10 +44,6 @@ const HOAConnection = () => {
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState(false);
 
-  const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-  );
   const [accessToken, setAccessToken] = useState("");
 
   useEffect(() => {
@@ -61,6 +61,30 @@ const HOAConnection = () => {
     return () => {
       listener?.subscription.unsubscribe();
     };
+  }, []);
+
+  // Fetch real communities from hoa_communities table
+  useEffect(() => {
+    const fetchCommunities = async () => {
+      const { data, error } = await supabase
+        .from('hoa_communities')
+        .select('id, name, city, state, description, board_member_id');
+      if (!error && data) {
+        setCommunities(data);
+        // Fetch member counts for each community
+        const counts = {};
+        for (const hoa of data) {
+          const { count } = await supabase
+            .from('hoa_join_requests')
+            .select('id', { count: 'exact', head: true })
+            .eq('hoa_id', hoa.id)
+            .eq('status', 'approved');
+          counts[hoa.id] = count ?? 0;
+        }
+        setMemberCounts(counts);
+      }
+    };
+    fetchCommunities();
   }, []);
 
   // Sample HOAs data
@@ -98,7 +122,7 @@ const HOAConnection = () => {
     ? ['Houston', 'Dallas', 'Austin', 'San Antonio']
     : [];
 
-  const filteredHOAs = availableHOAs.filter(hoa => {
+  const filteredHOAs = communities.filter(hoa => {
     const matchesLocation = selectedState ? hoa.state === selectedState : true;
     const matchesCity = selectedCity ? hoa.city === selectedCity : true;
     const matchesSearch = searchTerm 
@@ -108,20 +132,74 @@ const HOAConnection = () => {
     return matchesLocation && matchesCity && matchesSearch;
   });
 
-  const handleJoinHOA = async (hoaId: string) => {
+  // Add state for unit number, phone number, and message
+  const [joinMessage, setJoinMessage] = useState('');
+
+  // Request to Join handler
+  const handleJoinHOA = async (hoaId) => {
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    // Always get user_id from session
+    const { data: { session } } = await supabase.auth.getSession();
+    const user_id = session?.user?.id;
+    if (!user_id) {
+      alert('You must be logged in to request to join.');
       setIsLoading(false);
+      return;
+    }
+
+    let unit_number = null;
+    let phone_number = null;
+    let board_member_id = null;
+
+    try {
+      const { data: details, error: detailsError } = await supabase
+        .from('homeowner_details')
+        .select('unit_number')
+        .eq('user_id', user_id)
+        .single();
+      unit_number = details?.unit_number || null;
+      console.log('Fetched unit_number:', unit_number, 'Error:', detailsError);
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('id', user_id)
+        .single();
+      phone_number = profile?.phone || null;
+      console.log('Fetched phone_number:', phone_number, 'Error:', profileError);
+
+      const selectedHOA = communities.find(hoa => hoa.id === hoaId);
+      board_member_id = selectedHOA?.board_member_id || null;
+      console.log('Selected HOA:', selectedHOA);
+      console.log('Fetched board_member_id:', board_member_id);
+    } catch (err) {
+      console.log('Error fetching join request fields:', err);
+    }
+
+    const payload = {
+      hoa_id: hoaId,
+      user_id,
+      board_member_id,
+      unit_number,
+      phone_number,
+      message: joinMessage,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+    console.log('Join request payload:', payload);
+
+    const { error } = await supabase
+      .from('hoa_join_requests')
+      .insert([payload]);
+    setIsLoading(false);
+    if (!error) {
       setIsConnected(true);
-      // In real implementation, send join request
-      console.log('Joining HOA:', hoaId);
-      // Auto-continue after showing success
-      setTimeout(() => {
-        navigate('/onboarding/welcome?userType=homeowner');
-      }, 2000);
-    }, 1500);
+      setSuccessMessage('Your request to join has been sent!');
+      setJoinMessage('');
+    } else {
+      alert('Failed to send join request: ' + error.message);
+    }
   };
 
   const handleCreateHOA = async () => {
@@ -180,7 +258,7 @@ const HOAConnection = () => {
     setFormLoading(false);
   };
 
-  if (isConnected) {
+  if (isConnected && successMessage) {
     return (
       <div className="min-h-screen bg-[#f5faff] flex flex-col">
         {/* Top blue compliance bar */}
@@ -203,29 +281,17 @@ const HOAConnection = () => {
 
         {/* Success Content */}
         <main className="flex-1 flex items-center justify-center px-3 sm:px-4 py-4 sm:py-8">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md mx-auto mt-8">
             <Card className="shadow-lg border-0">
               <CardContent className="p-6 sm:p-8 text-center">
                 <div className="bg-green-100 rounded-full p-3 sm:p-4 w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 flex items-center justify-center">
                   <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                 </div>
-                
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
-                  {userType === 'homeowner' ? 'Join Request Sent!' : 'HOA Created!'}
+                  {successMessage}
                 </h2>
-                
-                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                  {userType === 'homeowner' 
-                    ? 'Your request to join the HOA has been sent. You\'ll be notified once approved.'
-                    : 'Your HOA has been successfully created. You can now invite homeowners to join.'
-                  }
-                </p>
-                
-                <Button 
-                  onClick={handleContinue}
-                  className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base"
-                >
-                  Continue to Welcome
+                <Button onClick={() => navigate('/onboarding/welcome?userType=homeowner')} className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base">
+                  Continue
                 </Button>
               </CardContent>
             </Card>
@@ -373,8 +439,8 @@ const HOAConnection = () => {
                                 </div>
                                 <Badge variant="outline" className="text-blue-600 border-blue-600 text-xs">
                                   <Users className="h-3 w-3 mr-1" />
-                                  <span className="hidden sm:inline">{hoa.memberCount} members</span>
-                                  <span className="sm:hidden">{hoa.memberCount}</span>
+                                  <span className="hidden sm:inline">{memberCounts[hoa.id] ?? 0} members</span>
+                                  <span className="sm:hidden">{memberCounts[hoa.id] ?? 0}</span>
                                 </Badge>
                               </div>
                               
@@ -387,6 +453,14 @@ const HOAConnection = () => {
                               >
                                 {isLoading ? 'Requesting...' : 'Request to Join'}
                               </Button>
+                              {/* Add inputs above this button: */}
+                              <Input
+                                type="text"
+                                placeholder="Message (optional)"
+                                value={joinMessage}
+                                onChange={e => setJoinMessage(e.target.value)}
+                                className="mb-2"
+                              />
                             </CardContent>
                           </Card>
                         ))}

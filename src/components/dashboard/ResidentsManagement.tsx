@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Users, 
-  Plus, 
-  Edit, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  Users,
+  Plus,
+  Edit,
+  Mail,
+  Phone,
+  MapPin,
   Search,
   Check,
   X,
@@ -17,6 +17,17 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 
 interface Resident {
   id: string;
@@ -44,13 +55,15 @@ interface ResidentsManagementProps {
   joinRequests: JoinRequest[];
   residents: Resident[];
   hoaId: string;
+  onMessageResident?: (residentId: string) => void;
+  onEditResident?: (residentId: string, status: 'active' | 'pending' | 'invited') => void;
 }
 
 /**
  * Residents Management Component
  * Handles inviting homeowners, approving requests, and managing residents
  */
-const ResidentsManagement = ({ joinRequests, residents, hoaId }: ResidentsManagementProps) => {
+const ResidentsManagement = ({ joinRequests, residents, hoaId, onMessageResident, onEditResident }: ResidentsManagementProps) => {
   const [activeSection, setActiveSection] = useState<'residents' | 'requests' | 'invite'>('residents');
   const [searchTerm, setSearchTerm] = useState('');
   const [inviteForm, setInviteForm] = useState({
@@ -61,6 +74,9 @@ const ResidentsManagement = ({ joinRequests, residents, hoaId }: ResidentsManage
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [inviteLoading, setInviteLoading] = useState(false);
   const { toast } = useToast();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedResident, setSelectedResident] = useState<Resident | null>(null);
+  const [isDisabled, setIsDisabled] = useState(false);
 
   const filteredResidents = residents.filter(resident =>
     resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -241,11 +257,15 @@ const ResidentsManagement = ({ joinRequests, residents, hoaId }: ResidentsManage
                       </div>
                     </div>
                     <div className="flex flex-col xs:flex-row gap-2 w-full xs:w-auto mt-2 xs:mt-0">
-                      <Button variant="outline" size="sm" className="w-full xs:w-auto">
+                      <Button variant="outline" size="sm" className="w-full xs:w-auto" onClick={() => onMessageResident && onMessageResident(resident.id)}>
                         <Mail className="h-3 w-3 mr-1" />
                         Message
                       </Button>
-                      <Button variant="outline" size="sm" className="w-full xs:w-auto">
+                      <Button variant="outline" size="sm" className="w-full xs:w-auto" onClick={() => {
+                        setSelectedResident(resident);
+                        setIsDisabled(resident.status === 'pending');
+                        setEditDialogOpen(true);
+                      }}>
                         <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
@@ -345,7 +365,7 @@ const ResidentsManagement = ({ joinRequests, residents, hoaId }: ResidentsManage
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Unit Number *
@@ -360,7 +380,7 @@ const ResidentsManagement = ({ joinRequests, residents, hoaId }: ResidentsManage
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Welcome Message (Optional)
@@ -373,7 +393,7 @@ const ResidentsManagement = ({ joinRequests, residents, hoaId }: ResidentsManage
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                 />
               </div>
-              
+
               <Button type="submit" className="bg-[#254F70] hover:bg-primary/90" disabled={inviteLoading}>
                 {inviteLoading ? 'Sending...' : 'Send Invitation'}
               </Button>
@@ -381,6 +401,47 @@ const ResidentsManagement = ({ joinRequests, residents, hoaId }: ResidentsManage
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="rounded-xl border border-primary shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-[#254F70] text-lg font-bold">Edit Resident Status</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Enable or disable <span className="font-semibold text-[#254F70]">{selectedResident?.name}</span> (Unit {selectedResident?.unit})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={isDisabled}
+                onCheckedChange={setIsDisabled}
+                id="disable-user-switch"
+              />
+              <label htmlFor="disable-user-switch" className="text-sm font-medium text-[#254F70] select-none">
+                Disable User
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 ml-1">If disabled, the user status will be set to <span className="font-semibold">pending</span>.</p>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={async () => {
+                if (selectedResident && onEditResident) {
+                  const newStatus = isDisabled ? 'pending' : 'active';
+                  await onEditResident(selectedResident.id, newStatus);
+                  setEditDialogOpen(false);
+                }
+              }}
+              className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold rounded-lg px-6 py-2 mt-2"
+            >
+              Save
+            </Button>
+            <DialogClose asChild>
+              <Button variant="outline" className="rounded-lg px-6 py-2 mt-2 border-primary text-[#254F70]">Cancel</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

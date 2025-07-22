@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -248,7 +249,7 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
                   {/* Document Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                      <h4 className="text-lg font-medium text-gray-900">
+                      <h4 className="text-lg font-medium text-gray-900 flex items-center gap-2">
                         {document.file_name}
                       </h4>
                       <div className="flex flex-wrap gap-2">
@@ -283,6 +284,13 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
                           <File className="h-4 w-4 mr-1" />
                           {formatFileSize(document.size_bytes)}
                         </div>
+                      )}
+                      {document.category && (
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full border text-xs font-semibold ${getCategoryColor(document.category)}`}
+                        >
+                          {document.category}
+                        </span>
                       )}
                       <span className="text-xs">
                         Uploaded by {document.profiles ? `${document.profiles.first_name || ''} ${document.profiles.last_name || ''}`.trim() : 'Board Member'}

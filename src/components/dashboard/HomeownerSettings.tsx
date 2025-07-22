@@ -389,12 +389,18 @@ const HomeownerSettings = () => {
                   <div className="flex items-center gap-2 min-w-0">
                     <Shield className="h-5 w-5 text-gray-400 flex-shrink-0" />
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                        <Badge className={getStatusColor(userProfile.status) + ' text-xs'} variant="secondary">
-                          {userProfile.status.charAt(0).toUpperCase() + userProfile.status.slice(1)}
-                        </Badge>
-                        <span className="text-xs sm:text-sm text-gray-600 truncate">since {new Date(userProfile.memberSince).toLocaleDateString()}</span>
-                      </div>
+                      {userProfile.status && userProfile.memberSince ? (
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                          <Badge className={getStatusColor(userProfile.status) + ' text-xs'} variant="secondary">
+                            {userProfile.status.charAt(0).toUpperCase() + userProfile.status.slice(1)}
+                          </Badge>
+                          <span className="text-xs sm:text-sm text-gray-600 truncate">
+                            since {userProfile.memberSince && !isNaN(Date.parse(userProfile.memberSince)) ? new Date(userProfile.memberSince).toLocaleDateString() : ''}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="text-xs sm:text-sm text-gray-500">You have not joined any community yet.</div>
+                      )}
                       <p className="text-xs sm:text-sm text-gray-600">Membership Status</p>
                     </div>
                   </div>

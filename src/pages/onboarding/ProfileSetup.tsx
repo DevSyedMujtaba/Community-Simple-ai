@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { User, Mail, Phone, MapPin, Building2, Home, ArrowLeft, CheckCircle } from "lucide-react";
 import logo2 from '../../../public/logo2.png';
+import { supabase } from "@/lib/supabaseClient";
 
 /**
  * Profile Setup Page Component
@@ -46,6 +47,22 @@ const ProfileSetup = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    // Prefill phone number from profiles table
+    const fetchPhone = async () => {
+      if (!user_id) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('id', user_id)
+        .single();
+      if (profile && profile.phone) {
+        setFormData(prev => ({ ...prev, phone: profile.phone }));
+      }
+    };
+    fetchPhone();
+  }, [user_id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -108,6 +125,11 @@ const ProfileSetup = () => {
     setIsLoading(false);
 
     if (response.ok) {
+      // Mark profile as verified and set correct role
+      await supabase
+        .from('profiles')
+        .update({ verified: true, role: userType })
+        .eq('id', user_id);
       setIsSuccess(true);
       // Optionally, you can keep the setTimeout for auto-redirect, or just use the button below
       // setTimeout(() => {
@@ -531,6 +553,7 @@ const ProfileSetup = () => {
                         />
                       </div>
                       
+                      {/*
                       <div className="space-y-2">
                         <Label htmlFor="totalUnits" className="text-sm font-medium text-gray-700">
                           Total Units
@@ -545,6 +568,7 @@ const ProfileSetup = () => {
                           className="h-11 sm:h-12 text-sm sm:text-base"
                         />
                       </div>
+                      */}
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">

@@ -16,7 +16,9 @@ import ChatInterface from "@/components/dashboard/ChatInterface";
 import HOAManagement from "@/components/dashboard/HOAManagement";
 import ResidentsManagement from "@/components/dashboard/ResidentsManagement";
 import NoticeGeneration from "@/components/dashboard/NoticeGeneration";
+import ComplianceAlerts from "@/components/dashboard/ComplianceAlerts";
 import { supabase } from "@/lib/supabaseClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface Document {
   id: string;
@@ -38,7 +40,7 @@ const BoardDashboard = () => {
   const [userName, setUserName] = useState("");
   const [myCommunity, setMyCommunity] = useState(null);
   const [docRefreshTrigger, setDocRefreshTrigger] = useState(0);
-  const [communityName, setCommunityName] = useState("Sunrise Valley HOA");
+  const [communityName, setCommunityName] = useState("You have not created any community");
   const [userId, setUserId] = useState("");
   const [joinRequests, setJoinRequests] = useState([]);
   const [residents, setResidents] = useState([]);
@@ -48,6 +50,8 @@ const BoardDashboard = () => {
   const [latestMessage, setLatestMessage] = useState(null);
   const [unseenMessages, setUnseenMessages] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatUserId, setChatUserId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Helper function to transform a raw DB record into the state shape
   const transformDocument = (doc: any) => ({
@@ -421,6 +425,25 @@ const BoardDashboard = () => {
     setIsChatOpen(prev => !prev);
   };
 
+  // Handler to open chat with a resident
+  const handleMessageResident = (residentId: string) => {
+    setActiveTab('messages');
+    setChatUserId(residentId);
+  };
+  // Handler to set resident status
+  const handleEditResident = async (residentId: string, status: 'active' | 'pending' | 'invited') => {
+    await supabase
+      .from('hoa_join_requests')
+      .update({ status })
+      .eq('id', residentId); // Use the join request's primary key
+    setResidents(prev => prev.map(r => r.id === residentId ? { ...r, status } : r));
+    toast({
+      title: 'Status updated',
+      description: `Resident status changed to ${status}.`,
+      variant: 'default',
+    });
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen w-full flex bg-gray-50">
@@ -576,7 +599,13 @@ const BoardDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <ResidentsManagement joinRequests={joinRequests} residents={residents} hoaId={myCommunity?.id} />
+                    <ResidentsManagement 
+                      joinRequests={joinRequests} 
+                      residents={residents} 
+                      hoaId={myCommunity?.id}
+                      onMessageResident={handleMessageResident}
+                      onEditResident={handleEditResident}
+                    />
                   </CardContent>
                 </Card>
               )}
@@ -667,7 +696,15 @@ const BoardDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <ComplianceOverview />
+                    {myCommunity?.id ? (
+                      <ComplianceAlerts hoaId={myCommunity.id} />
+                    ) : (
+                      <div className="text-center text-gray-600 mt-8">
+                        No community selected. Please create or select a community to view compliance alerts.
+                      </div>
+                    )}
+                    {/* Optionally keep ComplianceOverview below if you want both: */}
+                    {/* <ComplianceOverview /> */}
                   </CardContent>
                 </Card>
               )}

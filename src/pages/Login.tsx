@@ -8,6 +8,15 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import logo2 from '../../public/logo2.png';
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogFooter
+} from "@/components/ui/alert-dialog";
 
 /**
  * Login Page Component
@@ -23,6 +32,8 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorDialogMessage, setErrorDialogMessage] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -47,7 +58,8 @@ const Login = () => {
 
     if (error) {
       setIsLoading(false);
-      alert("Login failed: " + error.message);
+      setErrorDialogMessage(error.message);
+      setErrorDialogOpen(true);
       return;
     }
 
@@ -62,13 +74,15 @@ const Login = () => {
     setIsLoading(false);
 
     if (profileError || !profile) {
-      alert("Failed to fetch user profile.");
+      setErrorDialogMessage("Failed to fetch user profile.");
+      setErrorDialogOpen(true);
       return;
     }
 
     // 3. Navigate based on role and verified status
     if (!profile.verified) {
-      alert("Your email is not verified.");
+      setErrorDialogMessage("Your email is not verified.");
+      setErrorDialogOpen(true);
       return;
     }
 
@@ -85,7 +99,8 @@ const Login = () => {
     } else if (profile.role === "admin") {
       navigate("/admin");
     } else {
-      alert("Unknown user role.");
+      setErrorDialogMessage("Unknown user role.");
+      setErrorDialogOpen(true);
     }
   };
 
@@ -274,6 +289,21 @@ const Login = () => {
           </Card>
         </div>
       </main>
+      <AlertDialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <AlertDialogContent className="rounded-xl border border-primary shadow-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#254F70] text-lg font-bold">Login Failed</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              {errorDialogMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold rounded-lg px-6 py-2 mt-2">
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

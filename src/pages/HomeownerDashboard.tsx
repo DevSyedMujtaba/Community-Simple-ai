@@ -58,6 +58,8 @@ const HomeownerDashboard = () => {
 
   // Add state for approved membership
   const [approvedMembership, setApprovedMembership] = useState<any | null>(null);
+  const [notices, setNotices] = useState<any[]>([]);
+  const [noticesLoading, setNoticesLoading] = useState(false);
 
   // Fetch document count when membership is approved
   useEffect(() => {
@@ -312,8 +314,6 @@ const HomeownerDashboard = () => {
 
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [userId, setUserId] = useState("");
-  const [notices, setNotices] = useState([]);
-  const [noticesLoading, setNoticesLoading] = useState(false);
   const [unreadNotices, setUnreadNotices] = useState(0);
 
   // Fetch unread count for the homeowner
@@ -511,6 +511,35 @@ const HomeownerDashboard = () => {
   //   setUnreadNotices(updated.filter(n => n.status === 'unread').length);
   //   return updated;
   // });
+
+  useEffect(() => {
+    const fetchMembershipAndNotices = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) return;
+      // 1. Fetch approved membership
+      const { data: membership } = await supabase
+        .from('hoa_join_requests')
+        .select('hoa_id')
+        .eq('user_id', userId)
+        .eq('status', 'approved')
+        .single();
+      setApprovedMembership(membership);
+      if (membership && membership.hoa_id) {
+        setNoticesLoading(true);
+        // 2. Fetch notices for the user's HOA
+        const { data: noticesData } = await supabase
+          .from('notices')
+          .select('*')
+          .eq('hoa_id', membership.hoa_id);
+        setNotices(noticesData || []);
+        setNoticesLoading(false);
+      } else {
+        setNotices([]);
+      }
+    };
+    fetchMembershipAndNotices();
+  }, []);
 
   return (
     <SidebarProvider>
@@ -729,7 +758,13 @@ const HomeownerDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <HomeownerNotices notices={notices} onUnreadCountChange={setUnreadNotices} />
+                    {approvedMembership && approvedMembership.hoa_id ? (
+                      <HomeownerNotices notices={notices} onUnreadCountChange={setUnreadNotices} />
+                    ) : (
+                      <div className="text-center text-gray-600 mt-8">
+                        You are not a member of any community yet. Please join a community to see notices.
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -810,7 +845,7 @@ const HomeownerDashboard = () => {
                 </div>
               )}
 
-              {/* {activeTab === 'alerts' && (
+              {activeTab === 'compliance' && (
                 <div className="space-y-4 sm:space-y-6">
                   <Card>
                     <CardHeader className="pb-3 sm:pb-4">
@@ -824,11 +859,17 @@ const HomeownerDashboard = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <ComplianceAlerts />
+                      {approvedMembership && approvedMembership.hoa_id ? (
+                        <ComplianceAlerts hoaId={approvedMembership.hoa_id} />
+                      ) : (
+                        <div className="text-center text-gray-600 mt-8">
+                          You are not a member of any community yet. Please join a community to see compliance alerts.
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
-              )} */}
+              )}
 
               {activeTab === 'settings' && (
                 <div className="space-y-4 sm:space-y-6">
