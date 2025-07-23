@@ -119,19 +119,26 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
       console.log('Community:', community);
       if (!community) return;
       setHoaId(community.id);
-      // 3. Fetch all approved join requests (residents)
+      // 3. Fetch all join requests for this HOA (not just approved)
       const { data: allReqs, error: allReqsError } = await supabase
         .from("hoa_join_requests")
         .select("id, user_id, unit_number, phone_number, status, created_at, profiles:profiles!user_id(id, first_name, last_name)")
-        .eq("hoa_id", community.id)
-        .eq("status", "approved");
+        .eq("hoa_id", community.id);
       console.log('Join Requests:', allReqs, 'Error:', allReqsError);
       if (allReqsError || !allReqs) {
         setResidents([]);
         return;
       }
+      // Only include users whose latest join request is not rejected
+      const latestJoinRequests: Record<string, any> = {};
+      allReqs.forEach((req: any) => {
+        if (!latestJoinRequests[req.user_id] || new Date(req.created_at) > new Date(latestJoinRequests[req.user_id].created_at)) {
+          latestJoinRequests[req.user_id] = req;
+        }
+      });
+      const filteredReqs = Object.values(latestJoinRequests).filter((req: any) => req.status !== 'rejected');
       // 4. Map residents for ChatInterface
-      const mappedResidents = allReqs.map((req: any) => ({
+      const mappedResidents = filteredReqs.map((req: any) => ({
         id: req.profiles?.id || req.user_id,
         name: req.profiles ? `${req.profiles.first_name || ''} ${req.profiles.last_name || ''}`.trim() : 'Unknown',
         email: req.profiles?.email || '',

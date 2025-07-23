@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,6 @@ import { Building2, Users, Search, Filter, Calendar, MapPin, Mail, Phone } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabaseClient";
-import { useRef } from "react";
 interface HOAMember {
   id: string;
   name: string;
@@ -80,6 +79,12 @@ const HOAManagement = () => {
   const [activeMembers, setActiveMembers] = useState(0);
   const [pendingMembers, setPendingMembers] = useState(0);
   const [members, setMembers] = useState<HOAMember[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [allHOAs, setAllHOAs] = useState<any[]>([]);
+  const [allHOAsLoading, setAllHOAsLoading] = useState(false);
+  const [allHOAsError, setAllHOAsError] = useState<string | null>(null);
+  const [hoaMembers, setHoaMembers] = useState<{ [hoaId: string]: any[] }>({});
+  const [hoaMembersLoading, setHoaMembersLoading] = useState<{ [hoaId: string]: boolean }>({});
 
   useEffect(() => {
     // Get the current session on mount
@@ -96,6 +101,20 @@ const HOAManagement = () => {
     return () => {
       listener?.subscription.unsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      setUserRole(profile?.role || null);
+    };
+    fetchRole();
   }, []);
 
   useEffect(() => {
@@ -170,8 +189,16 @@ const HOAManagement = () => {
         setMembers([]);
         return;
       }
+      // Only include users whose latest join request is not rejected
+      const latestJoinRequests: Record<string, any> = {};
+      (joinRequests as JoinRequest[]).forEach((jr) => {
+        if (!latestJoinRequests[jr.user_id] || new Date(jr.created_at) > new Date(latestJoinRequests[jr.user_id].created_at)) {
+          latestJoinRequests[jr.user_id] = jr;
+        }
+      });
+      const filteredJoinRequests = Object.values(latestJoinRequests).filter((jr: any) => jr.status !== 'rejected');
       // Get all user_ids
-      const userIds = (joinRequests as JoinRequest[]).map((jr) => jr.user_id);
+      const userIds = filteredJoinRequests.map((jr: any) => jr.user_id);
       // Fetch emails and names from edge function
       let usersData: HOAUsersResponse = { users: [] };
       try {
@@ -188,7 +215,7 @@ const HOAManagement = () => {
         console.error('Error fetching emails from edge function:', e);
       }
       // Map joinRequests to members with email and name
-      const mappedMembers: HOAMember[] = (joinRequests as JoinRequest[]).map((m) => {
+      const mappedMembers: HOAMember[] = filteredJoinRequests.map((m: any) => {
         const user: HOAUser | undefined = usersData.users.find((u) => String(u.id) === String(m.user_id));
         return {
           id: m.user_id,
@@ -203,6 +230,72 @@ const HOAManagement = () => {
     };
     fetchMembers();
   }, [myCommunity, accessToken]);
+
+  // Fetch all HOAs and their stats for admin
+  useEffect(() => {
+    const fetchAllHOAs = async () => {
+      if (userRole !== 'admin') return;
+      setAllHOAsLoading(true);
+      setAllHOAsError(null);
+      try {
+        // 1. Fetch all HOAs (include board_member_id)
+        const { data: hoas, error: hoasError } = await supabase
+          .from('hoa_communities')
+          .select('*');
+        if (hoasError) throw hoasError;
+        // 2. For each HOA, fetch join request counts
+        const hoaStats = await Promise.all(
+          (hoas || []).map(async (hoa: any) => {
+            const { data: joinRequests, error: jrError } = await supabase
+              .from('hoa_join_requests')
+              .select('status')
+              .eq('hoa_id', hoa.id);
+            if (jrError) return { ...hoa, activeMembers: 0, pendingRequests: 0 };
+            const activeMembers = joinRequests.filter((jr: any) => jr.status === 'approved').length;
+            const pendingRequests = joinRequests.filter((jr: any) => jr.status === 'pending').length;
+            return {
+              ...hoa,
+              activeMembers,
+              pendingRequests,
+            };
+          })
+        );
+        // 3. Fetch all unique board_member_ids
+        const boardMemberIds = Array.from(new Set((hoas || []).map((h: any) => h.board_member_id).filter(Boolean)));
+        let boardMembers: HOAUsersResponse = { users: [] };
+        if (boardMemberIds.length > 0) {
+          try {
+            const res = await fetch(
+              `https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/get-hoa-users?user_ids=${boardMemberIds.join(',')}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`
+                }
+              }
+            );
+            boardMembers = await res.json();
+            console.log('HOA board members:', boardMembers);
+          } catch (e) {
+            console.error('Error fetching board member info from edge function:', e);
+          }
+        }
+        // 4. Attach board member info to each HOA
+        const hoaStatsWithBoard = hoaStats.map((hoa: any) => {
+          const board = boardMembers.users.find((u: any) => String(u.id) === String(hoa.board_member_id));
+          return {
+            ...hoa,
+            boardMember: board || null,
+          };
+        });
+        setAllHOAs(hoaStatsWithBoard);
+      } catch (err: any) {
+        setAllHOAsError(err.message || 'Failed to fetch HOAs');
+      } finally {
+        setAllHOAsLoading(false);
+      }
+    };
+    fetchAllHOAs();
+  }, [userRole, accessToken]);
 
   const handleCommunityInput = (e) => {
     const { name, value } = e.target;
@@ -281,12 +374,19 @@ const HOAManagement = () => {
   }
 
   // Calculate platform statistics
-  const stats = {
-    totalHOAs: myCommunity ? 1 : 0,
-    totalUnits: myCommunity ? Number(myCommunity.units) : 0,
-    totalMembers: activeMembers, // Use real active member count
-    pendingRequests: pendingMembers // Use real pending member count
-  };
+  const stats = userRole === 'admin'
+    ? {
+        totalHOAs: allHOAs.length,
+        totalUnits: allHOAs.reduce((sum, hoa) => sum + (hoa.units || 0), 0),
+        totalMembers: allHOAs.reduce((sum, hoa) => sum + (hoa.activeMembers || 0), 0),
+        pendingRequests: allHOAs.reduce((sum, hoa) => sum + (hoa.pendingRequests || 0), 0),
+      }
+    : {
+        totalHOAs: myCommunity ? 1 : 0,
+        totalUnits: myCommunity ? Number(myCommunity.units) : 0,
+        totalMembers: activeMembers,
+        pendingRequests: pendingMembers
+      };
 
   // Get status color for members
   const getStatusColor = (status: string) => {
@@ -314,13 +414,73 @@ const HOAManagement = () => {
     }
   };
 
-  // Handle HOA expansion
-  const toggleHOAExpansion = (hoaId: string) => {
-    setExpandedHOA(expandedHOA === hoaId ? null : hoaId);
+  // Fetch members for a specific HOA (admin view)
+  const fetchMembersForHOA = async (hoaId: string) => {
+    setHoaMembersLoading(prev => ({ ...prev, [hoaId]: true }));
+    try {
+      // 1. Fetch all approved join requests for this HOA
+      const { data: joinRequests, error } = await supabase
+        .from('hoa_join_requests')
+        .select('user_id, created_at, board_member_id, status')
+        .eq('hoa_id', hoaId)
+        .eq('status', 'approved');
+      if (error) throw error;
+      // 2. Collect all unique user_ids
+      const userIds = (joinRequests || []).map((jr: any) => String(jr.user_id));
+      if (userIds.length === 0) {
+        setHoaMembers(prev => ({ ...prev, [hoaId]: [] }));
+        return;
+      }
+      // 3. Fetch user info from Edge Function
+      let usersData: HOAUsersResponse = { users: [] };
+      try {
+        const res = await fetch(
+          `https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/get-hoa-users?user_ids=${userIds.join(',')}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          }
+        );
+        usersData = await res.json();
+      } catch (e) {
+        console.error('Error fetching emails from edge function:', e);
+      }
+      // 4. Merge joinRequests with user info
+      const members = (joinRequests || []).map((jr: any) => {
+        const user: HOAUser | undefined = usersData.users.find((u) => String(u.id) === String(jr.user_id));
+        return {
+          id: jr.user_id,
+          name: user?.name || '',
+          email: user?.email || '',
+          role: (jr.board_member_id === jr.user_id ? 'board' : 'homeowner') as 'board' | 'homeowner',
+          joinDate: jr.created_at,
+          status: 'active',
+        };
+      });
+      setHoaMembers(prev => ({ ...prev, [hoaId]: members }));
+    } catch (err) {
+      setHoaMembers(prev => ({ ...prev, [hoaId]: [] }));
+    } finally {
+      setHoaMembersLoading(prev => ({ ...prev, [hoaId]: false }));
+    }
   };
-  return <div className="space-y-6">
-      {/* Create Community Button and Form */}
-      {!showCommunityForm && (
+
+  // Toggle HOA expansion and fetch members if needed
+  const handleToggleHOAExpansion = (hoaId: string) => {
+    if (expandedHOA === hoaId) {
+      setExpandedHOA(null);
+    } else {
+      setExpandedHOA(hoaId);
+      if (!hoaMembers[hoaId]) {
+        fetchMembersForHOA(hoaId);
+      }
+    }
+  };
+  return (
+    <div className="space-y-6">
+      {/* Create Community Button and Form (only for non-admins) */}
+      {userRole !== 'admin' && !showCommunityForm && (
         <Button
           className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base mb-4"
           onClick={() => setShowCommunityForm(true)}
@@ -328,7 +488,7 @@ const HOAManagement = () => {
           Create Community
         </Button>
       )}
-      {showCommunityForm && (
+      {userRole !== 'admin' && showCommunityForm && (
         <Card className="rounded-xl border w-full mb-4">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-900">Create New HOA Community</CardTitle>
@@ -351,10 +511,6 @@ const HOAManagement = () => {
                 <div>
                   <Label>Address</Label>
                   <Input name="address" value={communityForm.address} onChange={handleCommunityInput} required />
-                </div>
-                <div>
-                  <Label>Number of Units</Label>
-                  <Input name="units" type="number" value={communityForm.units} onChange={handleCommunityInput} required />
                 </div>
                 <div>
                   <Label>Contact Email</Label>
@@ -411,7 +567,6 @@ const HOAManagement = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input type="text" placeholder="Search HOAs, cities, or states..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
         </div>
-
         <div className="flex items-center space-x-2">
           <Filter className="h-4 w-4 text-gray-600" />
           <select value={statusFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary">
@@ -424,112 +579,208 @@ const HOAManagement = () => {
 
       {/* HOAs List */}
       <div className="space-y-4">
-        {displayHOAs.map(hoa => <Card key={hoa.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {/* HOA Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-purple-100 p-3 rounded-full">
-                      <Building2 className="h-6 w-6 text-purple-600" />
+        {userRole === 'admin'
+          ? allHOAs.map(hoa => {
+              console.log('HOA card:', hoa);
+              return (
+                <Card key={hoa.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="bg-purple-100 p-3 rounded-full">
+                            <Building2 className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">{hoa.name}</h3>
+                        </div>
+                        {/* Board Member Info (force render for debug) */}
+                        <div className="flex items-center gap-2 mb-1 text-xs text-gray-600 bg-yellow-100 p-1 rounded">
+                          <Users className="h-4 w-4 text-blue-600" />
+                          <span className="font-semibold text-blue-800">Board Member:</span>
+                          <span>{hoa.boardMember?.name || 'No Name'}</span>
+                          <span className="mx-1">|</span>
+                          <span>{hoa.boardMember?.email || 'No Email'}</span>
+                        </div>
+                        {/* End Board Member Info */}
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            {hoa.city}, {hoa.state}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            Created {new Date(hoa.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-4 w-4" />
+                            {hoa.contact_email}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-4 w-4" />
+                            {hoa.contact_phone}
+                          </div>
+                        </div>
+                        <div className="flex gap-4 mt-2">
+                          <div className="bg-green-50 rounded p-2 min-w-[110px] min-h-[40px] flex flex-col justify-center">
+                            <div className="text-sm font-medium text-green-900">Active Members</div>
+                            <div className="text-lg font-bold text-green-700">{hoa.activeMembers}</div>
+                          </div>
+                          <div className="bg-orange-50 rounded p-2 min-w-[110px] min-h-[40px] flex flex-col justify-center">
+                            <div className="text-sm font-medium text-orange-900">Pending</div>
+                            <div className="text-lg font-bold text-orange-700">{hoa.pendingRequests}</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-center items-center md:ml-8">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-[#254F70] text-[#254F70] hover:bg-blue-50 min-w-[110px] h-9"
+                          onClick={() => handleToggleHOAExpansion(hoa.id)}
+                        >
+                          {expandedHOA === hoa.id ? 'Hide Members' : 'View Members'}
+                        </Button>
+                      </div>
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">{hoa.name}</h3>
-                        <Badge variant="outline" className="w-fit">
-                          {hoa.totalUnits} units
-                        </Badge>
+                    {/* Members List (expanded) */}
+                    {expandedHOA === hoa.id && (
+                      <>
+                        <hr className="my-6" />
+                        <div className="mb-4 text-lg font-semibold text-gray-900">Members ({hoaMembers[hoa.id]?.length || 0})</div>
+                        {hoaMembersLoading[hoa.id] ? (
+                          <div className="flex justify-center items-center py-8">
+                            <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {(hoaMembers[hoa.id] || []).map(member => (
+                              <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 rounded-xl">
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <div className="bg-gray-200 p-2 rounded-full">
+                                    <Users className="h-6 w-6 text-gray-600" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-semibold text-gray-900 truncate">{member.name}</span>
+                                      <Badge className={getRoleColor(member.role)} variant="secondary">{member.role}</Badge>
+                                      {['active', 'inactive', 'suspended'].includes(member.status) && (
+                                        <Badge className={getStatusColor(member.status)} variant="secondary">{member.status}</Badge>
+                                      )}
+                                    </div>
+                                    <div className="text-sm text-gray-600 truncate">{member.email} <span className="mx-1">•</span> Joined {new Date(member.joinDate).toLocaleDateString()}</div>
+                                  </div>
+                                </div>
+                                <Button variant="outline" size="sm" className="border-[#254F70] text-[#254F70] hover:bg-blue-50">
+                                  View Profile
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
+          : displayHOAs.map(hoa => (
+              <Card key={hoa.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  {/* HOA Header */}
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex items-start space-x-4">
+                      <div className="bg-purple-100 p-3 rounded-full">
+                        <Building2 className="h-6 w-6 text-purple-600" />
                       </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-gray-600 mb-3">
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span className="truncate">{hoa.city}, {hoa.state}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">{hoa.name}</h3>
+                          <Badge variant="outline" className="w-fit">
+                            {hoa.totalUnits} units
+                          </Badge>
                         </div>
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span>Created {new Date(hoa.createdDate).toLocaleDateString()}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-gray-600 mb-3">
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span className="truncate">{hoa.city}, {hoa.state}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span>Created {new Date(hoa.createdDate).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span className="truncate">{hoa.contactEmail}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span>{hoa.contactPhone}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span className="truncate">{hoa.contactEmail}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span>{hoa.contactPhone}</span>
+                        {/* Quick Stats */}
+                        <div className="grid grid-cols-3 gap-4 text-xs">
+                          <div className="bg-green-50 p-2 rounded">
+                            <div className="font-medium text-green-900">Active Members</div>
+                            <div className="text-green-700">{hoa.activeMembers}</div>
+                          </div>
+                          <div className="bg-orange-50 p-2 rounded">
+                            <div className="font-medium text-orange-900">Pending</div>
+                            <div className="text-orange-700">{hoa.pendingRequests}</div>
+                          </div>
                         </div>
                       </div>
-                      
-                      {/* Quick Stats */}
-                      <div className="grid grid-cols-3 gap-4 text-xs">
-                        
-                        <div className="bg-green-50 p-2 rounded">
-                          <div className="font-medium text-green-900">Active Members</div>
-                          <div className="text-green-700">{hoa.activeMembers}</div>
-                        </div>
-                        <div className="bg-orange-50 p-2 rounded">
-                          <div className="font-medium text-orange-900">Pending</div>
-                          <div className="text-orange-700">{hoa.pendingRequests}</div>
-                        </div>
-                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleToggleHOAExpansion(hoa.id)} className="text-[#254F70] border-[#254F70] hover:bg-blue-50">
+                        {expandedHOA === hoa.id ? 'Hide Members' : 'View Members'}
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button variant="outline" size="sm" onClick={() => toggleHOAExpansion(hoa.id)} className="text-[#254F70] border-[#254F70] hover:bg-blue-50">
-                      {expandedHOA === hoa.id ? 'Hide Members' : 'View Members'}
-                    </Button>
-                    
-                  </div>
-                </div>
-
-                {/* Expanded Members List */}
-                {expandedHOA === hoa.id && <div className="border-t pt-4">
-                    <h4 className="text-md font-semibold text-gray-900 mb-3">
-                      Members ({hoa.members.length})
-                    </h4>
-                    <div className="space-y-3">
-                      {hoa.members.map(member => <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center space-x-3 min-w-0 flex-1">
-                            <div className="bg-gray-200 p-2 rounded-full">
-                              <Users className="h-4 w-4 text-gray-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                <span className="font-medium text-gray-900 truncate">{member.name}</span>
-                                <div className="flex gap-2">
-                                  <Badge className={getRoleColor(member.role)} variant="secondary">
-                                    {member.role}
-                                  </Badge>
-                                  <Badge className={getStatusColor(member.status)} variant="secondary">
-                                    {member.status}
-                                  </Badge>
+                  {/* Expanded Members List */}
+                  {expandedHOA === hoa.id && <div className="border-t pt-4">
+                      <h4 className="text-md font-semibold text-gray-900 mb-3">
+                        Members ({hoa.members.length})
+                      </h4>
+                      <div className="space-y-3">
+                        {hoa.members.map(member => <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-3 min-w-0 flex-1">
+                              <div className="bg-gray-200 p-2 rounded-full">
+                                <Users className="h-4 w-4 text-gray-600" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                  <span className="font-medium text-gray-900 truncate">{member.name}</span>
+                                  <div className="flex gap-2">
+                                    <Badge className={getRoleColor(member.role)} variant="secondary">
+                                      {member.role}
+                                    </Badge>
+                                    <Badge className={getStatusColor(member.status)} variant="secondary">
+                                      {member.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  <span className="truncate block sm:inline">{member.email}</span>
+                                  <span className="hidden sm:inline"> • </span>
+                                  <span className="block sm:inline">Joined {new Date(member.joinDate).toLocaleDateString()}</span>
                                 </div>
                               </div>
-                              <div className="text-sm text-gray-600 mt-1">
-                                <span className="truncate block sm:inline">{member.email}</span>
-                                <span className="hidden sm:inline"> • </span>
-                                <span className="block sm:inline">Joined {new Date(member.joinDate).toLocaleDateString()}</span>
-                              </div>
                             </div>
-                          </div>
-                          <Button variant="outline" size="sm" className="text-gray-600 border-gray-600 hover:bg-gray-100 w-full sm:w-auto">
-                            View Profile
-                          </Button>
-                        </div>)}
-                    </div>
-                  </div>}
-              </div>
-            </CardContent>
-          </Card>)}
+                            <Button variant="outline" size="sm" className="text-gray-600 border-gray-600 hover:bg-gray-100 w-full sm:w-auto">
+                              View Profile
+                            </Button>
+                          </div>)}
+                      </div>
+                    </div>}
+                </CardContent>
+              </Card>
+            ))}
       </div>
-
-      {/* File upload UI above the documents list */}
-      {/* Remove the file upload UI from HOA Management tab */}
-      {/* (Delete or comment out the <input type="file" ... /> and related upload logic in this file) */}
-
-      {displayHOAs.length === 0 && <Card className="border-dashed border-2 border-gray-300">
+      {userRole === 'admin' && allHOAs.length === 0 && (
+        <Card className="border-dashed border-2 border-gray-300">
           <CardContent className="p-12 text-center">
             <div className="mx-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
               <Building2 className="h-6 w-6 text-gray-400" />
@@ -539,7 +790,22 @@ const HOAManagement = () => {
               {searchTerm || statusFilter !== 'all' ? 'Adjust your search criteria or filters to see more results.' : 'No HOAs registered in the system yet.'}
             </p>
           </CardContent>
-        </Card>}
-    </div>;
+        </Card>
+      )}
+      {userRole !== 'admin' && displayHOAs.length === 0 && (
+        <Card className="border-dashed border-2 border-gray-300">
+          <CardContent className="p-12 text-center">
+            <div className="mx-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+              <Building2 className="h-6 w-6 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No HOAs found</h3>
+            <p className="text-gray-600">
+              {searchTerm || statusFilter !== 'all' ? 'Adjust your search criteria or filters to see more results.' : 'No HOAs registered in the system yet.'}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 };
 export default HOAManagement;

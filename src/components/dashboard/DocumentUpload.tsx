@@ -161,7 +161,7 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
       const text = await extractTextFromPDF(file);
 
       // 5. Call Supabase Edge Function for summarization with Authorization header
-      await fetch("https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/summarize-pdf", {
+      const summarizeRes = await fetch("https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/summarize-pdf", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -169,6 +169,17 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
         },
         body: JSON.stringify({ document_id: inserted.id, text }),
       });
+      const summarizeData = await summarizeRes.json();
+      // Log token usage if available
+      if (summarizeData.tokens_used) {
+        await supabase.from('token_usage').insert([
+          {
+            user_id: userId,
+            tokens_used: summarizeData.tokens_used,
+            created_at: new Date().toISOString(),
+          }
+        ]);
+      }
 
       // 5b. Call compliance extraction Edge Function (with auth header)
       try {

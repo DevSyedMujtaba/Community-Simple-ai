@@ -55,6 +55,19 @@ const ChatInterface = ({ hoaId, documents }: ChatInterfaceProps) => {
 
     const data = await response.json();
     setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: data.answer }]);
+    // Log token usage if available
+    if (data.tokens_used) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && user.id) {
+        await supabase.from('token_usage').insert([
+          {
+            user_id: user.id,
+            tokens_used: data.tokens_used,
+            created_at: new Date().toISOString(),
+          }
+        ]);
+      }
+    }
     setIsLoading(false);
   };
 

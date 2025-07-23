@@ -612,29 +612,44 @@ const BoardDashboard = () => {
 
               {activeTab === 'documents' && (
                 <div className="space-y-4 sm:space-y-6">
-                  <Card>
-                    <CardHeader className="pb-3 sm:pb-4">
-                      <CardTitle className="flex items-center text-lg sm:text-xl">
-                        <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
-                        Document Management
-                      </CardTitle>
-                      <CardDescription className="text-sm sm:text-base">
-                        Upload official governing documents and view AI summaries
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      {/* Render DocumentUpload above the document list */}
-                      <DocumentUpload hoaId={myCommunity?.id} onDocumentUploaded={handleDocumentUploaded} />
-                      <DocumentList 
-                        documents={documents} 
-                        loading={loadingDocs} 
-                        onToggleChat={handleToggleChat}
-                        isChatOpen={isChatOpen}
-                      />
-                    </CardContent>
-                  </Card>
-
-                  {isChatOpen && (
+                  {myCommunity?.id ? (
+                    <Card>
+                      <CardHeader className="pb-3 sm:pb-4">
+                        <CardTitle className="flex items-center text-lg sm:text-xl">
+                          <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
+                          Document Management
+                        </CardTitle>
+                        <CardDescription className="text-sm sm:text-base">
+                          Upload official governing documents and view AI summaries
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        {/* Render DocumentUpload above the document list */}
+                        <DocumentUpload hoaId={myCommunity.id} onDocumentUploaded={handleDocumentUploaded} />
+                        <DocumentList 
+                          documents={documents} 
+                          loading={loadingDocs} 
+                          onToggleChat={handleToggleChat}
+                          isChatOpen={isChatOpen}
+                        />
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card>
+                      <CardHeader className="pb-3 sm:pb-4">
+                        <CardTitle className="flex items-center text-lg sm:text-xl">
+                          <FileText className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
+                          Document Management
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="text-center text-gray-600 py-12 text-lg font-semibold">
+                          You must create a community before uploading or viewing documents.
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  {isChatOpen && myCommunity?.id && (
                     <Card>
                       <CardHeader className="pb-3 sm:pb-4">
                         <CardTitle className="text-lg sm:text-xl">AI Assistant</CardTitle>
@@ -643,7 +658,7 @@ const BoardDashboard = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <ChatInterface documents={documents} hoaId={myCommunity?.id} />
+                        <ChatInterface documents={documents} hoaId={myCommunity.id} />
                       </CardContent>
                     </Card>
                   )}

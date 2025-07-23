@@ -67,7 +67,7 @@ const Login = () => {
     const userId = data.user.id;
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role, verified")
+      .select("role, verified, status")
       .eq("id", userId)
       .single();
 
@@ -75,6 +75,15 @@ const Login = () => {
 
     if (profileError || !profile) {
       setErrorDialogMessage("Failed to fetch user profile.");
+      setErrorDialogOpen(true);
+      return;
+    }
+
+    // 3. Block suspended users
+    if (profile.status === 'suspended') {
+      // Immediately sign out to clear any session/token
+      await supabase.auth.signOut();
+      setErrorDialogMessage("Your account is suspended. Please contact support at support@communitysimple.com for assistance.");
       setErrorDialogOpen(true);
       return;
     }
