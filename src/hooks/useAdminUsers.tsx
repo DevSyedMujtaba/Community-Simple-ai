@@ -126,15 +126,17 @@ const useAdminUsers = (): UseAdminUsersResult & { refetch: () => Promise<void> }
           // Join and last active dates and email from auth.users (edge function)
           let joinDate = 'N/A';
           let lastActive = 'N/A';
-          let email = profile.email || '';
+          let email = 'N/A';
           if (authDates[profile.id]) {
-            joinDate = authDates[profile.id].created_at
-              ? new Date(authDates[profile.id].created_at).toISOString().split('T')[0]
+            email = authDates[profile.id].email || profile.email || 'N/A';
+            joinDate = authDates[profile.id].created_at && !isNaN(Date.parse(authDates[profile.id].created_at))
+              ? new Date(authDates[profile.id].created_at).toISOString()
               : 'N/A';
-            lastActive = authDates[profile.id].last_sign_in_at
-              ? new Date(authDates[profile.id].last_sign_in_at).toISOString().split('T')[0]
+            lastActive = authDates[profile.id].last_sign_in_at && !isNaN(Date.parse(authDates[profile.id].last_sign_in_at))
+              ? new Date(authDates[profile.id].last_sign_in_at).toISOString()
               : 'N/A';
-            email = authDates[profile.id].email || email;
+          } else {
+            email = profile.email || 'N/A';
           }
 
           return {
