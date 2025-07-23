@@ -314,7 +314,7 @@ const UserManagement = () => {
                       >
                         {suspendLoading ? 'Activating...' : 'Activate'}
                       </Button>
-                    ) : user.status !== 'suspended' && (
+                    ) : (user.status as string) !== 'suspended' && (
                       <Button
                         variant="outline"
                         size="sm"
