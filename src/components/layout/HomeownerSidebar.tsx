@@ -45,7 +45,7 @@ export function HomeownerSidebar({
   activeTab,
   onTabChange
 }: HomeownerSidebarProps) {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed";
   const navigate = useNavigate();
@@ -106,6 +106,7 @@ export function HomeownerSidebar({
 
   const handleTabClick = (tabId: string) => {
     onTabChange(tabId);
+    if (isMobile) setOpenMobile(false);
   };
 
   const isActive = (tabId: string) => activeTab === tabId;

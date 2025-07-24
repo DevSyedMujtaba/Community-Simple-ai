@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -163,37 +164,37 @@ const UserManagement = () => {
     <div className="space-y-6">
       {/* Platform Statistics */}
       <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
-        <Card className="rounded-xl border">
+        <Card className="rounded-xl border w-full">
           <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
             <div className="text-base xs:text-xl lg:text-2xl font-bold text-purple-600">{stats.total}</div>
             <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Total Users</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border">
+        <Card className="rounded-xl border w-full">
           <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
             <div className="text-base xs:text-xl lg:text-2xl font-bold text-green-600">{stats.active}</div>
             <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Active</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border">
+        <Card className="rounded-xl border w-full">
           <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
             <div className="text-base xs:text-xl lg:text-2xl font-bold text-blue-600">{stats.homeowners}</div>
             <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Homeowners</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border">
+        <Card className="rounded-xl border w-full">
           <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
             <div className="text-base xs:text-xl lg:text-2xl font-bold text-purple-600">{stats.boardMembers}</div>
             <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Board Members</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border">
+        <Card className="rounded-xl border w-full">
           <CardContent className="p-2 xs:p-3 sm:p-4 text-center">
             <div className="text-base xs:text-xl lg:text-2xl font-bold text-orange-600">{stats.totalMessages.toLocaleString()}</div>
             <div className="text-xs xs:text-sm lg:text-sm text-gray-600">Messages</div>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border">
+        <Card className="rounded-xl border w-full">
           <CardContent className="p-4 sm:p-6 text-center">
             <div className="text-2xl font-bold text-red-600">{formatTokenUsage(stats.totalTokens)}</div>
             <div className="text-xs text-gray-600 mt-1">Tokens Used</div>
@@ -203,7 +204,7 @@ const UserManagement = () => {
 
       {/* Filters and Search */}
       <div className="flex flex-col gap-4">
-        <div className="relative">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
@@ -214,13 +215,13 @@ const UserManagement = () => {
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
             <Filter className="h-4 w-4 text-gray-600" />
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as any)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary w-full sm:w-auto"
             >
               <option value="all">All Roles</option>
               <option value="homeowner">Homeowners</option>
@@ -231,7 +232,7 @@ const UserManagement = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary w-full sm:w-auto"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -250,15 +251,14 @@ const UserManagement = () => {
               <div className="space-y-4">
                 {/* User Header */}
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  <div className="flex items-start space-x-4 min-w-0 flex-1">
+                  <div className="flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0 sm:space-x-4 min-w-0 flex-1">
                     <div className="bg-gray-100 p-3 rounded-full flex-shrink-0">
                       <Users className="h-6 w-6 text-gray-600" />
                     </div>
-                    
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">{user.name}</h3>
-                        <div className="flex gap-2">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate break-words max-w-full">{user.name}</h3>
+                        <div className="flex gap-2 flex-wrap">
                           <Badge className={getRoleColor(user.role)} variant="secondary">
                             {user.role}
                           </Badge>
@@ -269,38 +269,36 @@ const UserManagement = () => {
                           )}
                         </div>
                       </div>
-                      
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
-                        <div className="flex items-center">
+                        <div className="flex items-center min-w-0">
                           <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span className="truncate">{user.email}</span>
+                          <span className="truncate break-words">{user.email}</span>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center min-w-0">
                           <Users className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span className="truncate">
+                          <span className="truncate break-words">
                             {user.status === 'rejected'
                               ? 'Not a member of any community'
                               : user.hoaName}
                           </span>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center min-w-0">
                           <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
                           <span>Joined {new Date(user.joinDate).toLocaleDateString()}</span>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center min-w-0">
                           <Activity className="h-4 w-4 mr-2 flex-shrink-0" />
                           <span>Active {new Date(user.lastActive).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleViewUser(user.id)}
-                      className="text-[#254F70] border-[#254F70] hover:bg-blue-50"
+                      className="text-[#254F70] border-[#254F70] hover:bg-blue-50 w-full sm:w-auto"
                     >
                       View Details
                     </Button>
@@ -309,7 +307,7 @@ const UserManagement = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleActivateUser(user.id)}
-                        className="text-green-600 border-green-600 hover:bg-green-50"
+                        className="text-green-600 border-green-600 hover:bg-green-50 w-full sm:w-auto"
                         disabled={suspendLoading}
                       >
                         {suspendLoading ? 'Activating...' : 'Activate'}
@@ -319,16 +317,15 @@ const UserManagement = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleSuspendUser(user.id)}
-                        className="text-red-600 border-red-600 hover:bg-red-50"
+                        className="text-red-600 border-red-600 hover:bg-red-50 w-full sm:w-auto"
                       >
                         Suspend
                       </Button>
                     )}
                   </div>
                 </div>
-
                 {/* Usage Statistics */}
-                <div className="grid grid-cols-3 gap-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                   <div className="bg-blue-50 p-3 rounded">
                     <div className="font-medium text-blue-900">Messages Sent</div>
                     <div className="text-blue-700 text-lg font-semibold">{user.messagesSent}</div>
@@ -350,7 +347,7 @@ const UserManagement = () => {
 
       {/* View Details Dialog */}
       <Dialog open={!!detailsUser} onOpenChange={() => setDetailsUser(null)}>
-        <DialogContent className="max-w-3xl min-w-[400px] h-[500px] flex flex-col justify-between p-8">
+        <DialogContent className="max-w-3xl min-w-[400px] h-[500px] flex flex-col justify-between p-8 w-full sm:min-w-[400px] sm:h-[500px] sm:max-w-3xl min-w-0 max-w-[95vw] h-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-primary mb-6">User Details</DialogTitle>
           </DialogHeader>

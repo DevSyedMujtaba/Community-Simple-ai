@@ -219,12 +219,12 @@ const AdminDashboard = () => {
             <SidebarTrigger className="-ml-1 text-blue-700 hover:bg-blue-50" />
             <div className="flex items-center gap-2 text-sm text-blue-900 flex-1 min-w-0">
               <span className="font-semibold truncate">Admin Dashboard</span>
-              <Badge variant="outline" className="text-[#254F70] border-[#254F70] bg-blue-50 text-xs sm:text-sm flex-shrink-0">
+              <Badge variant="outline" className="hidden sm:inline-flex text-[#254F70] border-[#254F70] bg-blue-50 text-xs sm:text-sm flex-shrink-0">
                 Admin Access
               </Badge>
-              <button className="ml-4 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80" disabled>
+              <button className="ml-4 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80 !text-[13px] sm:!text-xs" disabled>
                 HOA - Property Lawyer Market Place
-                <span className="ml-2 text-[10px] text-gray-500 font-normal">Beta - In Development - Coming soon</span>
+                <span className="ml-2 text-[10px] text-gray-500 font-normal ">Beta - In Development - Coming soon</span>
               </button>
             </div>
           </header>

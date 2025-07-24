@@ -568,7 +568,7 @@ const HomeownerDashboard = () => {
               </button>
             </div>
             {/* User Name Display - styled as a badge */}
-            <span className="ml-auto flex items-center gap-2 bg-[#254F70] text-white px-3 py-1 rounded-full font-medium text-sm shadow-sm">
+            <span className="ml-auto hidden sm:flex items-center gap-2 bg-[#254F70] text-white px-3 py-1 rounded-full font-medium text-sm shadow-sm">
               <User className="w-4 h-4 mr-1 text-white opacity-80" />
               {userName === null ? 'Loading...' : userName}
             </span>

@@ -287,17 +287,17 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
 
       {/* Selected Files List */}
       {selectedFiles.length > 0 && (
-        <Card>
+        <Card className="w-full max-w-xs mx-auto sm:max-w-full">
           <CardContent className="p-2 xs:p-3 sm:p-4">
             <h3 className="font-medium text-gray-900 mb-2 xs:mb-4">Selected Files</h3>
             <div className="space-y-2 xs:space-y-3">
               {selectedFiles.map((file, index) => (
-                <div key={index} className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 p-2 xs:p-3 bg-gray-50 rounded-lg min-w-0">
-                  <div className="flex items-center gap-2 min-w-0">
+                <div key={index} className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 p-2 xs:p-3 bg-gray-50 rounded-lg min-w-0 w-full">
+                  <div className="flex items-center gap-2 min-w-0 w-full">
                     <FileText className="h-5 w-5 text-red-600 flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="font-medium text-gray-900 truncate min-w-0">{file.name}</p>
-                      <p className="text-xs xs:text-sm text-gray-600 truncate min-w-0">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <div className="min-w-0 w-full">
+                      <p className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-900 truncate min-w-0 w-full">{file.name}</p>
+                      <p className="text-xs xs:text-sm text-gray-600 truncate min-w-0 w-full">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                     <select
                       value={fileCategories[file.name] || ""}
@@ -316,7 +316,7 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => removeFile(index)}
-                    className="text-gray-500 hover:text-red-600 w-full xs:w-auto"
+                    className="text-gray-500 hover:text-red-600 w-full xs:w-auto mx-auto"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -326,7 +326,7 @@ const DocumentUpload = ({ onDocumentUploaded, hoaId }: DocumentUploadProps) => {
             <div className="mt-2 xs:mt-4 flex flex-col xs:flex-row xs:justify-end gap-2">
               <Button 
                 onClick={uploadFiles}
-                className="bg-primary hover:bg-primary/90 w-full xs:w-auto"
+                className="bg-primary hover:bg-primary/90 w-auto mx-auto xs:w-auto h-8 text-xs px-3 py-1 sm:h-11 sm:text-base sm:px-6 sm:py-2"
                 disabled={uploadingFiles.length > 0}
               >
                 {uploadingFiles.length > 0 ? (

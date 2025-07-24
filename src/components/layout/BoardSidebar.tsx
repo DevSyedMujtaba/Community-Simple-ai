@@ -26,7 +26,9 @@ export function BoardSidebar({
   messagesUnread = 0
 }: BoardSidebarProps) {
   const {
-    state
+    state,
+    isMobile,
+    setOpenMobile
   } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed";
@@ -75,6 +77,7 @@ export function BoardSidebar({
 
   const handleTabClick = (tabId: string) => {
     onTabChange(tabId);
+    if (isMobile) setOpenMobile(false);
   };
   const isActive = (tabId: string) => activeTab === tabId;
   

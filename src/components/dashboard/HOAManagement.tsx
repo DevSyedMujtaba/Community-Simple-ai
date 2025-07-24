@@ -478,7 +478,7 @@ const HOAManagement = () => {
     }
   };
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full box-border overflow-x-hidden">
       {/* Create Community Button and Form (only for non-admins) */}
       {userRole !== 'admin' && !showCommunityForm && (
         <Button
@@ -569,7 +569,7 @@ const HOAManagement = () => {
         </div>
         <div className="flex items-center space-x-2">
           <Filter className="h-4 w-4 text-gray-600" />
-          <select value={statusFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary">
+          <select value={statusFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary w-full max-w-xs text-sm appearance-none leading-tight sm:w-auto sm:max-w-none" style={{ fontSize: '14px' }}>
             <option value="all">All HOAs</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -620,12 +620,12 @@ const HOAManagement = () => {
                             {hoa.contact_phone}
                           </div>
                         </div>
-                        <div className="flex gap-4 mt-2">
-                          <div className="bg-green-50 rounded p-2 min-w-[110px] min-h-[40px] flex flex-col justify-center">
+                        <div className="flex gap-4 mt-2 flex-wrap w-full">
+                          <div className="bg-green-50 rounded p-2 w-full sm:w-auto flex flex-col justify-center box-border">
                             <div className="text-sm font-medium text-green-900">Active Members</div>
                             <div className="text-lg font-bold text-green-700">{hoa.activeMembers}</div>
                           </div>
-                          <div className="bg-orange-50 rounded p-2 min-w-[110px] min-h-[40px] flex flex-col justify-center">
+                          <div className="bg-orange-50 rounded p-2 w-full sm:w-auto flex flex-col justify-center box-border">
                             <div className="text-sm font-medium text-orange-900">Pending</div>
                             <div className="text-lg font-bold text-orange-700">{hoa.pendingRequests}</div>
                           </div>
@@ -655,25 +655,25 @@ const HOAManagement = () => {
                             </svg>
                           </div>
                         ) : (
-                          <div className="space-y-4">
+                          <div className="space-y-4 w-full">
                             {(hoaMembers[hoa.id] || []).map(member => (
-                              <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 rounded-xl">
-                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 p-4 bg-gray-50 rounded-xl w-full min-w-0 box-border">
+                                <div className="flex items-center gap-3 min-w-0 flex-1 flex-wrap w-full">
                                   <div className="bg-gray-200 p-2 rounded-full">
                                     <Users className="h-6 w-6 text-gray-600" />
                                   </div>
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-semibold text-gray-900 truncate">{member.name}</span>
+                                  <div className="min-w-0 w-full sm:w-auto">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                      <span className="font-semibold text-gray-900 truncate break-words max-w-full">{member.name}</span>
                                       <Badge className={getRoleColor(member.role)} variant="secondary">{member.role}</Badge>
                                       {['active', 'inactive', 'suspended'].includes(member.status) && (
                                         <Badge className={getStatusColor(member.status)} variant="secondary">{member.status}</Badge>
                                       )}
                                     </div>
-                                    <div className="text-sm text-gray-600 truncate">{member.email} <span className="mx-1">•</span> Joined {new Date(member.joinDate).toLocaleDateString()}</div>
+                                    <div className="text-sm text-gray-600 truncate break-words w-full sm:w-auto">{member.email} <span className="mx-1">•</span> Joined {new Date(member.joinDate).toLocaleDateString()}</div>
                                   </div>
                                 </div>
-                                <Button variant="outline" size="sm" className="border-[#254F70] text-[#254F70] hover:bg-blue-50">
+                                <Button variant="outline" size="sm" className="border-[#254F70] text-[#254F70] hover:bg-blue-50 w-full sm:w-auto">
                                   View Profile
                                 </Button>
                               </div>
@@ -740,20 +740,20 @@ const HOAManagement = () => {
                     </div>
                   </div>
                   {/* Expanded Members List */}
-                  {expandedHOA === hoa.id && <div className="border-t pt-4">
+                  {expandedHOA === hoa.id && <div className="border-t pt-4 w-full">
                       <h4 className="text-md font-semibold text-gray-900 mb-3">
                         Members ({hoa.members.length})
                       </h4>
-                      <div className="space-y-3">
-                        {hoa.members.map(member => <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <div className="space-y-3 w-full max-w-md mx-auto px-0 box-border overflow-x-visible border border-red-500">
+                        {hoa.members.map(member => <div key={member.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 p-3 bg-gray-50 rounded-lg w-full min-w-0 box-border">
+                            <div className="flex items-center space-x-3 min-w-0 flex-1 flex-wrap w-full">
                               <div className="bg-gray-200 p-2 rounded-full">
                                 <Users className="h-4 w-4 text-gray-600" />
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                  <span className="font-medium text-gray-900 truncate">{member.name}</span>
-                                  <div className="flex gap-2">
+                              <div className="min-w-0 w-full sm:w-auto">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
+                                  <span className="font-medium text-gray-900 truncate break-words max-w-full">{member.name}</span>
+                                  <div className="flex gap-2 flex-wrap">
                                     <Badge className={getRoleColor(member.role)} variant="secondary">
                                       {member.role}
                                     </Badge>
@@ -762,7 +762,7 @@ const HOAManagement = () => {
                                     </Badge>
                                   </div>
                                 </div>
-                                <div className="text-sm text-gray-600 mt-1">
+                                <div className="text-sm text-gray-600 mt-1 truncate break-words w-full sm:w-auto">
                                   <span className="truncate block sm:inline">{member.email}</span>
                                   <span className="hidden sm:inline"> • </span>
                                   <span className="block sm:inline">Joined {new Date(member.joinDate).toLocaleDateString()}</span>

@@ -446,7 +446,7 @@ const BoardDashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen w-full flex bg-gray-50">
+      <div className="min-h-screen w-full max-w-full box-border flex bg-gray-50 overflow-x-hidden">
         <BoardSidebar 
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -460,7 +460,7 @@ const BoardDashboard = () => {
             <SidebarTrigger className="-ml-1" />
             <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
               <span className="font-semibold truncate">Board Dashboard</span>
-              <Badge variant="outline" className="text-green-600 border-green-600 text-xs sm:text-sm flex-shrink-0">
+              <Badge variant="outline" className="hidden sm:inline-flex text-green-600 border-green-600 text-xs sm:text-sm flex-shrink-0">
                 {communityName}
               </Badge>
               <button className="ml-4 px-3 py-1 bg-gray-200 text-[#254F70] rounded text-xs font-semibold cursor-not-allowed opacity-80" disabled>
@@ -468,9 +468,8 @@ const BoardDashboard = () => {
                 <span className="ml-2 text-[10px] text-gray-500 font-normal">Beta - In Development - Coming soon</span>
               </button>
             </div>
-            {/* User name at top right */}
             {userName && (
-              <div className="ml-auto flex items-center gap-2">
+              <div className="ml-auto hidden sm:flex items-center gap-2">
                 <span className="font-semibold text-[#254F70] text-sm sm:text-base truncate max-w-[160px]">{userName}</span>
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold uppercase">
                   {userName[0]}
@@ -480,7 +479,7 @@ const BoardDashboard = () => {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 w-full max-w-full box-border overflow-x-hidden">
             <div className="space-y-4 sm:space-y-6">
               {activeTab === 'overview' && (
                 <div className="space-y-4 sm:space-y-6">

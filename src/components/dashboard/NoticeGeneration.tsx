@@ -533,7 +533,7 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
 
       {/* Create Notice Form */}
       {activeTab === 'create' && (
-        <Card>
+        <Card className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Plus className="h-5 w-5 mr-2 text-primary" />
@@ -639,14 +639,14 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
                 </p>
               </div>
               
-              <div className="flex space-x-3">
-                <Button type="button" className="bg-[#254F70] hover:bg-primary/90" onClick={(e) => handleCreateNotice(e as any, 'draft')}>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button type="button" className="w-full sm:w-auto bg-[#254F70] hover:bg-primary/90" onClick={(e) => handleCreateNotice(e as any, 'draft')}>
                   <FileText className="h-4 w-4 mr-2" />
                   Save as Draft
                 </Button>
                 <Button 
                   type="button"
-                  className="bg-green-600 hover:bg-green-700"
+                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
                   onClick={(e) => handleCreateNotice(e as any, 'sent')}
                 >
                   <Send className="h-4 w-4 mr-2" />

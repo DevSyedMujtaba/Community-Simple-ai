@@ -35,7 +35,7 @@ export function AdminSidebar({
   activeTab,
   onTabChange
 }: AdminSidebarProps) {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed";
   const navigate = useNavigate();
@@ -64,6 +64,7 @@ export function AdminSidebar({
 
   const handleTabClick = (tabId: string) => {
     onTabChange(tabId);
+    if (isMobile) setOpenMobile(false);
   };
 
   const isActive = (tabId: string) => activeTab === tabId;

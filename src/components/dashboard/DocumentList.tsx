@@ -81,9 +81,9 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full max-w-full px-2 sm:px-4 mx-auto box-border">
       {/* Document Count Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap w-full min-w-0">
         <div>
           <div className="flex items-center gap-2 mt-8">
             <FileText className="h-5 w-5 text-[#254F70]" />
@@ -105,11 +105,11 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
       
 
       {/* Documents List */}
-      <div className="space-y-3">
+      <div className="space-y-3 w-full min-w-0">
         {documents.map((document, index) => (
-          <Card key={document.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex flex-col xs:flex-row xs:items-start gap-2 xs:gap-4 min-w-0">
+          <Card key={document.id} className="hover:shadow-md transition-shadow w-full max-w-full box-border">
+            <CardContent className="p-3 sm:p-4 w-full max-w-full box-border">
+              <div className="flex flex-col xs:flex-row xs:items-start gap-2 xs:gap-4 min-w-0 w-full flex-wrap">
                 {/* Document Icon */}
                 <div className="flex-shrink-0 mx-auto xs:mx-0">
                   <div className="bg-red-100 p-2 xs:p-3 rounded-lg">
@@ -117,10 +117,10 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
                   </div>
                 </div>
                 {/* Document Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 mb-1 min-w-0">
-                    <h4 className="text-base sm:text-lg font-medium text-gray-900 truncate min-w-0">{document.name}</h4>
-                    <div className="flex flex-col xs:flex-row gap-2 w-full xs:w-auto">
+                <div className="flex-1 min-w-0 w-full">
+                  <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 mb-1 min-w-0 w-full flex-wrap">
+                    <h4 className="text-[8px] sm:text-lg font-medium text-gray-900 truncate w-full min-w-0 flex-1 xs:w-auto">{document.name}</h4>
+                    <div className="flex flex-col xs:flex-row gap-2 w-full xs:w-auto flex-wrap min-w-0 max-w-full flex-shrink overflow-hidden break-all sm:break-normal">
                       <Button
                         variant="outline"
                         size="sm"
@@ -142,26 +142,26 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
                     </div>
                   </div>
                   {/* Document Meta */}
-                  <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs sm:text-sm text-gray-600 mb-2 min-w-0">
-                    <div className="flex items-center min-w-0">
+                  <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs sm:text-sm text-gray-600 mb-2 min-w-0 w-full flex-wrap">
+                    <div className="flex items-center min-w-0 w-full xs:w-auto">
                       <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
-                      <span className="truncate">{formatDate(document.uploadDate)}</span>
+                      <span className="truncate break-all sm:break-normal w-full xs:w-auto">{formatDate(document.uploadDate)}</span>
                     </div>
                     {document.size && (
-                      <div className="flex items-center min-w-0">
+                      <div className="flex items-center min-w-0 w-full xs:w-auto">
                         <File className="h-4 w-4 mr-1 flex-shrink-0" />
-                        <span className="truncate">{formatFileSize(document.size)}</span>
+                        <span className="truncate break-all sm:break-normal w-full xs:w-auto">{formatFileSize(document.size)}</span>
                       </div>
                     )}
                     <Badge variant="secondary" className="text-xs">PDF Document</Badge>
                   </div>
                   {/* AI Summary */}
                   {document.summary ? (
-                    <div className="text-xs sm:text-sm text-gray-700 break-words min-w-0">
+                    <div className="text-xs sm:text-sm text-gray-700 break-words min-w-0 w-full">
                         {document.summary}
                     </div>
                   ) : (
-                    <div className="text-xs sm:text-sm text-gray-500 italic flex items-center">
+                    <div className="text-xs sm:text-sm text-gray-500 italic flex items-center w-full">
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       AI summary is being generated...
                     </div>
@@ -174,10 +174,10 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
       </div>
 
       {/* Actions Footer */}
-      <Card className="bg-gray-50">
+      <Card className="bg-gray-50 w-full max-w-full box-border">
         
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
+        <CardContent className="p-4 w-full max-w-full box-border">
+          <div className="flex items-center justify-between flex-wrap w-full min-w-0">
             <div>
               <p className="text-sm font-medium text-gray-900">
                 Ready to ask questions?
