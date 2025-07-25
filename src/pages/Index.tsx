@@ -136,7 +136,7 @@ const Index = () => {
           <div className="relative w-full max-w-[520px] aspect-[2/1]">
             {/* Rectangle: Top-left (under image) */}
             <svg
-              className="absolute top-[-32px] sm:top-[-40px] md:top-[-74px] right-[-12px] sm:right-[-16px] md:right-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
+              className="absolute top-0 sm:top-0 md:top-0 right-[-12px] sm:right-[-16px] md:right-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
               viewBox="0 0 328 328"
             >
               <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
@@ -144,18 +144,18 @@ const Index = () => {
 
             {/* Rectangle: Bottom-left (under image) */}
             <svg
-              className="absolute bottom-[18px] sm:bottom-[30px] md:bottom-[40px] left-[-12px] sm:left-[-16px] md:left-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
+              className="absolute bottom-0 sm:bottom-0 md:bottom-0 left-[-12px] sm:left-[-16px] md:left-[-16px] w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] md:w-[328px] md:h-[328px] z-0"
               viewBox="0 0 328 328"
             >
               <rect width="328" height="328" fill="none" stroke="#3B82F6" strokeWidth="3" />
             </svg>
 
             {/* Dotted Circle: Top-left, mostly under image */}
-            <img
+            {/* <img
               src={dottedCircle}
               alt="Dotted circle decoration"
               className="absolute top-[-18px] sm:top-[-28px] md:top-[-46px] left-[-18px] sm:left-[-28px] md:left-[-40px] w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] md:w-[113px] md:h-[113px] z-0 select-none pointer-events-none"
-            />
+            /> */}
 
             {/* Image (on top of all shapes) */}
             <div className="relative w-full h-full">
@@ -331,11 +331,11 @@ const Index = () => {
             </svg>
 
             {/* Dotted Circle: Top-left, mostly under image */}
-            <img
+            {/* <img
               src={dottedCircle}
               alt="Dotted circle decoration"
               className="absolute top-[-18px] sm:top-[-28px] md:top-[-46px] left-[-18px] sm:left-[-28px] md:left-[-40px] w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] md:w-[113px] md:h-[113px] z-0 select-none pointer-events-none"
-            />
+            /> */}
 
             {/* Image (on top of all shapes) */}
             <div className="relative w-full h-full">
@@ -372,11 +372,11 @@ const Index = () => {
             </svg>
 
             {/* Dotted Circle: Top-left, mostly under image */}
-            <img
+            {/* <img
               src={dottedCircle}
               alt="Dotted circle decoration"
               className="absolute top-[-18px] sm:top-[-28px] md:top-[-46px] left-[-18px] sm:left-[-28px] md:left-[-40px] w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] md:w-[113px] md:h-[113px] z-0 select-none pointer-events-none"
-            />
+            /> */}
 
             {/* Image (on top of all shapes) */}
             <div className="relative w-full h-full">

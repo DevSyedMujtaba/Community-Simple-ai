@@ -45,6 +45,113 @@ interface HOAUsersResponse {
   users: HOAUser[];
 }
 
+// Add US states and sample cities mapping at the top of the file (after imports)
+const US_STATES = [
+  { code: 'AL', name: 'Alabama' },
+  { code: 'AK', name: 'Alaska' },
+  { code: 'AZ', name: 'Arizona' },
+  { code: 'AR', name: 'Arkansas' },
+  { code: 'CA', name: 'California' },
+  { code: 'CO', name: 'Colorado' },
+  { code: 'CT', name: 'Connecticut' },
+  { code: 'DE', name: 'Delaware' },
+  { code: 'FL', name: 'Florida' },
+  { code: 'GA', name: 'Georgia' },
+  { code: 'HI', name: 'Hawaii' },
+  { code: 'ID', name: 'Idaho' },
+  { code: 'IL', name: 'Illinois' },
+  { code: 'IN', name: 'Indiana' },
+  { code: 'IA', name: 'Iowa' },
+  { code: 'KS', name: 'Kansas' },
+  { code: 'KY', name: 'Kentucky' },
+  { code: 'LA', name: 'Louisiana' },
+  { code: 'ME', name: 'Maine' },
+  { code: 'MD', name: 'Maryland' },
+  { code: 'MA', name: 'Massachusetts' },
+  { code: 'MI', name: 'Michigan' },
+  { code: 'MN', name: 'Minnesota' },
+  { code: 'MS', name: 'Mississippi' },
+  { code: 'MO', name: 'Missouri' },
+  { code: 'MT', name: 'Montana' },
+  { code: 'NE', name: 'Nebraska' },
+  { code: 'NV', name: 'Nevada' },
+  { code: 'NH', name: 'New Hampshire' },
+  { code: 'NJ', name: 'New Jersey' },
+  { code: 'NM', name: 'New Mexico' },
+  { code: 'NY', name: 'New York' },
+  { code: 'NC', name: 'North Carolina' },
+  { code: 'ND', name: 'North Dakota' },
+  { code: 'OH', name: 'Ohio' },
+  { code: 'OK', name: 'Oklahoma' },
+  { code: 'OR', name: 'Oregon' },
+  { code: 'PA', name: 'Pennsylvania' },
+  { code: 'RI', name: 'Rhode Island' },
+  { code: 'SC', name: 'South Carolina' },
+  { code: 'SD', name: 'South Dakota' },
+  { code: 'TN', name: 'Tennessee' },
+  { code: 'TX', name: 'Texas' },
+  { code: 'UT', name: 'Utah' },
+  { code: 'VT', name: 'Vermont' },
+  { code: 'VA', name: 'Virginia' },
+  { code: 'WA', name: 'Washington' },
+  { code: 'WV', name: 'West Virginia' },
+  { code: 'WI', name: 'Wisconsin' },
+  { code: 'WY', name: 'Wyoming' },
+];
+
+const US_CITIES: { [key: string]: string[] } = {
+  AL: ['Montgomery'],
+  AK: ['Juneau'],
+  AZ: ['Phoenix'],
+  AR: ['Little Rock'],
+  CA: ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento'],
+  CO: ['Denver'],
+  CT: ['Hartford'],
+  DE: ['Dover'],
+  FL: ['Miami', 'Orlando', 'Tampa', 'Jacksonville', 'Tallahassee'],
+  GA: ['Atlanta'],
+  HI: ['Honolulu'],
+  ID: ['Boise'],
+  IL: ['Chicago', 'Springfield', 'Naperville', 'Peoria'],
+  IN: ['Indianapolis'],
+  IA: ['Des Moines'],
+  KS: ['Topeka'],
+  KY: ['Frankfort'],
+  LA: ['Baton Rouge'],
+  ME: ['Augusta'],
+  MD: ['Annapolis'],
+  MA: ['Boston'],
+  MI: ['Lansing'],
+  MN: ['Saint Paul'],
+  MS: ['Jackson'],
+  MO: ['Jefferson City'],
+  MT: ['Helena'],
+  NE: ['Lincoln'],
+  NV: ['Carson City'],
+  NH: ['Concord'],
+  NJ: ['Trenton'],
+  NM: ['Santa Fe'],
+  NY: ['New York City', 'Buffalo', 'Rochester', 'Albany'],
+  NC: ['Raleigh'],
+  ND: ['Bismarck'],
+  OH: ['Columbus'],
+  OK: ['Oklahoma City'],
+  OR: ['Salem'],
+  PA: ['Harrisburg'],
+  RI: ['Providence'],
+  SC: ['Columbia'],
+  SD: ['Pierre'],
+  TN: ['Nashville'],
+  TX: ['Houston', 'Dallas', 'Austin', 'San Antonio'],
+  UT: ['Salt Lake City'],
+  VT: ['Montpelier'],
+  VA: ['Richmond'],
+  WA: ['Olympia'],
+  WV: ['Charleston'],
+  WI: ['Madison'],
+  WY: ['Cheyenne'],
+};
+
 /**
  * HOA Management Component for Admin Dashboard
  * Displays all HOAs on the platform with their members and statistics
@@ -64,6 +171,7 @@ const HOAManagement = () => {
     contact_phone: "",
     description: ""
   });
+  const [cityOptions, setCityOptions] = useState<string[]>([]);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [accessToken, setAccessToken] = useState("");
@@ -128,14 +236,14 @@ const HOAManagement = () => {
       }
       const { data, error } = await supabase
         .from("hoa_communities")
-        .select("id, name, state, city, address, units, contact_email, contact_phone, description, created_at")
+        .select("id, name, state, city, address, contact_email, contact_phone, description, created_at")
         .eq("board_member_id", user.id)
         .single();
       setMyCommunity(data || null);
       setCommunityLoading(false);
     };
     fetchCommunity();
-  }, []);
+  }, [formSuccess]);
 
   useEffect(() => {
     if (formSuccess) {
@@ -346,6 +454,23 @@ const HOAManagement = () => {
     }
   };
 
+  // Update city options when state changes
+  useEffect(() => {
+    // Find the state code for the selected state name
+    const selectedStateObj = US_STATES.find(s => s.name === communityForm.state);
+    const stateCode = selectedStateObj ? selectedStateObj.code : null;
+    if (stateCode && US_CITIES[stateCode]) {
+      setCityOptions(US_CITIES[stateCode]);
+      // If the current city is not in the new options, default to the first city
+      if (!US_CITIES[stateCode].includes(communityForm.city)) {
+        setCommunityForm((prev) => ({ ...prev, city: US_CITIES[stateCode][0] || "" }));
+      }
+    } else {
+      setCityOptions([]);
+      setCommunityForm((prev) => ({ ...prev, city: "" }));
+    }
+  }, [communityForm.state]);
+
   // Remove the static hoas array and related logic
   // Only show the board member's own community in the list
   let displayHOAs = [];
@@ -502,11 +627,34 @@ const HOAManagement = () => {
                 </div>
                 <div>
                   <Label>State</Label>
-                  <Input name="state" value={communityForm.state} onChange={handleCommunityInput} required />
+                  <select
+                    name="state"
+                    value={communityForm.state}
+                    onChange={handleCommunityInput}
+                    required
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                  >
+                    <option value="" disabled>Select a state</option>
+                    {US_STATES.map((state) => (
+                      <option key={state.code} value={state.name}>{state.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <Label>City</Label>
-                  <Input name="city" value={communityForm.city} onChange={handleCommunityInput} required />
+                  <select
+                    name="city"
+                    value={communityForm.city}
+                    onChange={handleCommunityInput}
+                    required
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    disabled={!communityForm.state || cityOptions.length === 0}
+                  >
+                    <option value="" disabled>Select a city</option>
+                    {cityOptions.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <Label>Address</Label>
@@ -698,9 +846,6 @@ const HOAManagement = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                           <h3 className="text-lg font-semibold text-gray-900 truncate">{hoa.name}</h3>
-                          <Badge variant="outline" className="w-fit">
-                            {hoa.totalUnits} units
-                          </Badge>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-gray-600 mb-3">
                           <div className="flex items-center">

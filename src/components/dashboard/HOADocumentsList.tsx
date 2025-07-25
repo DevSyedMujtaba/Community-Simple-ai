@@ -53,12 +53,20 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
     const fetchDocs = async () => {
       setLoading(true);
       if (!hoaId) { setDocuments([]); setLoading(false); return; }
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentUserId = user?.id;
       const { data, error } = await supabase
         .from('hoa_documents')
-        .select('*, profiles:profiles!uploader_id(f irst_name, last_name)')
+        .select('*, profiles:profiles!uploader_id(first_name, last_name, role)')
         .eq('hoa_id', hoaId)
         .order('uploaded_at', { ascending: false });
-      setDocuments(data || []);
+      // Only show: (1) board/admin uploads, (2) docs uploaded by current user
+      const filteredDocs = (data || []).filter(doc =>
+        (doc.uploader_id === null) ||
+        (doc.profiles && (doc.profiles.role === 'board' || doc.profiles.role === 'admin')) ||
+        (doc.uploader_id === currentUserId)
+      );
+      setDocuments(filteredDocs);
       setLoading(false);
     };
     fetchDocs();

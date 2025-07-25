@@ -88,32 +88,32 @@ const HOAConnection = () => {
   }, []);
 
   // Sample HOAs data
-  const availableHOAs = [
-    {
-      id: '1',
-      name: 'Sunrise Valley HOA',
-      city: 'Los Angeles',
-      state: 'California',
-      memberCount: 156,
-      description: 'A family-friendly community with great amenities'
-    },
-    {
-      id: '2',
-      name: 'Oak Creek Estates',
-      city: 'Los Angeles',
-      state: 'California',
-      memberCount: 89,
-      description: 'Luxury homes with golf course access'
-    },
-    {
-      id: '3',
-      name: 'Meadowbrook Community',
-      city: 'San Francisco',
-      state: 'California',
-      memberCount: 234,
-      description: 'Modern townhomes near downtown'
-    }
-  ];
+  // const availableHOAs = [
+  //   {
+  //     id: '1',
+  //     name: 'Sunrise Valley HOA',
+  //     city: 'Los Angeles',
+  //     state: 'California',
+  //     memberCount: 156,
+  //     description: 'A family-friendly community with great amenities'
+  //   },
+  //   {
+  //     id: '2',
+  //     name: 'Oak Creek Estates',
+  //     city: 'Los Angeles',
+  //     state: 'California',
+  //     memberCount: 89,
+  //     description: 'Luxury homes with golf course access'
+  //   },
+  //   {
+  //     id: '3',
+  //     name: 'Meadowbrook Community',
+  //     city: 'San Francisco',
+  //     state: 'California',
+  //     memberCount: 234,
+  //     description: 'Modern townhomes near downtown'
+  //   }
+  // ];
 
   const states = ['California', 'Texas', 'Florida', 'New York', 'Illinois'];
   const cities = selectedState === 'California' 
@@ -262,10 +262,10 @@ const HOAConnection = () => {
     return (
       <div className="min-h-screen bg-[#f5faff] flex flex-col">
         {/* Top blue compliance bar */}
-        <div className="w-full bg-blue-600 text-white text-xs text-center py-1 px-2 font-medium tracking-wide">
+        {/* <div className="w-full bg-blue-600 text-white text-xs text-center py-1 px-2 font-medium tracking-wide">
           <span className="hidden sm:inline">FILE NOW TO COMPLY WITH THE CORPORATE TRANSPARENCY ACT</span>
           <span className="sm:hidden">COMPLY WITH CORPORATE TRANSPARENCY ACT</span>
-        </div>
+        </div> */}
         
         {/* Header */}
         <header className="w-full bg-white shadow-sm flex items-center justify-between px-3 sm:px-6 lg:px-8 py-3">
@@ -304,10 +304,10 @@ const HOAConnection = () => {
   return (
     <div className="min-h-screen bg-[#f5faff] flex flex-col">
       {/* Top blue compliance bar */}
-      <div className="w-full bg-blue-600 text-white text-xs text-center py-1 px-2 font-medium tracking-wide">
+      {/* <div className="w-full bg-blue-600 text-white text-xs text-center py-1 px-2 font-medium tracking-wide">
         <span className="hidden sm:inline">FILE NOW TO COMPLY WITH THE CORPORATE TRANSPARENCY ACT</span>
         <span className="sm:hidden">COMPLY WITH CORPORATE TRANSPARENCY ACT</span>
-      </div>
+      </div> */}
       
       {/* Header */}
       <header className="w-full bg-white shadow-sm flex items-center justify-between px-3 sm:px-6 lg:px-8 py-3">

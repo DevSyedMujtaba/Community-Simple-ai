@@ -71,13 +71,16 @@ const BoardDashboard = () => {
       setLoadingDocs(true);
       const { data, error } = await supabase
         .from('hoa_documents')
-        .select('*')
+        .select('*, uploader:profiles(role)')
         .eq('hoa_id', myCommunity.id)
         .order('uploaded_at', { ascending: false });
 
-      if (data) {
-        setDocuments(data.map(transformDocument));
-      }
+      // Only include documents where uploader_id is null or uploader.role is 'board' or 'admin'
+      const filteredDocs = (data || []).filter(doc =>
+        !doc.uploader_id ||
+        (doc.uploader && (doc.uploader.role === 'board' || doc.uploader.role === 'admin'))
+      );
+      setDocuments(filteredDocs.map(transformDocument));
       setLoadingDocs(false);
     };
     fetchDocs();
@@ -171,24 +174,28 @@ const BoardDashboard = () => {
 
       // 4. Fetch user info from Edge Function for all user_ids
       let users = [];
-      try {
-        const res = await fetch(`https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/get-hoa-users?user_ids=${allUserIds.join(',')}`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json"
+      if (allUserIds.length > 0) {
+        try {
+          const res = await fetch(`https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/get-hoa-users?user_ids=${allUserIds.join(',')}`, {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              "Content-Type": "application/json"
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            users = Array.isArray(data.users) ? data.users : [];
+          } else {
+            let errorData = {};
+            try { errorData = await res.json(); } catch { /* empty */ }
+            console.error("Edge Function error:", errorData);
+            users = [];
           }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          users = Array.isArray(data.users) ? data.users : [];
-        } else {
-          let errorData = {};
-          try { errorData = await res.json(); } catch { /* empty */ }
-          console.error("Edge Function error:", errorData);
+        } catch (e) {
+          console.error("Network or parsing error calling Edge Function:", e);
           users = [];
         }
-      } catch (e) {
-        console.error("Network or parsing error calling Edge Function:", e);
+      } else {
         users = [];
       }
       // Merge join requests

@@ -80,10 +80,10 @@ const EmailVerification = () => {
     return (
       <div className="min-h-screen bg-[#f5faff] flex flex-col">
         {/* Top blue compliance bar */}
-        <div className="w-full bg-blue-600 text-white text-xs text-center py-1 px-2 font-medium tracking-wide">
+        {/* <div className="w-full bg-blue-600 text-white text-xs text-center py-1 px-2 font-medium tracking-wide">
           <span className="hidden sm:inline">FILE NOW TO COMPLY WITH THE CORPORATE TRANSPARENCY ACT</span>
           <span className="sm:hidden">COMPLY WITH CORPORATE TRANSPARENCY ACT</span>
-        </div>
+        </div> */}
         
         {/* Header */}
         <header className="w-full bg-white shadow-sm flex items-center justify-between px-3 sm:px-6 lg:px-8 py-3">
