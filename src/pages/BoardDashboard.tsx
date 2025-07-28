@@ -128,12 +128,25 @@ const BoardDashboard = () => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      // 1. Auth check and get community
+      // 1. Auth check
       const { data: { session } } = await supabase.auth.getSession();
       if (!session || !session.user) {
         navigate('/login', { replace: true });
         return;
       }
+      // Always fetch board member profile for name
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name,last_name")
+        .eq("id", session.user.id)
+        .single();
+      if (profile) {
+        const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+        setUserName(fullName || "Board Member");
+      } else {
+        setUserName("Board Member");
+      }
+      // 2. Try to get community
       const { data: community } = await supabase
         .from("hoa_communities")
         .select("id")
@@ -141,20 +154,6 @@ const BoardDashboard = () => {
         .single();
       if (!community) return;
       setMyCommunity(community);
-
-      // Fetch board member profile for name
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("first_name,last_name")
-        .eq("id", session.user.id)
-        .single();
-      console.log('Fetched profile:', profile); // Debug log
-      if (profile) {
-        const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
-        setUserName(fullName || "Board Member");
-      } else {
-        setUserName("Board Member");
-      }
 
       // 2. Fetch all join requests for this HOA
       const { data: allReqs, error: allReqsError } = await supabase
@@ -475,13 +474,13 @@ const BoardDashboard = () => {
                 <span className="ml-2 text-[10px] text-gray-500 font-normal">Beta - In Development - Coming soon</span>
               </button>
             </div>
+            {/* Always show the username badge if userName is set */}
             {userName && (
-              <div className="ml-auto hidden sm:flex items-center gap-2">
-                <span className="font-semibold text-[#254F70] text-sm sm:text-base truncate max-w-[160px]">{userName}</span>
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold uppercase">
-                  {userName[0]}
-                </div>
-              </div>
+              <span className="ml-auto flex items-center gap-2 bg-[#254F70] text-white px-3 py-1 rounded-full font-medium text-sm shadow-sm">
+                {/* Minimalist person icon to match Homeowner Dashboard */}
+                <svg className="w-5 h-5 mr-2 text-white opacity-80" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 19v-1a4 4 0 00-8 0v1" /><circle cx="12" cy="9" r="4" /></svg>
+                {userName}
+              </span>
             )}
           </header>
 

@@ -87,9 +87,24 @@ const HomeownerDashboard = () => {
   const [joinDialogMessage, setJoinDialogMessage] = useState("");
   const [documentCount, setDocumentCount] = useState(0);
 
+  // Add state and city options for filtering
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [loadingLocationOptions, setLoadingLocationOptions] = useState(false);
+
   // Add state for approved membership
   const [notices, setNotices] = useState<any[]>([]);
   const [noticesLoading, setNoticesLoading] = useState(false);
+
+  // Helper function for robust string comparison
+  const normalizeString = (str: string | null | undefined): string => {
+    if (!str) return '';
+    return str
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .replace(/[^\w\s]/g, ''); // Remove special characters except letters, numbers, and spaces
+  };
 
   // Add a state for documents
   const [documents, setDocuments] = useState([]);
@@ -140,52 +155,149 @@ const HomeownerDashboard = () => {
     fetchProfile();
   }, []);
 
+  // Fetch available states and cities from communities
+  useEffect(() => {
+    const fetchLocationOptions = async () => {
+      setLoadingLocationOptions(true);
+      const { data, error } = await supabase
+        .from("hoa_communities")
+        .select("state, city");
+      
+      if (!error && data) {
+        // Get unique states - improved deduplication with case normalization
+        const uniqueStates = Array.from(
+          new Set(
+            data
+              .map(c => c.state?.trim()) // Trim whitespace
+              .filter(Boolean) // Remove null/undefined values
+              .map(state => state.charAt(0).toUpperCase() + state.slice(1).toLowerCase()) // Normalize case
+          )
+        ).sort();
+        
+        setAvailableStates(uniqueStates);
+        
+        // Get cities for selected state - improved deduplication with case normalization
+        if (selectedState) {
+          const uniqueCities = Array.from(
+            new Set(
+              data
+                .filter(c => c.state?.trim().toLowerCase() === selectedState.toLowerCase())
+                .map(c => c.city?.trim()) // Trim whitespace
+                .filter(Boolean) // Remove null/undefined values
+                .map(city => city.charAt(0).toUpperCase() + city.slice(1).toLowerCase()) // Normalize case
+            )
+          ).sort();
+          setAvailableCities(uniqueCities);
+        } else {
+          setAvailableCities([]);
+        }
+      } else {
+        // Handle case where no communities exist yet
+        setAvailableStates([]);
+        setAvailableCities([]);
+      }
+      setLoadingLocationOptions(false);
+    };
+    
+    fetchLocationOptions();
+  }, [selectedState]);
+
   // Fetch HOA communities when state/city/search changes
   useEffect(() => {
     setCommunitiesLoading(true);
     setCommunitiesError(null);
-    const query = supabase.from("hoa_communities");
-    let supaQuery = query.select(
-      "id, name, city, state, description, board_member_id"
-    );
-    if (selectedState) {
-      supaQuery = supaQuery.eq("state", selectedState);
-    }
-    if (selectedCity) {
-      supaQuery = supaQuery.eq("city", selectedCity);
-    }
-    if (searchTerm) {
-      supaQuery = supaQuery.ilike("name", `%${searchTerm}%`);
-    }
-    supaQuery.then(async ({ data, error }) => {
-      if (error) {
+    
+    // Fetch all communities and filter client-side to ensure we get all matches
+    const fetchAndFilterCommunities = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("hoa_communities")
+          .select("id, name, city, state, description, board_member_id");
+        
+        console.log('All communities from DB:', data); // Debug log
+        
+        if (error) {
+          setCommunitiesError("Failed to load communities.");
+          setHoaCommunities([]);
+          setCommunitiesLoading(false);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          // Filter communities client-side
+          let filteredCommunities = data;
+          
+          console.log('Initial communities:', filteredCommunities.map(c => ({ name: c.name, state: c.state, city: c.city })));
+          
+          if (selectedState) {
+            console.log('Filtering by state:', selectedState);
+            filteredCommunities = filteredCommunities.filter(community => {
+              const dbState = normalizeString(community.state);
+              const filterState = normalizeString(selectedState);
+              const matches = dbState === filterState;
+              console.log(`Community ${community.name}: state="${community.state}" (normalized: "${dbState}") matches="${selectedState}" (normalized: "${filterState}") = ${matches}`);
+              return matches;
+            });
+            console.log('After state filter:', filteredCommunities.map(c => ({ name: c.name, state: c.state, city: c.city })));
+          }
+          
+          if (selectedCity) {
+            console.log('Filtering by city:', selectedCity);
+            filteredCommunities = filteredCommunities.filter(community => {
+              const dbCity = normalizeString(community.city);
+              const filterCity = normalizeString(selectedCity);
+              const matches = dbCity === filterCity;
+              console.log(`Community ${community.name}: city="${community.city}" (normalized: "${dbCity}") matches="${selectedCity}" (normalized: "${filterCity}") = ${matches}`);
+              return matches;
+            });
+            console.log('After city filter:', filteredCommunities.map(c => ({ name: c.name, state: c.state, city: c.city })));
+          }
+          
+          if (searchTerm) {
+            filteredCommunities = filteredCommunities.filter(community => 
+              community.name?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+          }
+          
+          console.log('Filtered communities:', { 
+            selectedState, 
+            selectedCity, 
+            searchTerm, 
+            filteredCommunities,
+            originalData: data.map(c => ({ name: c.name, state: c.state, city: c.city }))
+          }); // Debug log
+          
+          if (filteredCommunities.length > 0) {
+            const communityIds = filteredCommunities.map((c) => c.id);
+            const { data: requests, error: requestsError } = await supabase
+              .from("hoa_join_requests")
+              .select("hoa_id, status")
+              .in("hoa_id", communityIds)
+              .eq("status", "approved");
+
+            const communitiesWithCounts = filteredCommunities.map((community) => {
+              const memberCount = requestsError
+                ? 0
+                : requests.filter((r) => r.hoa_id === community.id).length;
+              return { ...community, memberCount };
+            });
+            setHoaCommunities(communitiesWithCounts);
+          } else {
+            setHoaCommunities([]);
+          }
+        } else {
+          setHoaCommunities([]);
+        }
+      } catch (err) {
+        console.error('Error fetching communities:', err);
         setCommunitiesError("Failed to load communities.");
         setHoaCommunities([]);
-        setCommunitiesLoading(false);
-        return;
       }
-
-      if (data && data.length > 0) {
-        const communityIds = data.map((c) => c.id);
-        const { data: requests, error: requestsError } = await supabase
-          .from("hoa_join_requests")
-          .select("hoa_id, status")
-          .in("hoa_id", communityIds)
-          .eq("status", "approved");
-
-        const communitiesWithCounts = data.map((community) => {
-          const memberCount = requestsError
-            ? 0
-            : requests.filter((r) => r.hoa_id === community.id).length;
-          return { ...community, memberCount };
-        });
-        setHoaCommunities(communitiesWithCounts);
-      } else {
-        setHoaCommunities([]);
-      }
-
+      
       setCommunitiesLoading(false);
-    });
+    };
+    
+    fetchAndFilterCommunities();
   }, [selectedState, selectedCity, searchTerm]);
 
   // Update the effect that fetches join requests to also check for approved membership
@@ -801,24 +913,44 @@ const HomeownerDashboard = () => {
                       <select
                         className="border rounded px-3 py-2 text-sm"
                         value={selectedState}
-                        onChange={(e) => setSelectedState(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedState(e.target.value);
+                          setSelectedCity(""); // Reset city when state changes
+                        }}
+                        disabled={loadingLocationOptions}
                       >
-                        <option value="">Select State</option>
-                        {/* Add your state options here */}
-                        <option value="California">California</option>
-                        <option value="Texas">Texas</option>
-                        {/* ...other states... */}
+                        <option value="">
+                          {loadingLocationOptions ? "Loading states..." : "Select State"}
+                        </option>
+                        {availableStates.map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
                       </select>
                       <select
-                        className="border rounded px-3 py-2 text-sm"
+                        className={`border rounded px-3 py-2 text-sm ${
+                          !selectedState || loadingLocationOptions
+                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                            : 'bg-white'
+                        }`}
                         value={selectedCity}
                         onChange={(e) => setSelectedCity(e.target.value)}
+                        disabled={!selectedState || loadingLocationOptions}
                       >
-                        <option value="">Select City</option>
-                        {/* Add your city options here, or dynamically based on state */}
-                        <option value="Los Angeles">Los Angeles</option>
-                        <option value="San Francisco">San Francisco</option>
-                        {/* ...other cities... */}
+                        <option value="">
+                          {!selectedState 
+                            ? "Select City" 
+                            : loadingLocationOptions 
+                              ? "Loading cities..." 
+                              : "Select City"
+                          }
+                        </option>
+                        {availableCities.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
                       </select>
                       <input
                         className="border rounded px-3 py-2 text-sm flex-1"
@@ -828,6 +960,29 @@ const HomeownerDashboard = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
+                    {/* Filter Summary and Clear Button */}
+                    {(selectedState || selectedCity || searchTerm) && (
+                      <div className="flex items-center justify-between mb-4 p-3 bg-blue-50 rounded-lg">
+                        <div className="text-sm text-blue-700">
+                          <span className="font-medium">Filters applied:</span>
+                          {selectedState && <span className="ml-2">State: {selectedState}</span>}
+                          {selectedCity && <span className="ml-2">City: {selectedCity}</span>}
+                          {searchTerm && <span className="ml-2">Search: "{searchTerm}"</span>}
+                          <span className="ml-2">({hoaCommunities.length} result{hoaCommunities.length !== 1 ? 's' : ''})</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedState("");
+                            setSelectedCity("");
+                            setSearchTerm("");
+                          }}
+                          className="text-sm text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Clear filters
+                        </button>
+                      </div>
+                    )}
+
                     {/* Communities List */}
                     {communitiesLoading ? (
                       <div className="text-center py-4 text-gray-500">
@@ -839,7 +994,9 @@ const HomeownerDashboard = () => {
                       </div>
                     ) : hoaCommunities.length === 0 ? (
                       <div className="text-center py-4 text-gray-500">
-                        No communities found.
+                        {selectedState || selectedCity || searchTerm 
+                          ? "No communities found matching your filters." 
+                          : "No communities found."}
                       </div>
                     ) : (
                       <div className="space-y-3">
