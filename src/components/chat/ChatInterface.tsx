@@ -25,9 +25,13 @@ interface Conversation {
     name: string;
     type: 'homeowner' | 'board' | 'admin';
     avatar?: string;
+    hoaId?: string;
+    hoaName?: string;
   }[];
   lastMessage?: Message;
   unreadCount: number;
+  hoaId?: string;
+  hoaName?: string;
 }
 
 interface ChatInterfaceProps {
@@ -36,12 +40,13 @@ interface ChatInterfaceProps {
   conversations: Conversation[];
   messages: Message[];
   onSendMessage: (conversationId: string, content: string) => void;
-  onStartNewConversation: (participantId: string) => void;
+  onStartNewConversation: (participantId: string, hoaId: string) => void;
   onSelectConversation: (conversationId: string) => void;
   selectedConversationId?: string;
   hoaId: string;
   otherParticipantId?: string;
-  availableUsers?: any[]; // <-- Add this line
+  availableUsers?: any[];
+  showHoaName?: boolean;
 }
 
 /**
@@ -60,7 +65,8 @@ const ChatInterface = ({
   selectedConversationId,
   hoaId,
   otherParticipantId,
-  availableUsers = [], // <-- Add this line
+  availableUsers = [],
+  showHoaName = false,
 }: ChatInterfaceProps) => {
   // Debug log to check conversations prop and unreadCount
   console.log('ChatInterface conversations prop:', conversations);
@@ -236,9 +242,9 @@ const ChatInterface = ({
               <div className="text-sm text-gray-600 mb-2 px-2">Start new conversation</div>
               {filteredUsers.map((user) => (
                 <div
-                  key={user.id}
+                  key={user.id + '-' + user.hoaId}
                   onClick={() => {
-                    onStartNewConversation(user.id);
+                    onStartNewConversation(user.id, user.hoaId);
                     setShowNewChat(false); // Hide the list after selecting a user
                     setSearchQuery('');
                   }}
@@ -255,6 +261,9 @@ const ChatInterface = ({
                       {user.type === 'board' && (
                         <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">Board</span>
                       )}
+                      {showHoaName && user.hoaName && (
+                        <span className="ml-2 px-2 py-0.5 bg-gray-200 text-xs rounded">{user.hoaName}</span>
+                      )}
                     </div>
                     <div className="text-sm text-gray-500">
                       {user.unit ? `Unit ${user.unit}` : user.type === 'board' ? 'Board Member' : 'Homeowner'}
@@ -270,60 +279,52 @@ const ChatInterface = ({
               )}
             </div>
           ) : (
-            <div className="p-1 xs:p-2 min-w-0">
-              {filteredConversations.map((conversation) => {
-                const otherParticipant = conversation.participants.find(p => p.id !== currentUserId);
-                const isActive = conversation.id === selectedConversationId;
+            <div className="divide-y divide-gray-200">
+              {filteredConversations.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No conversations</p>
+                </div>
+              )}
+              {filteredConversations.map((conv) => {
+                const other = conv.participants.find(p => p.id !== currentUserId);
                 return (
                   <div
-                    key={conversation.id}
-                    onClick={() => handleMobileConversationSelect(conversation.id)}
-                    className={`flex items-center gap-2 p-2 xs:p-3 rounded-lg cursor-pointer transition-colors min-h-[40px] min-w-0 ${
-                      isActive ? 'bg-primary text-white' : 'hover:bg-white'
+                    key={conv.id}
+                    onClick={() => onSelectConversation(conv.id)}
+                    className={`flex items-center p-3 cursor-pointer transition-colors min-h-[44px] ${
+                      conv.id === selectedConversationId ? 'bg-white' : 'hover:bg-white'
                     }`}
                   >
-                    <Avatar className="h-9 w-9 xs:h-10 xs:w-10 sm:h-12 sm:w-12 mr-2 sm:mr-3 flex-shrink-0">
-                      <AvatarFallback className={isActive ? 'bg-white text-primary' : 'bg-blue-100 text-blue-600'}>
-                        {getUserInitials(otherParticipant?.name || 'Unknown')}
+                    <Avatar className="h-10 w-10 mr-3">
+                      <AvatarFallback className="bg-[#254F70] text-white">
+                        {getUserInitials(other?.name || 'U')}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between min-w-0 gap-2">
-                        <div className={`font-medium truncate flex items-center ${isActive ? 'text-white' : 'text-gray-900'} min-w-0`} style={{maxWidth: '50vw'}}>
-                          {otherParticipant?.name || 'Unknown User'}
-                          {otherParticipant?.type === 'board' && (
-                            <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">Board</span>
-                          )}
-                        </div>
-                        {conversation.lastMessage && (
-                          <div className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500'} ml-2 flex-shrink-0`}>
-                            {formatTime(conversation.lastMessage.timestamp)}
-                          </div>
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-900 truncate">
+                          {other?.name}
+                        </span>
+                        {other?.type === 'board' && (
+                          <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">Board</span>
                         )}
-                      </div>
-                      <div className="flex items-center justify-between mt-1 min-w-0 gap-2">
-                        {conversation.lastMessage && (
-                          <div className={`text-xs xs:text-sm truncate ${isActive ? 'text-white/80' : 'text-gray-600'} min-w-0`} style={{maxWidth: '40vw'}}>
-                            {conversation.lastMessage.content}
-                          </div>
+                        {showHoaName && (conv.hoaName || conv.hoaId) && (
+                          <span className="ml-2 px-2 py-0.5 bg-gray-200 text-xs rounded">{conv.hoaName}</span>
                         )}
-                        {conversation.unreadCount > 0 && conversation.id !== selectedConversationId && (
-                          <Badge variant="destructive" className="ml-2 text-xs flex-shrink-0 w-6 h-6 flex items-center justify-center">
-                            {conversation.unreadCount}
+                        {conv.unreadCount > 0 && (
+                          <Badge className="ml-2 bg-red-500 text-white text-xs font-semibold rounded-full px-2 py-0.5">
+                            {conv.unreadCount}
                           </Badge>
                         )}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate">
+                        {conv.lastMessage?.content || 'No messages yet'}
                       </div>
                     </div>
                   </div>
                 );
               })}
-              
-              {filteredConversations.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No conversations yet</p>
-                  <p className="text-sm mt-1">Start a new conversation</p>
-                </div>
-              )}
             </div>
           )}
         </ScrollArea>

@@ -63,6 +63,7 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
   const [loading, setLoading] = useState(true);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
   const [viewingNotice, setViewingNotice] = useState<Notice | null>(null);
+  const [residents, setResidents] = useState<any[]>([]);
 
   useEffect(() => {
     console.log('useEffect triggered, hoaId:', hoaId);
@@ -110,6 +111,30 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
       setLoading(false);
     };
     fetchNotices();
+  }, [hoaId]);
+
+  useEffect(() => {
+    // Fetch residents for the current HOA
+    const fetchResidents = async () => {
+      if (!hoaId) return;
+      const { data: joinReqs, error } = await supabase
+        .from('hoa_join_requests')
+        .select('user_id, unit_number, status, profiles!user_id(id, first_name, last_name)')
+        .eq('hoa_id', hoaId)
+        .eq('status', 'approved');
+      if (error) {
+        console.warn('[NoticeGeneration] Error fetching residents:', error);
+        setResidents([]);
+        return;
+      }
+      const mapped = (joinReqs || []).map((req: any) => ({
+        id: req.profiles?.id || req.user_id,
+        name: req.profiles ? `${req.profiles.first_name || ''} ${req.profiles.last_name || ''}`.trim() : 'Unknown',
+        unit: req.unit_number,
+      }));
+      setResidents(mapped);
+    };
+    fetchResidents();
   }, [hoaId]);
 
   const noticeTypes = [
@@ -199,33 +224,17 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
       recipient_user_id = detail.user_id;
     } else if (noticeForm.recipient === 'specific') {
       recipient_type = 'homeowner';
-      // Lookup user by first_name and last_name (noticeForm.unit is assumed to be the resident name)
-      const nameParts = noticeForm.unit.trim().split(/\s+/);
-      if (nameParts.length < 2) {
+      // Use the selected resident's user ID directly
+      recipient_user_id = noticeForm.unit;
+      console.log('[NoticeGeneration] Selected resident user_id:', recipient_user_id);
+      if (!recipient_user_id) {
         toast({
-          title: 'Invalid Name Format',
-          description: 'Please enter the resident\'s full name (first and last).',
+          title: 'Resident Not Selected',
+          description: 'Please select a resident from the dropdown.',
           variant: 'destructive'
         });
         return;
       }
-      const [first_name, ...lastParts] = nameParts;
-      const last_name = lastParts.join(' ');
-      const { data: user, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .ilike('first_name', first_name)
-        .ilike('last_name', last_name)
-        .single();
-      if (error || !user) {
-        toast({
-          title: 'Resident Not Found',
-          description: 'No resident with this first and last name exists. Please check the name and try again.',
-          variant: 'destructive'
-        });
-        return;
-      }
-      recipient_user_id = user.id;
     }
     const payload = {
       hoa_id: hoaId,
@@ -284,6 +293,66 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
           description: status === 'draft' ? 'Notice saved as draft.' : 'Notice created successfully!',
           variant: 'success' as any
         });
+        // Send email if notice is sent and has a specific recipient
+        if (status === 'sent' && recipient_user_id) {
+          try {
+            // Fetch the recipient's email
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('email, first_name, last_name')
+              .eq('id', recipient_user_id)
+              .single();
+            if (profile && profile.email) {
+              const email = profile.email;
+              const name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+              const subject = `You have a new HOA Notice: ${noticeForm.title}`;
+              const html = `
+                <div style="background:#f5faff;padding:0;margin:0;font-family:'Segoe UI',Arial,sans-serif;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5faff;padding:0;margin:0;">
+                    <tr>
+                      <td align="center" style="padding:40px 0 20px 0;">
+                        <img src='https://yurteupcbisnkcrtjsbv.supabase.co/storage/v1/object/public/public/logo2.png' alt='HOA Clarity' style='height:60px;margin-bottom:10px;' />
+                        <h2 style="color:#254F70;margin:0;font-size:24px;">HOA Notice</h2>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="center" style="padding:0 20px 40px 20px;">
+                        <div style="background:#fff;border-radius:12px;box-shadow:0 2px 8px #0001;padding:32px 24px;max-width:480px;margin:auto;">
+                          <h3 style="color:#254F70;margin-top:0;">Hello ${name || 'Homeowner'},</h3>
+                          <p style="color:#333;font-size:16px;">You have received a new notice from your HOA:</p>
+                          <div style="background:#f0f4f8;border-radius:8px;padding:16px 12px;margin:16px 0;">
+                            <strong>${noticeForm.title}</strong><br/>
+                            <span>${noticeForm.content}</span>
+                          </div>
+                          <p style="color:#333;font-size:15px;">Please log in to your HOA Clarity account for more details.</p>
+                          <a href="https://hoa-clarity.vercel.app/" style="display:inline-block;margin-top:16px;padding:10px 24px;background:#254F70;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Go to Dashboard</a>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              `;
+              const emailResp = await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/send-email', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + (import.meta.env.VITE_SUPABASE_ANON_KEY || '')
+                },
+                body: JSON.stringify({
+                  to: email,
+                  subject,
+                  html
+                })
+              });
+              const emailResult = await emailResp.json();
+              console.log('[NoticeGeneration] Notice email sent:', email, emailResult);
+            } else {
+              console.warn('[NoticeGeneration] No email found for user:', recipient_user_id, profileError);
+            }
+          } catch (err) {
+            console.error('[NoticeGeneration] Error sending notice email:', err);
+          }
+        }
         // Update local state for instant UI update
         if (editingNotice) {
           setNotices(prev => prev.map(n => n.id === editingNotice.id ? { ...n, ...payload, status } : n));
@@ -578,33 +647,40 @@ const NoticeGeneration = ({ hoaId, userId }: NoticeGenerationProps) => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Recipient *
-                  </label>
+                  <label className="block text-sm font-medium mb-1">Recipient *</label>
                   <select
-                    required
+                    className="w-full border rounded px-3 py-2"
                     value={noticeForm.recipient}
-                    onChange={(e) => setNoticeForm({ ...noticeForm, recipient: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    onChange={e => setNoticeForm(f => ({ ...f, recipient: e.target.value, unit: '' }))}
                   >
                     <option value="all">All Residents</option>
-                    <option value="specific">Specific Resident</option>
                     <option value="unit">Specific Unit</option>
+                    <option value="specific">Specific Resident</option>
                   </select>
                 </div>
-                
-                {(noticeForm.recipient === 'specific' || noticeForm.recipient === 'unit') && (
+                {noticeForm.recipient === 'specific' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {noticeForm.recipient === 'specific' ? 'Resident Name' : 'Unit Number'} *
-                    </label>
-                    <input
-                      type="text"
-                      required
+                    <label className="block text-sm font-medium mb-1">Resident Name *</label>
+                    <select
+                      className="w-full border rounded px-3 py-2"
                       value={noticeForm.unit}
-                      onChange={(e) => setNoticeForm({ ...noticeForm, unit: e.target.value })}
-                      placeholder={noticeForm.recipient === 'specific' ? 'Enter resident name' : 'e.g., 101A'}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                      onChange={e => setNoticeForm(f => ({ ...f, unit: e.target.value }))}
+                    >
+                      <option value="">Select Resident</option>
+                      {residents.map(r => (
+                        <option key={r.id} value={r.id}>{r.name}{r.unit ? ` (Unit ${r.unit})` : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {noticeForm.recipient === 'unit' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Unit Number *</label>
+                    <input
+                      className="w-full border rounded px-3 py-2"
+                      value={noticeForm.unit}
+                      onChange={e => setNoticeForm(f => ({ ...f, unit: e.target.value }))}
+                      placeholder="Enter unit number"
                     />
                   </div>
                 )}

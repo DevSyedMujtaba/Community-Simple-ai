@@ -360,6 +360,12 @@ const BoardDashboard = () => {
   // Real-time subscription for unseen message notifications
   useEffect(() => {
     if (!userId) return;
+    let boardEmail = null;
+    // Fetch board member email once for notification
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      boardEmail = session?.user?.email;
+    })();
     const channel = supabase
       .channel('messages-realtime-latest')
       .on(
@@ -370,7 +376,7 @@ const BoardDashboard = () => {
           table: 'messages',
           filter: `receiver_id=eq.${userId}`,
         },
-        () => {
+        async (payload) => {
           const boardId = userId;
           if (boardId) {
             // Always refetch all unseen messages
@@ -400,13 +406,27 @@ const BoardDashboard = () => {
               });
             fetchUnread(boardId);
           }
+          // Only send email for INSERT (new message)
+          if (payload.eventType === "INSERT" && boardEmail) {
+            await fetch("https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/send-message-notification", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + import.meta.env.VITE_SUPABASE_ANON_KEY
+              },
+              body: JSON.stringify({
+                email: boardEmail,
+                name: userName
+              })
+            });
+          }
         }
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, userName]);
 
   // Sample community statistics
   const communityStats = {

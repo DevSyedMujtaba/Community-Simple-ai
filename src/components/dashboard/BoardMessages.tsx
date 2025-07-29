@@ -56,6 +56,8 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
 
   // Move fetchConversations to the top level so it's always in scope
   const fetchConversations = async () => {
+    console.log('[fetchConversations] hoaId:', hoaId, 'currentUserId:', currentUserId);
+    console.log('[fetchConversations] residents:', residents);
     if (!hoaId || !currentUserId) return;
     // Fetch all messages for this board member in this HOA
     const { data, error } = await supabase
@@ -68,6 +70,7 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
       console.error('Error fetching conversations:', error);
       return;
     }
+    console.log('[fetchConversations] messages:', data);
     // Build a map of unique conversation partners
     const conversationMap: Record<string, Conversation> = {};
     (data || []).forEach((msg: any) => {
@@ -97,10 +100,14 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
             },
             unreadCount
           };
+        } else {
+          console.log('[fetchConversations] No resident found for userId:', otherUserId);
         }
       }
     });
-    setConversations(Object.values(conversationMap));
+    const conversationsArr = Object.values(conversationMap);
+    console.log('[fetchConversations] conversations:', conversationsArr);
+    setConversations(conversationsArr);
   };
 
   useEffect(() => {
@@ -137,6 +144,7 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
         }
       });
       const filteredReqs = Object.values(latestJoinRequests).filter((req: any) => req.status !== 'rejected');
+      console.log('Filtered Join Requests:', filteredReqs);
       // 4. Map residents for ChatInterface
       const mappedResidents = filteredReqs.map((req: any) => ({
         id: req.profiles?.id || req.user_id,
@@ -148,14 +156,18 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
       }));
       console.log('Mapped Residents:', mappedResidents);
       setResidents(mappedResidents);
+      console.log('[fetchResidents] residents set:', mappedResidents);
+      // Do not call fetchConversations here; let the useEffect below handle it
     };
     fetchResidents();
   }, []);
 
-  // Fetch all conversations for the current user on initial load
+  // Call fetchConversations only when hoaId, currentUserId, and residents are all set
   useEffect(() => {
+    if (hoaId && currentUserId && residents.length > 0) {
     fetchConversations();
-  }, [hoaId, currentUserId, residents, currentUserType]);
+    }
+  }, [hoaId, currentUserId, residents]);
 
   // Debug log: log selectedConversationId whenever it changes
   useEffect(() => {
@@ -182,6 +194,7 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
     }
     if (!boardId || !homeownerId) return;
     // Fetch messages where (sender/receiver are the two participants, in either direction) and hoa_id matches
+    console.log('[BoardMessages][fetchMessagesForConversation] hoaId:', hoaId, 'boardId:', boardId, 'homeownerId:', homeownerId);
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -189,9 +202,10 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
       .or(`and(sender_id.eq.${boardId},receiver_id.eq.${homeownerId}),and(sender_id.eq.${homeownerId},receiver_id.eq.${boardId})`)
       .order('created_at', { ascending: true });
     if (error) {
-      console.error('Error fetching messages:', error);
+      console.error('[BoardMessages][fetchMessagesForConversation] Error fetching messages:', error);
       return;
     }
+    console.log('[BoardMessages][fetchMessagesForConversation] messages:', data);
     // Map messages to the format expected by ChatInterface
     const homeowner = residents.find(u => u.id === homeownerId);
     const mappedMessages: Message[] = (data || []).map((msg: any) => ({
@@ -333,22 +347,23 @@ const BoardMessages = ({ onUnreadCountChange }: BoardMessagesProps) => {
     if (!conversation) return;
     const otherParticipant = conversation.participants.find(p => p.id !== currentUserId);
     if (!otherParticipant) return;
-    const { data, error } = await supabase
-      .from('messages')
-      .insert([
-        {
+    const messagePayload = {
           hoa_id: hoaId,
           sender_id: currentUserId,
           receiver_id: otherParticipant.id,
           content,
           created_at: new Date().toISOString(),
-          isread: false, // Always set isread to false for new messages
-        },
-      ]);
+      isread: false,
+    };
+    console.log('[BoardMessages][handleSendMessage] Inserting message:', messagePayload);
+    const { data, error } = await supabase
+      .from('messages')
+      .insert([messagePayload]);
     if (error) {
-      console.error('Error sending message:', error);
+      console.error('[BoardMessages][handleSendMessage] Error sending message:', error);
       return;
     }
+    console.log('[BoardMessages][handleSendMessage] Message sent, data:', data);
     await fetchMessagesForConversation(conversationId);
   };
 

@@ -169,7 +169,7 @@ const Login = () => {
                 Welcome Back
               </CardTitle>
               <CardDescription className="text-sm sm:text-base text-gray-600">
-                Sign in to your Neighbor.Simpl account
+                Sign in to your Community Simple account
               </CardDescription>
             </CardHeader>
 
@@ -210,30 +210,26 @@ const Login = () => {
                       value={formData.password}
                       onChange={handleInputChange}
                       required
-                      className="pl-10 pr-10 h-11 sm:h-12 text-sm sm:text-base"
+                      className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      tabIndex={-1}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                </div>
-
-                {/* Forgot Password Link */}
-                <div className="text-right">
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium transition"
-                  >
-                    Forgot your password?
-                  </Link>
+                  {/* Forgot password link */}
+                  <div className="text-right mt-1">
+                    <Link
+                      to="/forgot-password"
+                      className="text-xs text-blue-600 hover:underline hover:text-blue-800 font-medium"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                 </div>
 
                 {/* Submit Button */}

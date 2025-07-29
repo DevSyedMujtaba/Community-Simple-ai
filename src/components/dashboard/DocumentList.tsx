@@ -10,6 +10,7 @@ interface Document {
   summary: string;
   size?: number;
   file_url?: string;
+  status?: string;
 }
 
 interface DocumentListProps {
@@ -163,7 +164,8 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
                   ) : (
                     <div className="text-xs sm:text-sm text-gray-500 italic flex items-center w-full">
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      AI summary is being generated...
+                      {document.status === 'processing' ? 'AI summary is being generated...' : 'AI summary is being generated...'}
+                      <span className="ml-1 text-[10px] text-gray-400">(This may take a few moments)</span>
                     </div>
                   )}
                 </div>

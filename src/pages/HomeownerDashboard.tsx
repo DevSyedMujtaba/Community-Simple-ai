@@ -86,6 +86,7 @@ const HomeownerDashboard = () => {
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [joinDialogMessage, setJoinDialogMessage] = useState("");
   const [documentCount, setDocumentCount] = useState(0);
+  const [docRefreshTrigger, setDocRefreshTrigger] = useState(0);
 
   // Add state and city options for filtering
   const [availableStates, setAvailableStates] = useState<string[]>([]);
@@ -505,6 +506,12 @@ const HomeownerDashboard = () => {
   // Real-time subscription for unread badge updates
   useEffect(() => {
     if (!userId) return;
+    let userEmail = null;
+    // Fetch user email once for notification
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      userEmail = user?.email;
+    })();
     const channel = supabase
       .channel("messages-realtime-badge-homeowner")
       .on(
@@ -515,15 +522,29 @@ const HomeownerDashboard = () => {
           table: "messages",
           filter: `receiver_id=eq.${userId}`,
         },
-        () => {
+        async (payload) => {
           fetchUnread(userId);
+          // Only send email for INSERT (new message)
+          if (payload.eventType === "INSERT" && userEmail) {
+            await fetch("https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/send-message-notification", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + import.meta.env.VITE_SUPABASE_ANON_KEY
+              },
+              body: JSON.stringify({
+                email: userEmail,
+                name: userName
+              })
+            });
+          }
         }
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, userName]);
 
   // Fetch notices and set unread count
   useEffect(() => {
@@ -803,7 +824,7 @@ const HomeownerDashboard = () => {
       setLoadingChatDocuments(false);
     };
     fetchChatDocs();
-  }, [approvedMemberships, userId]);
+  }, [approvedMemberships, userId, docRefreshTrigger]);
 
   return (
     <SidebarProvider>
@@ -1124,7 +1145,9 @@ const HomeownerDashboard = () => {
               </>
             )}
 
-            {activeTab === "messages" && <HomeownerMessages />}
+            {activeTab === "messages" && approvedMemberships.length > 0 && (
+              <HomeownerMessages hoaIds={approvedMemberships.map(m => m.hoa_id)} />
+            )}
 
             {activeTab === "notices" && (
               <Card>
@@ -1189,12 +1212,9 @@ const HomeownerDashboard = () => {
                       )}
                     </div>
                     <ChatInterface
+                      hoaId={approvedMemberships[0]?.hoa_id}
+                      hoaIds={(() => { const ids = approvedMemberships.map(m => m.hoa_id); console.log('ChatInterface hoaIds:', ids); return ids; })()}
                       documents={chatDocuments}
-                      hoaId={
-                        approvedMemberships.length > 0
-                          ? approvedMemberships[0]?.hoa_id
-                          : null
-                      }
                     />
                   </CardContent>
                 </Card>
@@ -1240,8 +1260,17 @@ const HomeownerDashboard = () => {
                       <div className="mb-6">
                         <DocumentUpload
                           hoaId={approvedMemberships[0]?.hoa_id}
-                          onDocumentUploaded={() => {
-                            /* TODO: refresh document list after upload */
+                          onDocumentUploaded={(newDocument) => {
+                            // Trigger a refresh of the document list
+                            setDocRefreshTrigger(prev => prev + 1);
+                            // Also trigger a refresh of chat documents
+                            setLoadingChatDocuments(true);
+                            console.log('Document uploaded:', newDocument);
+                            // Show success toast
+                            toast({
+                              title: "Document Uploaded",
+                              description: `${newDocument.file_name} has been uploaded successfully and is being processed.`,
+                            });
                           }}
                         />
                       </div>
@@ -1258,6 +1287,7 @@ const HomeownerDashboard = () => {
                           ? approvedMemberships[0]?.hoa_id
                           : null
                       }
+                      refreshTrigger={docRefreshTrigger}
                     />
                   </CardContent>
                 </Card>

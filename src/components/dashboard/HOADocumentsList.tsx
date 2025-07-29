@@ -22,6 +22,7 @@ interface HOADocumentsListProps {
   hoaName: string;
   onNavigateToChat: () => void;
   hoaId?: string;
+  refreshTrigger?: number;
 }
 
 /**
@@ -29,7 +30,7 @@ interface HOADocumentsListProps {
  * Provides read-only access to official community documents
  * and links to the AI Assistant for document queries.
  */
-const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsListProps) => {
+const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId, refreshTrigger }: HOADocumentsListProps) => {
   // State for real documents
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +48,18 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
     };
     fetchUser();
   }, []);
+
+  // Helper function to transform a raw DB record into the state shape
+  const transformDocument = (doc: any) => ({
+    id: doc.id,
+    name: doc.file_name,
+    uploadDate: doc.uploaded_at,
+    summary: doc.summary || '',
+    size: doc.size_bytes,
+    category: doc.category || 'Guidelines',
+    uploadedBy: doc.profiles ? `${doc.profiles.first_name || ''} ${doc.profiles.last_name || ''}`.trim() || 'Unknown' : 'Unknown',
+    fileUrl: doc.file_url
+  });
 
   // Fetch documents for this HOA
   useEffect(() => {
@@ -66,11 +79,57 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
         (doc.profiles && (doc.profiles.role === 'board' || doc.profiles.role === 'admin')) ||
         (doc.uploader_id === currentUserId)
       );
-      setDocuments(filteredDocs);
+      const transformedDocs = filteredDocs.map(transformDocument);
+      setDocuments(transformedDocs);
       setLoading(false);
     };
     fetchDocs();
-  }, [hoaId, uploadSuccess]);
+  }, [hoaId, uploadSuccess, refreshTrigger]);
+
+  // Real-time subscription for document updates
+  useEffect(() => {
+    if (!hoaId) return;
+
+    const channel = supabase
+      .channel(`documents-realtime-homeowner-${hoaId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen for INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'hoa_documents',
+          filter: `hoa_id=eq.${hoaId}`,
+        },
+        (payload) => {
+          console.log("Homeowner realtime event received:", payload.eventType);
+          
+          // For UPDATE events, update the document immediately
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            const newDoc = payload.new;
+            setDocuments(prev => prev.map(doc => 
+              doc.id === newDoc.id 
+                ? transformDocument(newDoc)
+                : doc
+            ));
+            return; // Don't trigger full refresh for updates
+          }
+          
+          // For INSERT and DELETE events, trigger full refresh
+          setUploadSuccess(prev => prev === "" ? "refresh" : prev);
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log("Homeowner successfully subscribed to document changes");
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error("Homeowner realtime subscription error");
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [hoaId]);
 
   // Handle file input change (from drag-and-drop or click)
   const handleFileInputChange = (e) => {
@@ -97,7 +156,7 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
       return;
     }
     const { data: urlData } = supabase.storage.from('hoa-documents').getPublicUrl(filePath);
-    const { error: dbError } = await supabase.from('hoa_documents').insert([{
+    const { data: insertData, error: dbError } = await supabase.from('hoa_documents').insert([{
       hoa_id: hoaId,
       uploader_id: userId,
       file_name: file.name,
@@ -105,12 +164,21 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
       size_bytes: file.size,
       mime_type: file.type,
       status: 'processing'
-    }]);
+    }]).select();
+    
     if (dbError) {
       setUploadError(dbError.message);
       setUploading(false);
       return;
     }
+
+    // Add the new document optimistically to the list
+    if (insertData && insertData.length > 0) {
+      const newDoc = insertData[0];
+      const transformedDoc = transformDocument(newDoc);
+      setDocuments(prev => [transformedDoc, ...prev]);
+    }
+
     setUploadSuccess("File uploaded successfully!");
     setUploading(false);
     setSelectedFile(null);
@@ -258,13 +326,13 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                       <h4 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                        {document.file_name}
+                        {document.name}
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(document.file_url, '_blank')}
+                          onClick={() => window.open(document.fileUrl, '_blank')}
                           className="text-gray-600 hover:text-gray-900"
                         >
                           <Eye className="h-4 w-4 mr-1" />
@@ -273,7 +341,7 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(document.file_url, '_blank')}
+                          onClick={() => window.open(document.fileUrl, '_blank')}
                           className="text-gray-600 hover:text-gray-900"
                         >
                           <Download className="h-4 w-4 mr-1" />
@@ -285,12 +353,12 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {document.uploaded_at ? new Date(document.uploaded_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''}
+                        {document.uploadDate ? new Date(document.uploadDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''}
                       </div>
-                      {document.size_bytes && (
+                      {document.size && (
                         <div className="flex items-center">
                           <File className="h-4 w-4 mr-1" />
-                          {formatFileSize(document.size_bytes)}
+                          {formatFileSize(document.size)}
                         </div>
                       )}
                       {document.category && (
@@ -301,11 +369,11 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
                         </span>
                       )}
                       <span className="text-xs">
-                        Uploaded by {document.profiles ? `${document.profiles.first_name || ''} ${document.profiles.last_name || ''}`.trim() : 'Board Member'}
+                        Uploaded by {document.uploadedBy}
                       </span>
                     </div>
                     {/* Document Summary (if available) */}
-                    {document.summary && (
+                    {document.summary ? (
                       <div className="bg-green-50 p-4 rounded-lg">
                         <div className="flex items-center mb-2">
                           <div className="bg-green-100 p-1 rounded mr-2">
@@ -321,6 +389,16 @@ const HOADocumentsList = ({ hoaName, onNavigateToChat, hoaId }: HOADocumentsList
                         <p className="text-sm text-green-800 leading-relaxed">
                           {document.summary}
                         </p>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                          <span className="text-sm text-gray-600">
+                            AI summary is being generated...
+                          </span>
+                          <span className="ml-1 text-xs text-gray-400">(This may take a few moments)</span>
+                        </div>
                       </div>
                     )}
                   </div>

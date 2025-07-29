@@ -113,6 +113,62 @@ const Signup = () => {
       alert(profileError.message || 'Profile creation failed');
       return;
     }
+    // Send welcome email
+    try {
+      console.log('[Signup] Sending welcome email to:', formData.email);
+      const resp = await fetch('https://yurteupcbisnkcrtjsbv.supabase.co/functions/v1/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + import.meta.env.VITE_SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          to: formData.email,
+          subject: 'Welcome to HOA Clarity!',
+          html: `
+            <div style="background:#f5faff;padding:0;margin:0;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5faff;padding:0;margin:0;">
+                <tr>
+                  <td align="center">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin:32px 0;">
+                      
+                      <tr>
+                        <td style="padding:0 32px 24px 32px;">
+                          <h1 style="color:#254F70;font-size:2rem;margin-bottom:8px;">Welcome${formData.firstName ? ', ' + formData.firstName : ''}!</h1>
+                          <p style="color:#333;font-size:1.1rem;line-height:1.6;margin:0 0 16px 0;">
+                            Thank you for signing up for <b>HOA Clarity</b>. We're excited to have you on board!
+                          </p>
+                          <div style="margin:32px 0 0 0;">
+                            <a href="https://communitysimple.ai" style="background:#254F70;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-weight:600;display:inline-block;font-size:1rem;">
+                              Visit Your Dashboard
+                            </a>
+                          </div>
+                          <hr style="border:none;border-top:1px solid #e0e7ef;margin:32px 0 16px 0;" />
+                          <p style="color:#888;font-size:0.95rem;margin:0;">
+                            If you have any questions, just reply to this email or contact our support team.<br>
+                            <b>HOA Clarity Team</b>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="color:#b0b0b0;font-size:0.85rem;margin:16px 0 0 0;">&copy; ${new Date().getFullYear()} HOA Clarity. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          `
+        })
+      });
+      console.log('[Signup] Welcome email response status:', resp.status);
+      const respText = await resp.text();
+      console.log('[Signup] Welcome email response body:', respText);
+      if (!resp.ok) {
+        alert('Failed to send welcome email: ' + respText);
+      }
+    } catch (e) {
+      console.error('Failed to send welcome email:', e);
+      alert('Failed to send welcome email: ' + e.message);
+    }
     // Redirect to onboarding based on user type
     window.location.href = `/onboarding/profile?userType=${formData.userType}&user_id=${userId}`;
   };
