@@ -1,7 +1,16 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Eye, Calendar, File, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FileText, Download, Eye, Calendar, File, Loader2, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 interface Document {
   id: string;
@@ -18,6 +27,7 @@ interface DocumentListProps {
   loading: boolean;
   onToggleChat: () => void;
   isChatOpen: boolean;
+  onDeleteDocument?: (documentId: string) => Promise<void>;
 }
 
 /**
@@ -25,7 +35,10 @@ interface DocumentListProps {
  * Displays uploaded documents with summaries and management options
  * Provides document viewing, downloading, and summary display
  */
-const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: DocumentListProps) => {
+const DocumentList = ({ documents, loading, onToggleChat, isChatOpen, onDeleteDocument }: DocumentListProps) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Handle document actions
   const handleViewDocument = (document: Document) => {
@@ -38,6 +51,33 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
     if (doc.file_url) {
       window.open(doc.file_url, '_blank', 'noopener,noreferrer');
     }
+  };
+
+  const handleDeleteClick = (documentId: string, documentName: string) => {
+    setDocumentToDelete({ id: documentId, name: documentName });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (documentToDelete && onDeleteDocument) {
+      setIsDeleting(true);
+      try {
+        await onDeleteDocument(documentToDelete.id);
+        setDeleteDialogOpen(false);
+        setDocumentToDelete(null);
+      } catch (error) {
+        console.error('Error deleting document:', error);
+        // Error is already handled by the parent component
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setDocumentToDelete(null);
+    setIsDeleting(false);
   };
 
   // Format file size
@@ -140,6 +180,24 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
                         <Download className="h-4 w-4 mr-1" />
                         Download
                       </Button>
+                      {onDeleteDocument && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteClick(document.id, document.name)}
+                          className="text-red-600 hover:text-red-900 w-full xs:w-auto"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          {isDeleting ? (
+                            <>
+                              Deleting...
+                              <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                            </>
+                          ) : (
+                            "Delete"
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </div>
                   {/* Document Meta */}
@@ -157,15 +215,19 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
                     <Badge variant="secondary" className="text-xs">PDF Document</Badge>
                   </div>
                   {/* AI Summary */}
-                  {document.summary ? (
+                  {document.summary && document.summary.trim() !== '' ? (
                     <div className="text-xs sm:text-sm text-gray-700 break-words min-w-0 w-full">
                         {document.summary}
                     </div>
-                  ) : (
+                  ) : document.status === 'processing' ? (
                     <div className="text-xs sm:text-sm text-gray-500 italic flex items-center w-full">
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      {document.status === 'processing' ? 'AI summary is being generated...' : 'AI summary is being generated...'}
+                      AI summary is being generated...
                       <span className="ml-1 text-[10px] text-gray-400">(This may take a few moments)</span>
+                    </div>
+                  ) : (
+                    <div className="text-xs sm:text-sm text-gray-500 italic">
+                      No AI summary available
                     </div>
                   )}
                 </div>
@@ -198,6 +260,37 @@ const DocumentList = ({ documents, loading, onToggleChat, isChatOpen }: Document
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{documentToDelete?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelDelete} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

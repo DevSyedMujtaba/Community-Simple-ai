@@ -26,6 +26,8 @@ interface Document {
   uploadDate: string;
   summary: string;
   size?: number;
+  file_url?: string;
+  status?: string;
 }
 
 /**
@@ -60,8 +62,20 @@ const BoardDashboard = () => {
     uploadDate: doc.uploaded_at,
     summary: doc.summary || '',
     size: doc.size_bytes,
-    file_url: doc.file_url
+    file_url: doc.file_url,
+    status: doc.status || 'active' // Assuming a default status
   });
+
+  // Helper function to update a specific document in the state
+  const updateDocumentInState = (documentId: string, updates: Partial<Document>) => {
+    setDocuments(prev => 
+      prev.map(doc => 
+        doc.id === documentId 
+          ? { ...doc, ...updates }
+          : doc
+      )
+    );
+  };
 
   // Effect for fetching documents, triggered by community change or manual refresh
   useEffect(() => {
@@ -75,12 +89,35 @@ const BoardDashboard = () => {
         .eq('hoa_id', myCommunity.id)
         .order('uploaded_at', { ascending: false });
 
+      console.log('Fetched documents from DB:', data); // Debug log
+
       // Only include documents where uploader_id is null or uploader.role is 'board' or 'admin'
       const filteredDocs = (data || []).filter(doc =>
         !doc.uploader_id ||
         (doc.uploader && (doc.uploader.role === 'board' || doc.uploader.role === 'admin'))
       );
-      setDocuments(filteredDocs.map(transformDocument));
+      
+      const transformedDocs = filteredDocs.map(transformDocument);
+      console.log('Transformed documents:', transformedDocs); // Debug log
+      
+      // Update documents state, but preserve existing summaries if they exist
+      setDocuments(prev => {
+        const updatedDocs = transformedDocs.map(newDoc => {
+          const existingDoc = prev.find(doc => doc.id === newDoc.id);
+          // If existing doc has a summary and new doc doesn't, keep the existing summary
+          if (existingDoc && existingDoc.summary && existingDoc.summary.trim() !== '' && 
+              (!newDoc.summary || newDoc.summary.trim() === '')) {
+            return {
+              ...newDoc,
+              summary: existingDoc.summary,
+              status: existingDoc.status
+            };
+          }
+          return newDoc;
+        });
+        return updatedDocs;
+      });
+      
       setLoadingDocs(false);
     };
     fetchDocs();
@@ -96,14 +133,53 @@ const BoardDashboard = () => {
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for INSERT, UPDATE, DELETE
+          event: 'INSERT', // Listen for new document insertions
           schema: 'public',
           table: 'hoa_documents',
           filter: `hoa_id=eq.${myCommunity.id}`,
         },
         (payload) => {
-          console.log("Realtime event received, triggering refresh:", payload.eventType);
-          // Instead of patching state, just increment the counter to trigger a re-fetch.
+          console.log("New document inserted, triggering refresh:", payload.eventType);
+          // Add a small delay to allow processing to complete
+          setTimeout(() => {
+            setDocRefreshTrigger(count => count + 1);
+          }, 1000);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE', // Listen for document updates (like when processing completes)
+          schema: 'public',
+          table: 'hoa_documents',
+          filter: `hoa_id=eq.${myCommunity.id}`,
+        },
+        (payload) => {
+          console.log("Document updated (processing completed), triggering refresh:", payload.eventType);
+          console.log("Update payload:", payload);
+          
+          // Try to update the specific document first
+          if (payload.new && payload.old) {
+            const updatedDoc = transformDocument(payload.new);
+            updateDocumentInState(updatedDoc.id, updatedDoc);
+          } else {
+            // Fallback to full refresh if we can't update specific document
+            setTimeout(() => {
+              setDocRefreshTrigger(count => count + 1);
+            }, 2000); // 2 second delay to ensure processing is complete
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE', // Listen for document deletions
+          schema: 'public',
+          table: 'hoa_documents',
+          filter: `hoa_id=eq.${myCommunity.id}`,
+        },
+        (payload) => {
+          console.log("Document deleted, triggering refresh:", payload.eventType);
           setDocRefreshTrigger(count => count + 1);
         }
       )
@@ -432,7 +508,7 @@ const BoardDashboard = () => {
   const communityStats = {
     totalHomes: 156,
     activeMember: 142,
-    pendingCompliance: 8,
+    pendingCompliance: 0,
     messagesThisWeek: 23,
     pendingRequests: 3
   };
@@ -440,11 +516,76 @@ const BoardDashboard = () => {
   // Handle document upload
   const handleDocumentUploaded = (newDocument: any) => {
     // Use the same transformation to add the document optimistically
-    const transformedDoc = transformDocument(newDocument);
+    const transformedDoc = {
+      ...transformDocument(newDocument),
+      status: 'processing' // Set initial status as processing
+    };
     setDocuments(prev => {
+      // Check if document already exists and has a summary
+      const existingDoc = prev.find(doc => doc.id === transformedDoc.id);
+      if (existingDoc && existingDoc.summary && existingDoc.summary.trim() !== '') {
+        // If document already has a summary, don't override it
+        return prev;
+      }
+      
       const newDocs = [transformedDoc, ...prev.filter(doc => doc.id !== transformedDoc.id)];
       return newDocs.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
     });
+  };
+
+  // Handle document deletion
+  const handleDeleteDocument = async (documentId: string) => {
+    try {
+      // Find the document to get the file_url
+      const documentToDelete = documents.find(doc => doc.id === documentId);
+      if (!documentToDelete) {
+        throw new Error('Document not found');
+      }
+
+      // Delete from storage bucket if file_url exists
+      if (documentToDelete.file_url) {
+        // Extract the file path from the URL
+        const urlParts = documentToDelete.file_url.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const filePath = `hoa-documents/${myCommunity?.id}/${fileName}`;
+        
+        const { error: storageError } = await supabase.storage
+          .from('hoa-documents')
+          .remove([filePath]);
+        
+        if (storageError) {
+          console.error('Error deleting from storage:', storageError);
+          // Continue with database deletion even if storage deletion fails
+        }
+      }
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('hoa_documents')
+        .delete()
+        .eq('id', documentId);
+
+      if (dbError) {
+        throw new Error(`Database error: ${dbError.message}`);
+      }
+
+      // Remove from local state
+      setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+
+      toast({
+        title: 'Document deleted',
+        description: 'The document has been successfully deleted.',
+        variant: 'default',
+      });
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete document. Please try again.',
+        variant: 'destructive',
+      });
+      throw error; // Re-throw to be handled by the component
+    }
   };
 
   const handleToggleChat = () => {
@@ -656,6 +797,7 @@ const BoardDashboard = () => {
                           loading={loadingDocs} 
                           onToggleChat={handleToggleChat}
                           isChatOpen={isChatOpen}
+                          onDeleteDocument={handleDeleteDocument}
                         />
                       </CardContent>
                     </Card>
