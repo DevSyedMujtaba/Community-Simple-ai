@@ -4,6 +4,7 @@ import logo2 from '../../public/logo2.png';
 import dottedCircle from '../../public/dotted-circle.png';
 import type { JSX } from 'react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import img2 from '../../public/img2.jpeg';
 import img3 from '../../public/img3.jpg';
 import img4 from '../../public/img4.jpg';
@@ -18,6 +19,7 @@ import img5 from '../../public/img5.jpg';
  */
 const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Smooth scroll function for anchor links
   const scrollToSection = (sectionId: string) => {
@@ -55,7 +57,7 @@ const Index = () => {
           <button onClick={() => scrollToSection('testimonials')} className="text-gray-700 hover:text-[#254F70] font-medium transition">Testimonials</button>
         </div>
         {/* Desktop CTA Button */}
-        <button onClick={() => scrollToSection('get-started')} className="ml-auto md:ml-0 bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
+        <button onClick={() => navigate('/login')} className="ml-auto md:ml-0 bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm hidden md:inline-block">
           Get Started Now
         </button>
         {/* Hamburger Icon for Mobile */}
@@ -89,7 +91,7 @@ const Index = () => {
                 <button onClick={() => { scrollToSection('features'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">Features</button>
                 <button onClick={() => { scrollToSection('who-we-serve'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">Who We Serve</button>
                 <button onClick={() => { scrollToSection('testimonials'); setMobileMenuOpen(false); }} className="text-gray-700 hover:text-[#254F70] font-medium transition text-left">Testimonials</button>
-                <button onClick={() => { scrollToSection('get-started'); setMobileMenuOpen(false); }} className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center">
+                <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-5 py-2 rounded-md shadow transition text-sm mt-4 text-center">
                   Get Started Now
                 </button>
               </nav>
@@ -240,6 +242,120 @@ const Index = () => {
             </div>
             <div className="font-semibold text-lg mb-1 text-gray-900">Accessible anytime</div>
             <div className="text-gray-500 text-sm">Desktop and mobile optimized</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Video Section */}
+      <section className="w-full bg-white py-16 flex flex-col items-center justify-center">
+        <div className="w-full max-w-6xl px-4">
+          <div className="text-center mb-12">
+            <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">See It In Action</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center"> After "practical tools." So you can get back to what matters</h2>
+            {/* <p className="text-gray-600 text-sm sm:text-base mb-8 text-center max-w-2xl mx-auto">
+              After "practical tools." So you can get back to what matters*
+            </p> */}
+          </div>
+          
+          {/* Video Container */}
+          <div className="relative w-full max-w-6xl mx-auto">
+            <div className="aspect-video bg-gray-100 rounded-lg shadow-lg overflow-hidden">
+              {/* Video Thumbnail with Play Button */}
+              <div className="relative w-full h-full">
+                {/* Thumbnail Background */}
+                <div id="video-thumbnail" className="w-full h-full bg-gradient-to-br from-[#254F70] to-[#1e3a56] flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </div>
+                    <p className="text-xl font-bold mb-2">Community Simple</p>
+                    <p className="text-sm opacity-90">An AI - Powered HOA Compliance Assistant</p>
+                  </div>
+                </div>
+                
+                {/* Clickable Overlay */}
+                <div id="play-button-overlay" className="absolute inset-0 cursor-pointer" onClick={() => {
+                  const thumbnail = document.getElementById('video-thumbnail');
+                  const video = document.getElementById('demo-video') as HTMLVideoElement;
+                  const playButtonOverlay = document.getElementById('play-button-overlay');
+                  
+                  if (thumbnail && video && playButtonOverlay) {
+                    thumbnail.style.display = 'none';
+                    playButtonOverlay.style.display = 'none';
+                    video.style.display = 'block';
+                    video.play();
+                  }
+                }}></div>
+                
+                {/* Hidden Video Player */}
+                <video
+                  id="demo-video"
+                  className="w-full h-full object-cover hidden"
+                  muted
+                  loop
+                  playsInline
+                  controls={false}
+                  preload="none"
+                  onPlay={() => {
+                    const pauseButton = document.getElementById('pause-button');
+                    if (pauseButton) {
+                      pauseButton.style.display = 'flex';
+                    }
+                  }}
+                  onPause={() => {
+                    const pauseButton = document.getElementById('pause-button');
+                    if (pauseButton) {
+                      pauseButton.style.display = 'none';
+                    }
+                  }}
+                >
+                  <source src="/VIDEO for Community Simple WireFrame.mov" type="video/quicktime" />
+                  <source src="/VIDEO for Community Simple WireFrame.mov" type="video/mp4" />
+                  <source src="/VIDEO for Community Simple WireFrame.mov" type="video/x-msvideo" />
+                  Your browser does not support the video tag.
+                </video>
+                
+                {/* Pause Button (hidden initially) */}
+                <div 
+                  id="pause-button" 
+                  className="absolute top-4 right-4 hidden"
+                  style={{ display: 'none' }}
+                >
+                  <button 
+                    onClick={() => {
+                      const video = document.getElementById('demo-video') as HTMLVideoElement;
+                      const thumbnail = document.getElementById('video-thumbnail');
+                      const playButtonOverlay = document.getElementById('play-button-overlay');
+                      const pauseButton = document.getElementById('pause-button');
+                      
+                      if (video && thumbnail && playButtonOverlay && pauseButton) {
+                        video.pause();
+                        video.currentTime = 0; // Reset to beginning
+                        video.style.display = 'none';
+                        thumbnail.style.display = 'flex';
+                        playButtonOverlay.style.display = 'block';
+                        pauseButton.style.display = 'none';
+                      }
+                    }}
+                    className="bg-black bg-opacity-70 hover:bg-opacity-90 text-white rounded-full p-2 transition-all duration-300"
+                    title="Stop Video"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 6h12v12H6z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Video Description */}
+            <div className="mt-6 text-center">
+              <p className="text-gray-600 text-sm">
+                Watch how homeowners and board members use Community Simple to navigate HOA compliance effortlessly
+              </p>
+            </div>
           </div>
         </div>
       </section>

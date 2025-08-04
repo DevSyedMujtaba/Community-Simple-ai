@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { User, Mail, Phone, MapPin, Building2, Home, ArrowLeft, CheckCircle } from "lucide-react";
 import logo2 from '../../../public/logo2.png';
 import { supabase } from "@/lib/supabaseClient";
+import { getStates, getCitiesForState } from "@/lib/usStatesAndCities";
 
 /**
  * Profile Setup Page Component
@@ -44,6 +45,15 @@ const ProfileSetup = () => {
     contactEmail: '',
     contactPhone: ''
   });
+
+  // Get states list
+  const states = getStates();
+  
+  // Get cities for selected state (homeowner)
+  const homeownerCities = getCitiesForState(formData.state);
+  
+  // Get cities for selected HOA state (board member)
+  const hoaCities = getCitiesForState(formData.hoaState);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -74,7 +84,10 @@ const ProfileSetup = () => {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
+      // Clear city when state changes
+      ...(name === 'state' && { city: '' }),
+      ...(name === 'hoaState' && { hoaCity: '' })
     }));
   };
 
@@ -164,9 +177,9 @@ const ProfileSetup = () => {
         phone: '(555) 987-6543',
         hoaName: 'Sunrise Valley HOA',
         hoaAddress: '456 Valley Drive',
-        hoaCity: 'Los Angeles',
-        hoaState: 'California',
-        hoaZipCode: '90210',
+        hoaCity: 'Seattle',
+        hoaState: 'Washington',
+        hoaZipCode: '98101',
         totalUnits: '156',
         boardPosition: 'President',
         contactEmail: 'board@sunrisevalley.com',
@@ -175,16 +188,7 @@ const ProfileSetup = () => {
     }
   };
 
-  const states = [
-    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
-    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
-    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-    'Wisconsin', 'Wyoming'
-  ];
+
 
   const propertyTypes = [
     'Single Family Home',
@@ -401,21 +405,6 @@ const ProfileSetup = () => {
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="city" className="text-sm font-medium text-gray-700">
-                          City
-                        </Label>
-                        <Input
-                          id="city"
-                          name="city"
-                          type="text"
-                          placeholder="City"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          className="h-11 sm:h-12 text-sm sm:text-base"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
                         <Label htmlFor="state" className="text-sm font-medium text-gray-700">
                           State
                         </Label>
@@ -426,6 +415,22 @@ const ProfileSetup = () => {
                           <SelectContent>
                             {states.map((state) => (
                               <SelectItem key={state} value={state}>{state}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="city" className="text-sm font-medium text-gray-700">
+                          City
+                        </Label>
+                        <Select value={formData.city} onValueChange={(value) => handleSelectChange('city', value)}>
+                          <SelectTrigger className="h-11 sm:h-12 text-sm sm:text-base" disabled={!formData.state}>
+                            <SelectValue placeholder={formData.state ? "Select city" : "Select state first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {homeownerCities.map((city) => (
+                              <SelectItem key={city} value={city}>{city}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -508,31 +513,32 @@ const ProfileSetup = () => {
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="hoaCity" className="text-sm font-medium text-gray-700">
-                          City
-                        </Label>
-                        <Input
-                          id="hoaCity"
-                          name="hoaCity"
-                          type="text"
-                          placeholder="City"
-                          value={formData.hoaCity}
-                          onChange={handleInputChange}
-                          className="h-11 sm:h-12 text-sm sm:text-base"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
                         <Label htmlFor="hoaState" className="text-sm font-medium text-gray-700">
                           State
                         </Label>
                         <Select value={formData.hoaState} onValueChange={(value) => handleSelectChange('hoaState', value)}>
                           <SelectTrigger className="h-11 sm:h-12 text-sm sm:text-base">
-                            <SelectValue placeholder="State" />
+                            <SelectValue placeholder="Select state" />
                           </SelectTrigger>
                           <SelectContent>
                             {states.map((state) => (
                               <SelectItem key={state} value={state}>{state}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="hoaCity" className="text-sm font-medium text-gray-700">
+                          City
+                        </Label>
+                        <Select value={formData.hoaCity} onValueChange={(value) => handleSelectChange('hoaCity', value)}>
+                          <SelectTrigger className="h-11 sm:h-12 text-sm sm:text-base" disabled={!formData.hoaState}>
+                            <SelectValue placeholder={formData.hoaState ? "Select city" : "Select state first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {hoaCities.map((city) => (
+                              <SelectItem key={city} value={city}>{city}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

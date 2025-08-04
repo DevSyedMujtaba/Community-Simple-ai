@@ -1145,8 +1145,41 @@ const HomeownerDashboard = () => {
               </>
             )}
 
-            {activeTab === "messages" && approvedMemberships.length > 0 && (
-              <HomeownerMessages hoaIds={approvedMemberships.map(m => m.hoa_id)} />
+            {activeTab === "messages" && (
+              <>
+                {approvedMemberships.length > 0 ? (
+                  <HomeownerMessages hoaIds={approvedMemberships.map(m => m.hoa_id)} />
+                ) : (
+                  <Card>
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="flex items-center text-lg sm:text-xl">
+                        <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-[#254F70] flex-shrink-0" />
+                        Messages
+                      </CardTitle>
+                      <CardDescription className="text-sm sm:text-base">
+                        Communicate with your HOA board and other community members.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="text-center py-12">
+                        <MessageSquare className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          You haven't joined any community yet
+                        </h3>
+                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                          To access messages and communicate with your HOA board, you'll need to join a community first.
+                        </p>
+                        <button
+                          onClick={() => setActiveTab("join-hoa")}
+                          className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-6 py-3 rounded-md shadow transition"
+                        >
+                          Join a Community
+                        </button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
             )}
 
             {activeTab === "notices" && (
@@ -1170,9 +1203,20 @@ const HomeownerDashboard = () => {
                       onUnreadCountChange={setUnreadNotices}
                     />
                   ) : (
-                    <div className="text-center text-gray-600 mt-8">
-                      You are not a member of any community yet. Please join a
-                      community to see notices.
+                    <div className="text-center py-12">
+                      <Bell className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        You haven't joined any community yet
+                      </h3>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        To access notices and stay updated with your HOA board, you'll need to join a community first.
+                      </p>
+                      <button
+                        onClick={() => setActiveTab("join-hoa")}
+                        className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-6 py-3 rounded-md shadow transition"
+                      >
+                        Join a Community
+                      </button>
                     </div>
                   )}
                 </CardContent>
@@ -1255,40 +1299,50 @@ const HomeownerDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    {/* Homeowner Upload Button - only show if user is a member of at least one HOA */}
-                    {approvedMemberships.length > 0 && (
-                      <div className="mb-6">
-                        <DocumentUpload
+                    {approvedMemberships.length > 0 ? (
+                      <>
+                        {/* Homeowner Upload Button - only show if user is a member of at least one HOA */}
+                        <div className="mb-6">
+                          <DocumentUpload
+                            hoaId={approvedMemberships[0]?.hoa_id}
+                            onDocumentUploaded={(newDocument) => {
+                              // Trigger a refresh of the document list
+                              setDocRefreshTrigger(prev => prev + 1);
+                              // Also trigger a refresh of chat documents
+                              setLoadingChatDocuments(true);
+                              console.log('Document uploaded:', newDocument);
+                              // Show success toast
+                              toast({
+                                title: "Document Uploaded",
+                                description: `${newDocument.file_name} has been uploaded successfully and is being processed.`,
+                              });
+                            }}
+                          />
+                        </div>
+                        <HOADocumentsList
+                          hoaName={approvedMemberships[0]?.hoa_communities?.name}
+                          onNavigateToChat={() => setActiveTab("chat")}
                           hoaId={approvedMemberships[0]?.hoa_id}
-                          onDocumentUploaded={(newDocument) => {
-                            // Trigger a refresh of the document list
-                            setDocRefreshTrigger(prev => prev + 1);
-                            // Also trigger a refresh of chat documents
-                            setLoadingChatDocuments(true);
-                            console.log('Document uploaded:', newDocument);
-                            // Show success toast
-                            toast({
-                              title: "Document Uploaded",
-                              description: `${newDocument.file_name} has been uploaded successfully and is being processed.`,
-                            });
-                          }}
+                          refreshTrigger={docRefreshTrigger}
                         />
+                      </>
+                    ) : (
+                      <div className="text-center py-12">
+                        <FileText className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          You haven't joined any community yet
+                        </h3>
+                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                          To access HOA documents and community guidelines, you'll need to join a community first.
+                        </p>
+                        <button
+                          onClick={() => setActiveTab("join-hoa")}
+                          className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-6 py-3 rounded-md shadow transition"
+                        >
+                          Join a Community
+                        </button>
                       </div>
                     )}
-                    <HOADocumentsList
-                      hoaName={
-                        approvedMemberships.length > 0
-                          ? approvedMemberships[0]?.hoa_communities?.name
-                          : "Select HOA"
-                      }
-                      onNavigateToChat={() => setActiveTab("chat")}
-                      hoaId={
-                        approvedMemberships.length > 0
-                          ? approvedMemberships[0]?.hoa_id
-                          : null
-                      }
-                      refreshTrigger={docRefreshTrigger}
-                    />
                   </CardContent>
                 </Card>
               </div>
@@ -1313,9 +1367,20 @@ const HomeownerDashboard = () => {
                     approvedMemberships[0]?.hoa_id ? (
                       <ComplianceAlerts hoaId={approvedMemberships[0].hoa_id} />
                     ) : (
-                      <div className="text-center text-gray-600 mt-8">
-                        You are not a member of any community yet. Please join a
-                        community to see compliance alerts.
+                      <div className="text-center py-12">
+                        <AlertCircle className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          You haven't joined any community yet
+                        </h3>
+                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                          To access compliance alerts and stay informed about community rules, you'll need to join a community first.
+                        </p>
+                        <button
+                          onClick={() => setActiveTab("join-hoa")}
+                          className="bg-[#254F70] hover:bg-[#1e3a56] text-white font-semibold px-6 py-3 rounded-md shadow transition"
+                        >
+                          Join a Community
+                        </button>
                       </div>
                     )}
                   </CardContent>

@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, Users, Search, Filter, Calendar, MapPin, Mail, Phone } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabaseClient";
+import { getStates, getCitiesForState } from "@/lib/usStatesAndCities";
 interface HOAMember {
   id: string;
   name: string;
@@ -45,112 +47,7 @@ interface HOAUsersResponse {
   users: HOAUser[];
 }
 
-// Add US states and sample cities mapping at the top of the file (after imports)
-const US_STATES = [
-  { code: 'AL', name: 'Alabama' },
-  { code: 'AK', name: 'Alaska' },
-  { code: 'AZ', name: 'Arizona' },
-  { code: 'AR', name: 'Arkansas' },
-  { code: 'CA', name: 'California' },
-  { code: 'CO', name: 'Colorado' },
-  { code: 'CT', name: 'Connecticut' },
-  { code: 'DE', name: 'Delaware' },
-  { code: 'FL', name: 'Florida' },
-  { code: 'GA', name: 'Georgia' },
-  { code: 'HI', name: 'Hawaii' },
-  { code: 'ID', name: 'Idaho' },
-  { code: 'IL', name: 'Illinois' },
-  { code: 'IN', name: 'Indiana' },
-  { code: 'IA', name: 'Iowa' },
-  { code: 'KS', name: 'Kansas' },
-  { code: 'KY', name: 'Kentucky' },
-  { code: 'LA', name: 'Louisiana' },
-  { code: 'ME', name: 'Maine' },
-  { code: 'MD', name: 'Maryland' },
-  { code: 'MA', name: 'Massachusetts' },
-  { code: 'MI', name: 'Michigan' },
-  { code: 'MN', name: 'Minnesota' },
-  { code: 'MS', name: 'Mississippi' },
-  { code: 'MO', name: 'Missouri' },
-  { code: 'MT', name: 'Montana' },
-  { code: 'NE', name: 'Nebraska' },
-  { code: 'NV', name: 'Nevada' },
-  { code: 'NH', name: 'New Hampshire' },
-  { code: 'NJ', name: 'New Jersey' },
-  { code: 'NM', name: 'New Mexico' },
-  { code: 'NY', name: 'New York' },
-  { code: 'NC', name: 'North Carolina' },
-  { code: 'ND', name: 'North Dakota' },
-  { code: 'OH', name: 'Ohio' },
-  { code: 'OK', name: 'Oklahoma' },
-  { code: 'OR', name: 'Oregon' },
-  { code: 'PA', name: 'Pennsylvania' },
-  { code: 'RI', name: 'Rhode Island' },
-  { code: 'SC', name: 'South Carolina' },
-  { code: 'SD', name: 'South Dakota' },
-  { code: 'TN', name: 'Tennessee' },
-  { code: 'TX', name: 'Texas' },
-  { code: 'UT', name: 'Utah' },
-  { code: 'VT', name: 'Vermont' },
-  { code: 'VA', name: 'Virginia' },
-  { code: 'WA', name: 'Washington' },
-  { code: 'WV', name: 'West Virginia' },
-  { code: 'WI', name: 'Wisconsin' },
-  { code: 'WY', name: 'Wyoming' },
-];
 
-const US_CITIES: { [key: string]: string[] } = {
-  AL: ['Montgomery'],
-  AK: ['Juneau'],
-  AZ: ['Phoenix'],
-  AR: ['Little Rock'],
-  CA: ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento'],
-  CO: ['Denver'],
-  CT: ['Hartford'],
-  DE: ['Dover'],
-  FL: ['Miami', 'Orlando', 'Tampa', 'Jacksonville', 'Tallahassee'],
-  GA: ['Atlanta'],
-  HI: ['Honolulu'],
-  ID: ['Boise'],
-  IL: ['Chicago', 'Springfield', 'Naperville', 'Peoria'],
-  IN: ['Indianapolis'],
-  IA: ['Des Moines'],
-  KS: ['Topeka'],
-  KY: ['Frankfort'],
-  LA: ['Baton Rouge'],
-  ME: ['Augusta'],
-  MD: ['Annapolis'],
-  MA: ['Boston'],
-  MI: ['Lansing'],
-  MN: ['Saint Paul'],
-  MS: ['Jackson'],
-  MO: ['Jefferson City'],
-  MT: ['Helena'],
-  NE: ['Lincoln'],
-  NV: ['Carson City'],
-  NH: ['Concord'],
-  NJ: ['Trenton'],
-  NM: ['Santa Fe'],
-  NY: ['New York City', 'Buffalo', 'Rochester', 'Albany'],
-  NC: ['Raleigh'],
-  ND: ['Bismarck'],
-  OH: ['Columbus'],
-  OK: ['Oklahoma City'],
-  OR: ['Salem'],
-  PA: ['Harrisburg'],
-  RI: ['Providence'],
-  SC: ['Columbia'],
-  SD: ['Pierre'],
-  TN: ['Nashville'],
-  TX: ['Houston', 'Dallas', 'Austin', 'San Antonio'],
-  UT: ['Salt Lake City'],
-  VT: ['Montpelier'],
-  VA: ['Richmond'],
-  WA: ['Olympia'],
-  WV: ['Charleston'],
-  WI: ['Madison'],
-  WY: ['Cheyenne'],
-};
 
 /**
  * HOA Management Component for Admin Dashboard
@@ -171,7 +68,12 @@ const HOAManagement = () => {
     contact_phone: "",
     description: ""
   });
-  const [cityOptions, setCityOptions] = useState<string[]>([]);
+  
+  // Get states list
+  const states = getStates();
+  
+  // Get cities for selected state
+  const cities = getCitiesForState(communityForm.state);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [accessToken, setAccessToken] = useState("");
@@ -407,7 +309,21 @@ const HOAManagement = () => {
 
   const handleCommunityInput = (e) => {
     const { name, value } = e.target;
-    setCommunityForm((prev) => ({ ...prev, [name]: value }));
+    setCommunityForm((prev) => ({ 
+      ...prev, 
+      [name]: value,
+      // Clear city when state changes
+      ...(name === 'state' && { city: '' })
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setCommunityForm(prev => ({
+      ...prev,
+      [name]: value,
+      // Clear city when state changes
+      ...(name === 'state' && { city: '' })
+    }));
   };
 
   const handleCommunitySubmit = async (e) => {
@@ -454,22 +370,7 @@ const HOAManagement = () => {
     }
   };
 
-  // Update city options when state changes
-  useEffect(() => {
-    // Find the state code for the selected state name
-    const selectedStateObj = US_STATES.find(s => s.name === communityForm.state);
-    const stateCode = selectedStateObj ? selectedStateObj.code : null;
-    if (stateCode && US_CITIES[stateCode]) {
-      setCityOptions(US_CITIES[stateCode]);
-      // If the current city is not in the new options, default to the first city
-      if (!US_CITIES[stateCode].includes(communityForm.city)) {
-        setCommunityForm((prev) => ({ ...prev, city: US_CITIES[stateCode][0] || "" }));
-      }
-    } else {
-      setCityOptions([]);
-      setCommunityForm((prev) => ({ ...prev, city: "" }));
-    }
-  }, [communityForm.state]);
+
 
   // Remove the static hoas array and related logic
   // Only show the board member's own community in the list
@@ -627,34 +528,29 @@ const HOAManagement = () => {
                 </div>
                 <div>
                   <Label>State</Label>
-                  <select
-                    name="state"
-                    value={communityForm.state}
-                    onChange={handleCommunityInput}
-                    required
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  >
-                    <option value="" disabled>Select a state</option>
-                    {US_STATES.map((state) => (
-                      <option key={state.code} value={state.name}>{state.name}</option>
-                    ))}
-                  </select>
+                  <Select value={communityForm.state} onValueChange={(value) => handleSelectChange('state', value)}>
+                    <SelectTrigger className="h-11 sm:h-12 text-sm sm:text-base">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {states.map((state) => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label>City</Label>
-                  <select
-                    name="city"
-                    value={communityForm.city}
-                    onChange={handleCommunityInput}
-                    required
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                    disabled={!communityForm.state || cityOptions.length === 0}
-                  >
-                    <option value="" disabled>Select a city</option>
-                    {cityOptions.map((city) => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                  </select>
+                  <Select value={communityForm.city} onValueChange={(value) => handleSelectChange('city', value)}>
+                    <SelectTrigger className="h-11 sm:h-12 text-sm sm:text-base" disabled={!communityForm.state}>
+                      <SelectValue placeholder={communityForm.state ? "Select city" : "Select state first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={city} value={city}>{city}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label>Address</Label>
