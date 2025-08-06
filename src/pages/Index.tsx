@@ -247,22 +247,20 @@ const Index = () => {
       </section>
 
       {/* Video Section */}
-      <section className="w-full bg-white py-16 flex flex-col items-center justify-center">
+      {/* <section className="w-full bg-white py-16 flex flex-col items-center justify-center">
         <div className="w-full max-w-6xl px-4">
           <div className="text-center mb-12">
             <span className="uppercase text-xs font-semibold text-[#254F70] mb-3 tracking-wide text-center block">See It In Action</span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center"> After "practical tools." So you can get back to what matters</h2>
-            {/* <p className="text-gray-600 text-sm sm:text-base mb-8 text-center max-w-2xl mx-auto">
-              After "practical tools." So you can get back to what matters*
-            </p> */}
-          </div>
+            
+          </div> */}
           
           {/* Video Container */}
-          <div className="relative w-full max-w-6xl mx-auto">
+          {/* <div className="relative w-full max-w-6xl mx-auto">
             <div className="aspect-video bg-gray-100 rounded-lg shadow-lg overflow-hidden">
-              {/* Video Thumbnail with Play Button */}
+              
               <div className="relative w-full h-full">
-                {/* Thumbnail Background */}
+                
                 <div id="video-thumbnail" className="w-full h-full bg-gradient-to-br from-[#254F70] to-[#1e3a56] flex items-center justify-center">
                   <div className="text-center text-white">
                     <div className="w-16 h-16 mx-auto mb-4 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -273,10 +271,10 @@ const Index = () => {
                     <p className="text-xl font-bold mb-2">Community Simple</p>
                     <p className="text-sm opacity-90">An AI - Powered HOA Compliance Assistant</p>
                   </div>
-                </div>
+                </div> */}
                 
                 {/* Clickable Overlay */}
-                <div id="play-button-overlay" className="absolute inset-0 cursor-pointer" onClick={() => {
+                {/* <div id="play-button-overlay" className="absolute inset-0 cursor-pointer" onClick={() => {
                   const thumbnail = document.getElementById('video-thumbnail');
                   const video = document.getElementById('demo-video') as HTMLVideoElement;
                   const playButtonOverlay = document.getElementById('play-button-overlay');
@@ -287,10 +285,10 @@ const Index = () => {
                     video.style.display = 'block';
                     video.play();
                   }
-                }}></div>
+                }}></div> */}
                 
                 {/* Hidden Video Player */}
-                <video
+                {/* <video
                   id="demo-video"
                   className="w-full h-full object-cover hidden"
                   muted
@@ -315,10 +313,10 @@ const Index = () => {
                   <source src="/VIDEO for Community Simple WireFrame.mov" type="video/mp4" />
                   <source src="/VIDEO for Community Simple WireFrame.mov" type="video/x-msvideo" />
                   Your browser does not support the video tag.
-                </video>
+                </video> */}
                 
                 {/* Pause Button (hidden initially) */}
-                <div 
+                {/* <div 
                   id="pause-button" 
                   className="absolute top-4 right-4 hidden"
                   style={{ display: 'none' }}
@@ -348,17 +346,17 @@ const Index = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </div> */}
             
             {/* Video Description */}
-            <div className="mt-6 text-center">
+            {/* <div className="mt-6 text-center">
               <p className="text-gray-600 text-sm">
                 Watch how homeowners and board members use Community Simple to navigate HOA compliance effortlessly
               </p>
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Powerful Features Section */}
       <section className="w-full flex flex-col md:flex-row items-center justify-center px-4 py-16 bg-white gap-8 md:gap-16">
